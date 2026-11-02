@@ -418,9 +418,9 @@ straight from a branch with no build step:
    then pick the branch that holds this code (`main`), folder
    **`/ (root)`**, and press **Save**.
 3. After a minute or two the site is live:
-   * <https://ram8o211.github.io/Potion-Brewer-Claude-/> — the game straight
+   * <https://ram8o211.github.io/potion-brewer-studio/> — the game straight
      from the source modules;
-   * <https://ram8o211.github.io/Potion-Brewer-Claude-/dist/> — the
+   * <https://ram8o211.github.io/potion-brewer-studio/dist/> — the
      optimised production build (one bundled script, fully precached for
      offline play). This is the one to share or install on a phone.
 

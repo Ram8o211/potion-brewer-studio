@@ -1,34 +1,47 @@
-# Art Studio validation — 2026-11-02
+# Integrated Art Studio validation
 
-Branch: `feature/complete-procedural-art-studio`. This report validates the first component/pixel authoring tranche and ingredient-palette runtime bridge, not the complete master task. Refer to [delivery limits and continuation instructions](ART_STUDIO.md#remaining-implementation-not-delivered).
+This report covers the completed native-editor integration, version 2 project format and the worker-enabled production package. The [first-tranche report](ART_STUDIO_V1_VALIDATION.md) is retained as history, not the current readiness result.
 
-- `npm run typecheck`: passed after explicit tuple/return annotations for pre-existing animal fixtures. No assertions were removed or weakened.
-- `npm test`: **228 passed**, zero failed/skipped (142.8 s on the final run). Focused rerun of Studio and affected animal fixture suites: **31 passed**. The Studio's nine pure-engine tests cover validation, graph construction, deterministic seeds, anchors/growth/locks, weighted choice/exclusion/budgets, correction scopes, alpha/erase, transforms/history, runtime invariants and PNG header bounds.
-- `npm run build`: passed; 135 modules bundled through the existing build script. No new dependencies. The editor adds approximately 22 KB gzip to the JavaScript bundle in this build.
-- Focused Studio Playwright: **8 passed** across desktop and phone-portrait emulation. Real pointer gestures exercise drawing, selection/extraction, attachment controls, undo/redo, stage/seed editing, file downloads/uploads, IndexedDB recovery, temporary preview and persisted apply/revert, zoom coordinates, gesture cancellation and remembered panel visibility.
-- Production offline Playwright: **2 passed**, including a new bundled-Studio test with the HTTP server stopped during drawing and project save/reopen. This also checks that no gameplay save was created.
-- `PW_CHROMIUM=/usr/bin/chromium npm run bench`: passed, including 365 colony days, 730 doses, physics, desktop/mobile frame timing and a 90-second memory soak plus ten menu/shop round trips. Fixed the benchmark's stale living-subject list: one dose can kill a rabbit, so the next dose must select from the updated living population. This is a benchmark change, not a simulation change.
-- `node scripts/studio-bench.mjs`: 124 instances, 100 measured generations; median **4.984 ms**, p95 **23.277 ms** on this shared executor. Browser regeneration + viewport drawing for the same 124-instance construction, 30 measured samples: desktop **3.3 / 22.5 ms** median/p95; phone emulation with 4× CPU throttle **11.5 / 48.1 ms**. See [structured measurements](art-studio-performance.json).
+| Check | Outcome |
+| --- | --- |
+| `npm run typecheck` | Passed, including editor modules and existing tests |
+| `npm test` | **238 passed**, 0 failed/cancelled/skipped; 135.6 s |
+| `npm run build` | Passed; main application + environment worker, versioned precache and ZIP |
+| Full `npm run test:browser` | **140 passed**, 0 failed/skipped/flaky; one uninterrupted 25.4-minute run |
+| Final focused editor/offline run | **18 passed**, desktop, phone and offline production |
+| Native domain unit checks | **9 passed**, including migration, actual graph-backed frames/fragments, terrain masks, anatomy, visual/physical separation, proposal freshness, mounting conventions and localized lights |
+| Actual material pixels | Gas tint verified in the FluidRenderer's RGBA output; renderer remains attached after property changes |
+| Worker/offline | Environment composition runs through the actual module worker after the HTTP server is stopped; fallback was not counted as worker success |
+| Manual functional checks | Native growth playback changes stages; a text world seed (`amber-hollow`) reaches the composed scene |
+| `npm run bench` | Passed: physics, 365 colony days / 730 doses, browser profiles, 90-second memory soak, ten menu/shop round trips |
+| Release archive | CRCs pass; every ZIP entry matches `dist/`, including `studio-worker.js` |
 
-**Full browser coverage: 132 collected cases, 130 passed, 2 failed, 0 unrun**, combining the interrupted full run, focused final additions and the 18-case resumed run. This is not reported as one uninterrupted green run. See the [per-case result record](art-studio-browser-results.json). One existing desktop integration case (`a day dawns closed; the order card says what it takes and where to find it`) expects `.tech-card` with “Strong and compact” and fails because that element is absent. A targeted run against the untouched onboarding copy reproduced the same assertion failure, with the same seed and viewport. This is a confirmed baseline failure; its assertion is retained.
+[Per-case browser outcomes](art-studio-browser-results.json) come from the full runner's current JSON report. Focused runs used separate output directories and did not overwrite it. The final focused run follows editor-only worker/lifecycle/world-seed refinements; no interrupted or zero-test execution is reported as passed.
 
-Performance measurements were taken with other regression processes on the shared executor, using software rendering. Existing game benchmarks ranged from roughly 33–53 fps on desktop, and about 7–24 fps for the throttled phone scenarios; the ten-rabbit hutch was about 7–8 fps. These measurements do **not** establish smooth gameplay on physical phones or prove a performance improvement. They are recorded as limitations, not hidden by changing assertions or throttling settings.
+The two original browser failures are resolved. Explicit `techniques` passed to commission generation were being silently discarded when a candidate plan could not support them. The generator now retries the candidate instead, preserving the requested constraint. A new headless regression test and the unchanged desktop/phone browser assertions pass. Normal commission generation without forced techniques is unchanged.
 
-## Reproduction
+## Coverage
 
-Use Node >=20, `npm ci`, and the pinned Playwright browser, or the existing repository-supported `PW_CHROMIUM=/usr/bin/chromium` override. The normal dev command is `npm run dev`. Full browser results, screenshots and retained traces are generated under ignored `test-results/`. The focused Studio and bundled offline checks can be run independently:
+The new browser workflows enter all native editors from the same Studio screen, extract actual ingredient geometry, bind custom graphs to runtime species, paint structural terrain and recover its editable data, edit real creature poses/mutations, change phase-specific material pixels, author native magical particles, apply UI artwork and revert the profile. The earlier tests continue to cover drawing, selection/extraction, correction layers, undo/redo, variants/growth, PNG/project import/export, rejected imports, persistent drafts, temporary in-game previews, legacy save loading and responsive layouts.
+
+The full suite also checks actual gameplay, simulation tools, shelf/bottle/trial persistence, colony behavior, gathering, terrain placement, damaged-save recovery, offline play, shared-origin cache isolation and redeployment under GitHub Pages-style paths. No assertions were removed or skipped to obtain these results.
+
+## Measurements and limits
+
+See [structured Studio measurements](art-studio-performance.json) and [the standard benchmark output](perf-results.json). These were collected on a shared cloud executor with concurrent regression work and software rendering. The game benchmark's desktop cases were approximately 30–46 fps, throttled phone cases approximately 8–22 fps, and the ten-animal hutch approximately 7–9 fps. These are measured limits, not a claim of smooth gameplay on physical phones.
+
+The memory soak measured approximately 7.96 MB initially, 9.51 MB after 90 seconds, and 14.34 MB after ten menu/shop trips. Editor scenes are bounded, component canvases remain 32×32, outputs 96×96, and native regions 384×216. Large environment regeneration runs off the UI thread; static scene bitmaps are reused for animation. The optional assistant protocol is implemented, but no external model backend or API secret is included.
+
+## Reproduce
 
 ```sh
-PW_CHROMIUM=/usr/bin/chromium npm run test:browser -- tests/browser/art-studio.spec.mjs
-PW_CHROMIUM=/usr/bin/chromium npm run test:browser -- tests/browser/offline.spec.mjs --project=offline-build
-node --test tests/studio.test.mjs
+npm ci
+npm run typecheck
+npm test
+npm run build
+PW_CHROMIUM=/usr/bin/chromium npm run test:browser
+PW_CHROMIUM=/usr/bin/chromium npm run bench
 node scripts/studio-bench.mjs
 ```
 
-The original onboarding copy at `/workspace/potion-validation` was used only for read-only baseline comparison (a local runner configuration starts it on port 5183). No previous experimental editor was read or copied.
-
-## Interrupted run and recovery
-
-The initial full `npm run test:browser` run collected 129 cases and recorded 110 outcomes (108 passed, 2 failed) before an environment restart terminated its processes. The filesystem, commits and logs survived. Playwright's `--list --reporter=json` was used to compare the current 132-case collection with completed outcomes from that run and the focused Studio/offline runs. The 18 remaining cases were selected with the supported `--test-list` option and **18 passed** (3.2 minutes). The final nine pure Studio tests and the final PNG/layout subset also passed. No zero-test run, interrupted process or collection-only result was counted as a test pass.
-
-The rebuilt `dist/` and `release/alchemists-shop-2.3.0-web.zip` are included on this branch. The archive CRCs were checked and its bundled JavaScript matches `dist/` byte for byte. The build removes stale prebuilt hutch PNG files absent from source assets; current source renderers use procedural pens and do not reference those files. The final bundled Studio offline test passed after the last build.
+Use the pinned Playwright browser instead when installed. Detailed usage, schema migration, runtime adapters and supported bounds are in [ART_STUDIO.md](ART_STUDIO.md). Publication of the Git branch and verification of the public Pages deployment are separate from these local checks.

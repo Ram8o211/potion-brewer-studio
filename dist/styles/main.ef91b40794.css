@@ -1252,3 +1252,4 @@ details.steps summary { cursor: pointer; min-height: 24px; }
     grid-column:1/-1
   }
 }
+.art-domain{padding:12px;overflow:auto;height:100%;display:flex;flex-direction:column;gap:12px}.art-domain-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:8px}.art-domain-toolbar .art-field{min-width:130px;max-width:220px}.art-domain-canvas{width:100%;max-height:70vh;object-fit:contain;image-rendering:pixelated;touch-action:none;background:#14212a;border:1px solid #42616a}.art-domain-messages{padding:14px;color:#bcd4d6}.art-ui-example{padding:22px;min-height:190px;box-sizing:border-box}.art-ui-example img{image-rendering:pixelated}.art-ui-example button:hover{filter:brightness(1.2)}.art-ui-example button:active{filter:brightness(.75)}.art-animation-timeline{display:flex;flex-wrap:wrap;gap:5px;padding:8px}.art-header>.art-field{margin:0;min-width:170px}
