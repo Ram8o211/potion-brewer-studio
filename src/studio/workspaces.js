@@ -14,7 +14,7 @@ import { animateRegion } from '../rendering/wild-scene.js';
 import { drawRabbit } from '../rendering/rabbit.js';
 import { kindLook } from '../game/kinds.js';
 import { rollLook } from '../game/colony.js';
-import { Rng } from '../core/rng.js';
+import { Rng, hashString } from '../core/rng.js';
 import { Simulation } from '../simulation/world.js';
 import { Renderer } from '../rendering/renderer.js';
 import { REF, refLookup } from '../materials/reference.js';
@@ -28,7 +28,9 @@ const POSES = ['idle', 'hop', 'rear', 'eat', 'loaf', 'hurt', 'sick', 'flop', 'co
 const TRAITS = ['', 'horns', 'antlers', 'unihorn', 'wings', 'scales', 'eye3', 'spines', 'tail-lizard', 'giant', 'tiny'];
 export class DomainWorkspace {
   constructor(studio) {
-    this.studio = studio; this.kind = studio.workspace; this.target = this.targets()[0]; this.seed = 1;
+    this.destroyed = false; this.studio = studio; this.kind = studio.workspace; this.target = this.targets()[0];
+    /** @type {number|string} */
+    this.seed = 1;
     this.stage = 2; this.pose = 'idle'; this.trait = ''; this.level = 0; this.effect = 'vitality'; this.hp = 0; this.play = this.kind !== 'ingredients' && this.kind !== 'interface';
     this.terrainTool = 'rock'; this.terrainColor = '#5e665f'; this.radius = 8; this.mask = false; this.time = 0; this.last = 0;
     this.render(); this.frame = requestAnimationFrame((t) => this.loop(t));
@@ -57,9 +59,9 @@ export class DomainWorkspace {
     this.canvas = h('canvas', { width: 384, height: 216, class: 'art-domain-canvas', 'aria-label': this.kind + ' live preview' });
     const cfg = this.config(), toolbar = h('div', { class: 'art-domain-toolbar' },
       this.select('Domain target', this.target, this.targets(), (v) => { this.target = v; this.sim = null; this.render(); }),
-      this.kind === 'interface' ? null : s.field('Preview seed', this.seed, (v) => { this.seed = Math.max(0, Math.floor(v)) >>> 0; this.sim = null; this.render(); }, 'number', { min: 0, max: 4294967295 }),
+      this.kind === 'interface' ? null : this.kind === 'environments' ? s.field('World seed', this.seed, (v) => { this.seed = v; this.render(); }) : s.field('Preview seed', this.seed, (v) => { this.seed = Math.max(0, Math.floor(v)) >>> 0; this.sim = null; this.render(); }, 'number', { min: 0, max: 4294967295 }),
       this.kind === 'interface' ? null : btn(this.play ? 'Pause animation' : 'Play animation', () => { this.play = !this.play; this.render(); }, { act: 'domain-play' }),
-      this.kind === 'interface' ? null : btn('Regenerate unlocked', () => { this.seed = (this.seed + 1) >>> 0; this.sim = null; this.render(); }, { act: 'domain-regenerate' }));
+      this.kind === 'interface' ? null : btn('Regenerate unlocked', () => { this.seed = typeof this.seed === 'string' ? this.seed + '-next' : (this.seed + 1) >>> 0; this.sim = null; this.render(); }, { act: 'domain-regenerate' }));
     this.el.append(toolbar, this.canvas); s.center.append(this.el);
     s.inspector.append(h('h2', { text: this.kind + ' properties' }));
     this.messages = h('div', { class: 'art-domain-messages', role: 'status' }); s.bottom.append(this.messages);
@@ -72,7 +74,7 @@ export class DomainWorkspace {
   }
   ingredients(cfg) {
     const s = this.studio, inspector = s.inspector;
-    const id = archetypeIdentity(this.target); id.seed = this.seed;
+    const id = archetypeIdentity(this.target); id.seed = Number(this.seed);
     const d = this.scope(() => describe(id)), growth = this.scope(() => growthParams(d));
     inspector.append(this.select('Growth stage', String(this.stage), [['0', 'Sprout'], ['1', 'Ripe'], ['2', 'Mature']], (v) => { this.stage = +v; this.render(); }),
       this.select('Game construction', cfg.asset, [['', 'Native family grammar'], ...s.project.assets.map((a) => [a.id, a.name])], (v) => this.change('Bind species construction', () => { cfg.asset = v; })),
@@ -121,7 +123,7 @@ export class DomainWorkspace {
     this.canvas.onpointerdown = (e) => {
       e.preventDefault(); this.canvas.setPointerCapture(e.pointerId); const p = point(e);
       if (this.terrainTool === 'light') { this.change('Place localized light', () => cfg.lights.push({ x: p[0], y: p[1], radius: 35, color: this.terrainColor, strength: 0.8 })); return; }
-      if (this.terrainTool === 'place') { this.change('Place scene object', () => cfg.objects.push({ asset: this.placeAsset || s.asset.id, x: p[0], y: p[1], scale: 1, seed: this.seed, locked: true })); return; }
+      if (this.terrainTool === 'place') { this.change('Place scene object', () => cfg.objects.push({ asset: this.placeAsset || s.asset.id, x: p[0], y: p[1], scale: 1, seed: hashString(String(this.seed)), locked: true })); return; }
       this.stroke = { kind: this.terrainTool, color: this.terrainColor, radius: this.radius, points: [p] }; this.draw();
     };
     this.canvas.onpointermove = (e) => { if (this.stroke && this.stroke.points.length < 1024) { this.stroke.points.push(point(e)); this.draw(); } };
@@ -167,7 +169,7 @@ export class DomainWorkspace {
     }
     this.sim = new Simulation({ size: 'small', lookup: refLookup });
     const sample = this.kind === 'effects' ? 'water' : ({ liquid: 'water', powder: 'sand', paste: 'honey', solid: 'crystal', gas: 'smoke', frozen: 'water' }[this.target]);
-    this.sim.emitter.start(REF[sample], { x: ((this.seed % 7) - 3) * 0.08, amount: 100, rate: 1000 });
+    this.sim.emitter.start(REF[sample], { x: ((Number(this.seed) % 7) - 3) * 0.08, amount: 100, rate: 1000 });
     for (let i = 0; i < 150; i++) this.sim.step();
     if (this.target === 'paste') this.sim.p.phase.fill(PHASE.PASTE, 0, this.sim.p.count);
     if (this.target === 'frozen') { this.sim.p.temp.fill(-30); this.sim.furnace.setting = -1; }
@@ -181,6 +183,7 @@ export class DomainWorkspace {
       const bundled = !!document.querySelector('script[src*="app."]');
       this.worker = new Worker(new URL(bundled ? 'studio-worker.js' : 'src/studio/worker.js', document.baseURI), { type: 'module' });
       this.worker.onmessage = ({ data }) => {
+        if (this.destroyed) return;
         this.workerBusy = false;
         if (data.error) { this.workerFailed = true; this.worker.terminate(); this.worker = null; this.draw(); return; }
         if (data.key === this.token + ':' + this.target + ':' + this.seed) {
@@ -198,13 +201,13 @@ export class DomainWorkspace {
     if (this.workerBusy) this.nextScene = job;
     else { this.workerBusy = true; this.worker.postMessage(job); }
   }
-  loop(t) { if (!this.studio.mounted) return; const dt = Math.min(0.04, this.last ? (t - this.last) / 1000 : 0); this.last = t; if (this.play) { this.time += dt; if (this.kind === 'ingredients') { const stage = Math.floor(this.time / 1.2) % 3; if (stage !== this.stage) { this.stage = stage; const control = this.studio.inspector.querySelector('[aria-label="Growth stage"]'); if (control) control.value = String(stage); this.draw(); } } else if (['creatures', 'materials', 'effects', 'environments'].includes(this.kind)) this.draw(dt); } this.frame = requestAnimationFrame((t) => this.loop(t)); }
+  loop(t) { if (this.destroyed || !this.studio.mounted) return; const dt = Math.min(0.04, this.last ? (t - this.last) / 1000 : 0); this.last = t; if (this.play) { this.time += dt; if (this.kind === 'ingredients') { const stage = Math.floor(this.time / 1.2) % 3; if (stage !== this.stage) { this.stage = stage; const control = this.studio.inspector.querySelector('[aria-label="Growth stage"]'); if (control) control.value = String(stage); this.draw(); } } else if (['creatures', 'materials', 'effects', 'environments'].includes(this.kind)) this.draw(dt); } this.frame = requestAnimationFrame((t) => this.loop(t)); }
   draw(dt = 0) {
-    if (!this.canvas || !this.studio.mounted) return;
+    if (this.destroyed || !this.canvas || !this.studio.mounted) return;
     this.scope(() => {
       const ctx = this.canvas.getContext('2d'); ctx.imageSmoothingEnabled = false; ctx.clearRect(0, 0, 384, 216); ctx.fillStyle = '#16232e'; ctx.fillRect(0, 0, 384, 216);
       if (this.kind === 'ingredients') {
-        const id = archetypeIdentity(this.target); id.seed = this.seed; const d = describe(id);
+        const id = archetypeIdentity(this.target); id.seed = Number(this.seed); const d = describe(id);
         const frames = [plantFrame(d, this.stage), iconFrame(d), ...[0, 1, 2, 3].map((v) => ({ pix: pieceArt(d, v, 40) }))];
         for (const [i, frame] of frames.entries()) { const size = i === 0 ? 100 : 42, x = i === 0 ? 20 : 140 + (i - 1) * 46; ctx.drawImage(frame.pix.toCanvas(), x, 120 - size, size, size); }
         ctx.fillStyle = '#d7e4ce'; ctx.font = '9px sans-serif'; ctx.fillText('Growth stage        Icon           Four physical fragments', 20, 150);
@@ -230,5 +233,5 @@ export class DomainWorkspace {
       }
     });
   }
-  destroy() { this.worker?.terminate(); this.worker = null; this.nextScene = null; cancelAnimationFrame(this.frame); this.frame = null; this.sim = null; this.renderer = null; }
+  destroy() { this.destroyed = true; this.worker?.terminate(); this.worker = null; this.nextScene = null; cancelAnimationFrame(this.frame); this.frame = null; this.sim = null; this.renderer = null; }
 }
