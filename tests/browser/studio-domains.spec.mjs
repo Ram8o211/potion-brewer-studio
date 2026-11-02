@@ -55,6 +55,7 @@ test('Wilds inspector controls remain reachable on short and narrow screens', as
   await expect(page.getByLabel('Terrain tool', { exact: true })).toBeVisible();
   await page.getByLabel('Terrain tool', { exact: true }).selectOption('light');
   const cv = page.locator('.art-domain-canvas');
+  await cv.scrollIntoViewIfNeeded();
   const bounds = await cv.boundingBox();
   await page.mouse.click(bounds.x + bounds.width * 0.3, bounds.y + bounds.height * 0.4);
   const deepField = page.getByLabel('Light strength 0', { exact: true });
