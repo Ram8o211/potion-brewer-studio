@@ -44,6 +44,8 @@ Drawing requests coalesce into animation frames. Generation/component rasters ar
 
 ## Validation commands
 
+See [recorded validation outcomes and measured limits](ART_STUDIO_VALIDATION.md).
+
 ```sh
 npm run typecheck
 npm test
@@ -69,3 +71,23 @@ This is a usable foundation, not the master task's complete definition of done. 
 - **G:** richer reusable named profiles, publishing/import compatibility across generator versions, user-approved structured diff proposals for optional AI, larger-scene performance budgets and the remaining master acceptance scenarios. There is no AI backend, simulated AI output or client-side secret.
 
 Next integration gate: implement one full native ingredient adapter through geometry → growth/icon/fragments → placement-mask checks before adding more disconnected domain controls.
+
+## Acceptance coverage for this tranche
+
+| Master scenario | Evidence / boundary |
+| --- | --- |
+| Open Studio in the game | Browser menu → dedicated screen, desktop + phone |
+| Create a plant, draw/extract/attach a leaf | Real pointer tools and attachment controls in browser tests |
+| Seed variants with shared anatomy | Pure-engine tests + browser regeneration; node-addressed random streams |
+| Sprout / Ripe / Mature | Shared graph, stage scales and appearance ranges; browser controls tested |
+| Linked ingredient representations | Actual native generators consume the same palette profile; mask invariance and revert tested. Custom graph-to-species binding remains D. |
+| Crystal facet edits across regeneration | Generic crystal geometry/correction layers are available; native crystal grammar/facet authoring remains D. |
+| Structural terrain editing and placement | Not implemented; E |
+| Rabbit anatomy, poses and mutations | Not implemented; F |
+| Material appearance without physics change | Ingredient/powder palette adapter tested; fluid/vapour renderer controls remain F. |
+| Save, exit, reopen, export/import | IndexedDB + downloadable project/PNG browser round trips, safe invalid-import rejection |
+| Apply, preview, revert in game | Real experiment preview, persistent profile restoration, legacy save loading, unchanged shop/sandbox storage |
+| Offline custom build | Bundled Studio draws/saves/reopens with its server stopped |
+| Game regressions / performance | See validation report; do not interpret known failing baseline tests as passing. |
+
+Screenshots from the implemented UI: [desktop](screenshots/art-studio-desktop.png), [phone emulation](screenshots/art-studio-phone.png).
