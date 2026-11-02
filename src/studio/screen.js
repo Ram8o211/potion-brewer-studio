@@ -64,7 +64,7 @@ export class StudioScreen {
     this.status = h('span', { class: 'art-status', role: 'status', 'aria-live': 'polite' });
     this.title = h('strong');
     const header = h('header', { class: 'art-header' }, h('div', {}, h('span', { class: 'art-kicker', text: 'POTION BREWER / AUTHORING' }), this.title),
-      this.select('Editor workspace', this.workspace, [['components','Components & rules'],['ingredients','Ingredients & growth'],['environments','Environments & terrain'],['creatures','Creatures & animation'],['materials','Materials & phases'],['effects','Magical effects'],['interface','Interface & icons']], (v) => { this.workspace = v; this.domainEditor?.destroy(); this.domainEditor = null; this.refresh(); }),
+      this.select('Editor workspace', this.workspace, [['components','Components & rules'],['ingredients','Ingredients & growth'],['environments','Environments & terrain'],['creatures','Creatures & animation'],['materials','Materials & phases'],['effects','Magical effects'],['interface','Interface & icons']], (v) => { this.workspace = v; if (v === 'environments' && this.hiddenPanels.includes('inspector')) this.togglePanel('inspector'); this.domainEditor?.destroy(); this.domainEditor = null; this.refresh(); }),
       action('Projects', () => this.projects(), 'projects'), action('Save Draft', () => this.save(), 'save'),
       action('Export Project', () => this.exportProject(), 'export'), action('Import Project', () => this.projectFile.click(), 'import'),
       action('Preview in Game', () => this.preview(), 'preview'), action('Apply Art Profile', () => this.apply(), 'apply'), action('Revert', () => this.revert(), 'revert'),
@@ -479,7 +479,8 @@ export class StudioScreen {
     try { await putSetting('hidden-panels', this.hiddenPanels); } catch { /* Authoring works without persistent layout. */ }
   }
   async saveLayout() {
-    if (!this.mounted) return;
+    // Do not persist temporary narrow/short-screen dimensions as the desktop layout.
+    if (!this.mounted || window.innerWidth <= 1000 || window.innerHeight <= 650) return;
     const layout = {}; for (const [key, el] of [['--art-left', this.library], ['--art-right', this.inspector], ['--art-bottom', this.bottom]]) { const n = key === '--art-bottom' ? el.clientHeight : el.clientWidth; if (n > 0) { layout[key] = Math.round(n) + 'px'; this.el.style.setProperty(key, layout[key]); } }
     try { await putSetting('layout', layout); } catch { /* Layout persistence must not interrupt authoring. */ }
   }
