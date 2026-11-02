@@ -53,6 +53,8 @@ export class DomainWorkspace {
   select(label, value, choices, fn) { return this.studio.select(label, value, choices.map((v) => Array.isArray(v) ? v : [v, v]), fn); }
   render() {
     const s = this.studio; if (!s.mounted) return;
+    // Rebuilding the inspector after every change must not jump back to its top.
+    const inspectorScroll = s.inspector.scrollTop;
     this.profileKey = null;
     clear(s.center); clear(s.inspector); clear(s.bottom);
     this.el = h('div', { class: 'art-domain', 'data-domain': this.kind });
@@ -70,6 +72,7 @@ export class DomainWorkspace {
     if (this.kind === 'creatures') this.creatures(cfg);
     if (this.kind === 'materials' || this.kind === 'effects') this.materials(cfg);
     if (this.kind === 'interface') this.interface(cfg);
+    s.inspector.scrollTop = inspectorScroll;
     this.draw();
   }
   ingredients(cfg) {
