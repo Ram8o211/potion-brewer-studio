@@ -418,9 +418,9 @@ straight from a branch with no build step:
    then pick the branch that holds this code (`main`), folder
    **`/ (root)`**, and press **Save**.
 3. After a minute or two the site is live:
-   * <https://ram8o211.github.io/Potion-Brewer-Claude-/> — the game straight
+   * <https://ram8o211.github.io/potion-brewer-studio/> — the game straight
      from the source modules;
-   * <https://ram8o211.github.io/Potion-Brewer-Claude-/dist/> — the
+   * <https://ram8o211.github.io/potion-brewer-studio/dist/> — the
      optimised production build (one bundled script, fully precached for
      offline play). This is the one to share or install on a phone.
 
@@ -503,6 +503,8 @@ docs/                            architecture, report, checklist, measured resul
 ```
 
 ## Documentation
+
+* [docs/ART_STUDIO.md](docs/ART_STUDIO.md): the integrated Procedural Art Studio, its pixel/component workflow, portable format, runtime palette profiles, tests and explicit delivery limits. Open it from the main menu.
 
 * [FEATURE_PARITY.md](FEATURE_PARITY.md): feature-by-feature comparison
   with `Ram8o211/fluid-pocket-sandbox`, and how each idea was integrated.

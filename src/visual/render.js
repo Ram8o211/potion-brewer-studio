@@ -4,6 +4,7 @@
 // of the descriptor (visual/descriptor.js), so Node and every browser paint
 // the same pixels; visual/sprites.js caches them as canvases.
 
+import { boundPixels } from '../studio/asset-runtime.js';
 import { FAMILIES } from './families/index.js';
 import { rasterize } from './raster.js';
 import { Pixels } from './pixels.js';
@@ -35,11 +36,27 @@ export const PIECE_GRID = 20;
  * @returns {Frame}
  */
 export function plantFrame(d, stage, o = {}) {
+  const size = Math.max(16, Math.round(Math.max(d.size.w, d.size.h) * (o.k || 1)));
+  const custom = boundPixels(d.id.key, (d.id.seed + (o.variant || 0)) >>> 0, stage, size, size);
+  if (custom) {
+    const center = Math.floor(size / 2);
+    if (o.mount === 'hang') {
+      const p = new Pixels(size, size); for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) p.set(x, y, custom.get(x, size - 1 - y));
+      return { pix: p, ax: center, ay: 0, glints: [] };
+    }
+    if (o.mount === 'wall') {
+      const p = new Pixels(size, size); for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) p.set(o.flip ? size - 1 - x : x, y, custom.get(y, size - 1 - x));
+      return { pix: p, ax: o.flip ? size - 1 : 0, ay: center, glints: [] };
+    }
+    return { pix: custom, ax: center, ay: size - 1, glints: [] };
+  }
   return growFrame(d, stage, o);
 }
 
 /** The ingredient's icon (ICON_PX square). @param {import('./descriptor.js').Descriptor} d @returns {Frame} */
 export function iconFrame(d) {
+  const custom = boundPixels(d.id.key, d.id.seed, 2, ICON_PX - 2, ICON_PX - 2);
+  if (custom) { iconRasters.set(d, custom); return { pix: inked(custom), ax: ICON_PX / 2, ay: ICON_PX, glints: [] }; }
   const model = FAMILIES[d.family].icon(d);
   model.fit(ICON_PX - 2, ICON_PX - 2, { margin: 0.5 });
   const r = rasterize(model, ICON_PX - 2, ICON_PX - 2, d.pal, { seed: d.seeds.surface ^ 0x1c0, outline: false });
@@ -148,6 +165,8 @@ const iconRasters = new WeakMap();
 function iconRaster(d) {
   let p = iconRasters.get(d);
   if (p) return p;
+  const custom = boundPixels(d.id.key, d.id.seed, 2, ICON_IN, ICON_IN);
+  if (custom) { iconRasters.set(d, custom); return custom; }
   const model = FAMILIES[d.family].icon(d);
   model.fit(ICON_IN, ICON_IN, { margin: 0.5 });
   p = rasterize(model, ICON_IN, ICON_IN, d.pal, { seed: d.seeds.surface ^ 0x1c0, outline: false }).pix;

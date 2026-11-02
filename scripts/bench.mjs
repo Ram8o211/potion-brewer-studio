@@ -154,8 +154,10 @@ function newSystemsBench() {
   const json0 = JSON.stringify(st.toJSON()).length;
   let nightMs = 0, doseMs = 0, doses = 0, processed = 0, buried = 0, born = 0, maxAlive = 0;
   for (let day = 0; day < 365; day++) {
-    const living = livingRabbits(st.colony);
-    for (let k = 0; k < 2 && living.length; k++) {
+    for (let k = 0; k < 2; k++) {
+      // A dose can kill its subject; select again from the current living set.
+      const living = livingRabbits(st.colony);
+      if (!living.length) break;
       const r = living[rng.int(0, living.length - 1)];
       const t1 = performance.now();
       st.recordTrial('rabbit', randomDose(rng), { ml: 10, source: 'cauldron', batchId: st.batch.id, rev: st.batch.rev, theory: new Array(NE).fill(0), parts: [], rabbitId: r.id });

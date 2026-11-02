@@ -49,7 +49,7 @@ test('every kind lives where its habitat says, and the wilds hold more than rabb
     assert.deepEqual([...seen].sort(), h.map((x) => x[0]).sort(), region);
   }
   const all = new Set(Object.values(HABITAT).flatMap((h) => h.map((x) => x[0])));
-  for (const k of Object.keys(KINDS)) assert.ok(all.has(k), `${k} lives somewhere`);
+  for (const k of KIND_IDS) assert.ok(all.has(k), `${k} lives somewhere`);
   assert.ok(HABITAT.river.some(([k]) => k === 'toad') && HABITAT.quarry.some(([k]) => k === 'salamander'));
 });
 
@@ -66,7 +66,9 @@ test('each kind moves in its own way: rabbits bound, cats stroll and pounce, toa
   assert.ok(sal.walk > 0.2, `salamanders creep along (${sal.walk.toFixed(2)})`);
   assert.ok(sal.speed < cat.speed, 'slower than a strolling cat');
   // frightened, each makes off far faster than it moved calmly
-  for (const [k, calm] of [['cat', cat], ['toad', toad], ['salamander', sal]]) {
+  /** @type {[string, ReturnType<typeof watch>][]} */
+  const calmKinds = [['cat', cat], ['toad', toad], ['salamander', sal]];
+  for (const [k, calm] of calmKinds) {
     const fled = watch(field(/** @type {any} */ (k)), 3, true);
     assert.ok(fled.speed > calm.speed * 3, `${k} flees (${fled.speed.toFixed(1)} vs ${calm.speed.toFixed(1)} px/s)`);
   }

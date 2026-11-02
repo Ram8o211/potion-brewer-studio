@@ -1,3 +1,5 @@
+import { interfaceIcon } from '../studio/interface-runtime.js';
+import { artRevision } from '../studio/direction.js';
 // Original 12×12 pixel-art icons, defined as character grids and rendered to
 // data URLs once at startup (no external image assets needed).
 
@@ -116,7 +118,9 @@ const cache = new Map();
  * @param {string} name @param {number} [scale]
  */
 export function iconUrl(name, scale = 1) {
-  const key = name + ':' + scale;
+  const key = artRevision() + ':' + name + ':' + scale;
+  const custom = interfaceIcon(name, 12 * scale);
+  if (custom) return custom;
   if (cache.has(key)) return cache.get(key);
   const grid = ICONS[name] || ICONS.help;
   const n = 12;
@@ -134,6 +138,7 @@ export function iconUrl(name, scale = 1) {
     }
   }
   const url = cv.toDataURL();
+  if (cache.size > 500) cache.clear();
   cache.set(key, url);
   return url;
 }

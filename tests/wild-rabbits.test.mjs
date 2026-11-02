@@ -9,6 +9,7 @@ import { livingRabbits, causeWord } from '../src/game/colony.js';
 import { sceneOf, SCENE_W, SCENE_H } from '../src/visual/env/scene.js';
 
 const W = 300, H = 120, FLOOR = 100;
+/** @param {[string, number][]} [habitat] */
 const flat = (habitat = [['rabbit', 1]]) => new Warren('meadow', 'test', {
   W, H, solid: (x, y) => y >= FLOOR, liquid: () => false,
   spots: Array.from({ length: 20 }, (_, i) => [40 + i * 10, FLOOR - 1]),

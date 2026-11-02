@@ -138,3 +138,11 @@ test('the purity rule scores what the customer did not ask for, alkaline include
   assert.ok(score({ vitality: 40, love: 2 }) < 1, 'over the limit is not');
   assert.ok(score({ vitality: 40, acidity: -3 }) < 0.7, 'alkaline counts as an unwanted effect too');
 });
+
+test('an explicitly requested technique retries unsuitable plans instead of silently dropping it', () => {
+  const state = GameState.create('integration-1', { tutorial: false });
+  state.reputation = 70;
+  const commission = generateCommission(state.commissionContext(), new Rng('ui-tech'), { tier: 2, techniques: ['strong'] });
+  assert.ok(commission, 'a feasible requested technique is generated');
+  assert.ok(commission.techniques.includes('strong'));
+});

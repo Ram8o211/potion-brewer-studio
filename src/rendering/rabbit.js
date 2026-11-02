@@ -28,6 +28,8 @@
 // css(c,.82)/css(c,.68), highlights mixed toward white by .4, and no
 // Math.random: seeded Rng streams from look.seed place spots and marks.
 
+import { directLook, directAnatomy, creatureClock } from '../studio/creature-runtime.js';
+import { artRevision } from '../studio/direction.js';
 import { Rng, hashString } from '../core/rng.js';
 import { PAL, makeCanvas } from './art.js';
 import { RABBIT_MARKS } from '../game/colony.js';
@@ -779,7 +781,7 @@ export function rabbitAnchors(look, snap, want) {
   for (const l of legs) y0 = Math.min(y0, l.y - 1);
   if (tr.has('spines')) y0 = Math.min(y0, Math.min(haunch.cy - haunch.ry, chest.cy - chest.ry) - 5);
 
-  return {
+  return directAnatomy({
     kind, pose, lying, g, hs, haunch, chest, head, muzzle, bulges, parts, ears, legs,
     eye, eye3: { x: head.cx + 1, y: top + 1 }, nose, cheek: { x: eye.x, y: eye.y + 3 },
     brow: { x: head.cx - 1 - shift, y: top }, tail, plume, wing,
@@ -789,7 +791,7 @@ export function rabbitAnchors(look, snap, want) {
     cx: Math.round((haunch.cx - haunch.rx + head.cx + head.rx) / 2),
     top: Math.max(0, y0 + 1),
     box: { x0, y0, x1, y1: oy + 1 },
-  };
+  });
 }
 
 // ------------------------------------------------------------------ static body (the cached sprite)
@@ -1836,7 +1838,7 @@ export function rabbitSpriteKey(look, snap, want) {
   const s = snap || {};
   const lv = Array.isArray(s.lv) ? s.lv.join('') : '', sc = Array.isArray(s.sc) ? s.sc.join('') : '';
   const tr = Array.isArray(s.traits) ? s.traits.join(',') : '';
-  return `${look.kind || ''}|${c(look.coat)}|${c(look.coat2)}|${look.pattern}|${look.ear}|${look.size}|${look.eye}|${look.tail}|${look.seed}|${s.stage}${s.hp}${s.alive === false ? 0 : 1}${s.preg ? 1 : 0}|${lv}|${sc}|${tr}|${s.cause || ''}|${rabbitPose(snap, want)}`;
+  return `${artRevision()}|${look.kind || ''}|${c(look.coat)}|${c(look.coat2)}|${look.pattern}|${look.ear}|${look.size}|${look.eye}|${look.tail}|${look.seed}|${s.stage}${s.hp}${s.alive === false ? 0 : 1}${s.preg ? 1 : 0}|${lv}|${sc}|${tr}|${s.cause || ''}|${rabbitPose(snap, want)}`;
 }
 
 /**
@@ -1847,6 +1849,7 @@ export function rabbitSpriteKey(look, snap, want) {
  *   k: its definition, pixels to a frame pixel (2: a 96×80 sprite, its body's curves and outline on the finer grid)
  */
 export function drawRabbitSprite(look, snap, factory = makeCanvas, opts = {}) {
+  look = directLook(look);
   const k = opts.k || 1, cv = factory(RABBIT_W * k, RABBIT_H * k);
   const ctx = cv.getContext('2d');
   const a = rabbitAnchors(look, snap, opts.pose);
@@ -1924,6 +1927,7 @@ function drawFloor(ctx, fx, fy) {
  * @param {boolean} [opts.grass] a tuft of grass at its mouth while it grazes (default true; false on bare ground)
  */
 export function drawRabbit(ctx, look, snap, t, react = 0, opts = {}) {
+  look = directLook(look); t = creatureClock(look, t);
   const fx = Math.round(opts.x || 0), fy = Math.round(opts.y || 0);
   if (opts.clear !== false) ctx.clearRect(fx, fy, RABBIT_W, RABBIT_H);
   if (opts.floor !== false) drawFloor(ctx, fx, fy);

@@ -70,12 +70,13 @@ export class LabScreen {
   /**
    * @param {import('./app.js').App} app
    * @param {import('../game/state.js').GameState} state
-   * @param {{sandbox?: boolean}} [opts]
+   * @param {{sandbox?: boolean, artPreview?: boolean}} [opts]
    */
   constructor(app, state, opts = {}) {
     this.app = app;
     this.state = state;
     this.sandbox = !!opts.sandbox;
+    this.artPreview = !!opts.artPreview;
     this.tool = 'spoon';
     this.selected = null;
     this.speed = 1;
@@ -254,6 +255,7 @@ export class LabScreen {
     this.noteDock = h('div', { class: 'note-dock idle', role: 'status', 'data-note': 'dock', 'aria-live': 'polite', title: 'The latest note (all recent notes: Menu → Recent notes, or N)' });
     setNoteDock(this.noteDock);
     this.topbar = h('header', { class: 'topbar frame' },
+      this.artPreview ? btn('Return to Art Studio', () => this.app.showMenu(), { act: 'art-return' }) : null,
       btn('', () => panels.openPause(this), { icon: 'menu', cls: 'icon', title: 'Menu: help, settings, tour (Esc)', act: 'menu' }),
       this.sandbox
         ? h('div', { class: 'stat' }, icon('flask'), h('span', { text: 'Free Experiment' }))
@@ -2084,6 +2086,7 @@ export class LabScreen {
   }
 
   save() {
+    if (this.artPreview) return;
     if (this.saveBlocked) return;
     if (this.sandbox) {
       saveJSON(KEYS.sandbox, { seed: this.state.seed, cauldron: snapshotSim(this.sim, this.cap.size), trials: this.state.trials });

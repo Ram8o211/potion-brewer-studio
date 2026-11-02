@@ -1,0 +1,50 @@
+{
+  "version": 2,
+  "machine": {
+    "cpus": "AMD EPYC 9V74 80-Core Processor",
+    "cores": 5,
+    "node": "v24.19.0",
+    "platform": "linux x64"
+  },
+  "conditions": "Shared executor, software-rendered Chromium; the regression suite was also running. Physical devices and 60fps gameplay are not claimed.",
+  "generation": {
+    "node": "v24.19.0",
+    "canvas": "96\u00d796",
+    "instances": 124,
+    "iterations": 100,
+    "medianMs": 1.373,
+    "p95Ms": 2.257
+  },
+  "environmentEditor": "Native composition runs in an isolated worker; the production worker was exercised with the server stopped.",
+  "gameMemory": {
+    "soak": [
+      {
+        "t": 0,
+        "mb": 7.96
+      },
+      {
+        "t": 30,
+        "mb": 9.47
+      },
+      {
+        "t": 60,
+        "mb": 9.58
+      },
+      {
+        "t": 90,
+        "mb": 9.51
+      }
+    ],
+    "particlesAtEnd": 450,
+    "screenTrips": [
+      {
+        "trip": 1,
+        "mb": 9.62
+      },
+      {
+        "trip": 10,
+        "mb": 14.34
+      }
+    ]
+  }
+}

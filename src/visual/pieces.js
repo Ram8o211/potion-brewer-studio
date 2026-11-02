@@ -10,6 +10,7 @@
 // the material being poured (its `vis`); until one is, a species is drawn
 // from the identity of its archetype, so tests and tools need no world.
 
+import { artRevision, onArtChanged } from '../studio/direction.js';
 import { WILD_SPECS } from '../materials/wild.js';
 import { hslToRgb } from '../core/color.js';
 import { identityOf, identityKey, validIdentity } from './identity.js';
@@ -68,7 +69,7 @@ export function registerSpecies(def) {
 export function ensurePieces(key) {
   if (!(key in INDEX)) return null;
   const id = shown[key] || (shown[key] = archetypeIdentity(key));
-  const ik = identityKey(id);
+  const ik = artRevision() + ":" + identityKey(id);
   if (painted[key] === ik) return masks[key];
   const d = describe(id), row = INDEX[key] * PIECE_CELL, W = PIECE_ART.width;
   const out = [];
@@ -151,3 +152,6 @@ export function piecePalette(skin) {
   palettes.set(skin, pal);
   return pal;
 }
+
+// Palette reads must also refresh when no new ingredient was poured.
+onArtChanged(() => { palettes.clear(); sized.clear(); });

@@ -165,7 +165,7 @@ test('every kind, the rabbit too, has an enclosure of its own: built level, dete
   const { KIND_IDS, kindLook } = await import('../src/game/kinds.js');
   assert.deepEqual([...PEN_KINDS].sort(), [...KIND_IDS].sort(), 'one pen per kind');
   const titles = new Set();
-  for (const kind of PEN_KINDS) {
+  for (const kind of KIND_IDS) {
     const p = penOf(kind);
     titles.add(p.title);
     assert.equal(p.back.w, PEN_W); assert.equal(p.back.h, PEN_H);

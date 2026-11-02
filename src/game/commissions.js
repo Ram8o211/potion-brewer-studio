@@ -767,6 +767,9 @@ function effectCommission(req, arch, tier, ctx, rng, totalN, bottleMl, bottleN, 
     if (chosen.length && !checkSupply(plan, local).ok) return null;
     if (!wanted.every((w) => w.sign * pred.effects[EFFECT_INDEX[w.key]] >= w.target * 1.0)) return null;
   }
+  // A requested technique is a constraint, not a suggestion: retry another
+  // feasible plan when this candidate cannot support it.
+  if ((opts.techniques || []).some((id) => !chosen.includes(id))) return null;
   /** @type {Requirement[]} */
   const reqs = [];
   for (const w of wanted) {
