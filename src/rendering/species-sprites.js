@@ -8,6 +8,7 @@
 // Frames and silhouettes are plain pixel buffers (usable in Node); canvases
 // are made only where there is a DOM.
 
+import { artRevision } from '../studio/direction.js';
 import { describe } from '../visual/descriptor.js';
 import { plantFrame, iconFrame, ICON_PX } from '../visual/render.js';
 import { identityKey, validIdentity } from '../visual/identity.js';
@@ -43,6 +44,7 @@ export function speciesOf(m) {
 const cache = new Map();
 const CACHE_MAX = 500;
 function cached(k, make) {
+  k = artRevision() + ":" + k;
   let v = cache.get(k);
   if (v) return v;
   v = make();

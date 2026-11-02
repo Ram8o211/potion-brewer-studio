@@ -1,6 +1,9 @@
 // Application shell: settings, screen switching (menu ↔ laboratory ↔ free
 // experiment), first-gesture audio unlock and error recovery.
 
+import { StudioScreen } from '../studio/screen.js';
+import { getSetting } from '../studio/storage.js';
+import { artDirection, setArtDirection } from '../studio/direction.js';
 import { h, btn, modal, toast, setOverlayRoot, setToastRoot, confirmDialog, clear } from './dom.js';
 import { icon } from './icons.js';
 import { audio } from '../audio/audio.js';
@@ -58,12 +61,17 @@ export class App {
     screen.mount(this.root);
   }
 
-  start() {
+  async start() {
+    try { const saved = await getSetting('active-direction'); if (saved?.version === 1) setArtDirection(saved.direction); } catch { /* The game also works with no editor storage. */ }
     this.showMenu();
     if (!storageAvailable()) toast('Saving unavailable', 'This browser mode blocks local storage, so progress cannot be saved.', 'lock', 6000);
   }
 
   showMenu() {
+    if (this.studioPreview) {
+      const { studio, before } = this.studioPreview; this.studioPreview = null;
+      setArtDirection(before); this._swap(studio); return;
+    }
     this._swap(new MenuScreen(this));
   }
 
@@ -115,8 +123,15 @@ export class App {
     });
   }
 
-  startSandbox() {
-    const saved = loadJSON(KEYS.sandbox, null);
+  showStudio() { this._swap(new StudioScreen(this)); }
+
+  previewStudio(studio) {
+    this.studioPreview = { studio, before: artDirection() };
+    setArtDirection(studio.project.direction); this.startSandbox(true);
+  }
+
+  startSandbox(preview = false) {
+    const saved = preview ? null : loadJSON(KEYS.sandbox, null);
     const existing = loadGame().state;
     const seed = existing ? existing.seed : saved && saved.seed ? saved.seed : 'experiment';
     const st = GameState.create(seed, { tutorial: false });
@@ -136,7 +151,7 @@ export class App {
       st.restoreRemains();
       for (const id of sandboxIngredients(st.world)) st.inventory[id] = Infinity;
     }
-    this._swap(new LabScreen(this, st, { sandbox: true }));
+    this._swap(new LabScreen(this, st, { sandbox: true, artPreview: preview }));
     toast('Free Experiment', 'Unlimited reagents, wild ingredients, tools and test subjects. Nothing here affects your shop.', 'flask', 4500);
   }
 

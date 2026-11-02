@@ -23,6 +23,7 @@ export class MenuScreen {
       h('div', { class: 'subtitle', text: 'Brew. Experiment. Prosper.' }),
       save ? btn(`Continue — Day ${save.day}, ${save.rankName}`, () => app.continueGame(), { cls: 'primary', icon: 'door', act: 'continue' }) : null,
       btn('New Shop', () => app.newGameDialog(), { cls: save ? '' : 'primary', icon: 'plus', act: 'new-game' }),
+      btn('Procedural Art Studio', () => app.showStudio(), { icon: 'book', act: 'art-studio' }),
       btn('Free Experiment', () => app.startSandbox(), { icon: 'flask', act: 'sandbox' }),
       h('div', { class: 'row' }, btn('How to play', () => app.openHelp(), { icon: 'help', act: 'help' }), btn('Settings', () => app.openSettings(), { icon: 'gear', act: 'menu-settings' })),
       h('div', { class: 'footer', text: 'Works offline · progress saves on this device' }),

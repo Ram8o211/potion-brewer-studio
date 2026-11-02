@@ -15,6 +15,8 @@
 // lends it a violet glimmer, love softens and blushes it, vitality makes it
 // lush. The habitat tints its light, wetness and wear.
 
+import { directDescriptor, artRevision } from '../studio/direction.js';
+
 import { Rng } from '../core/rng.js';
 import { familyOf, isBotanical, habitatOf, EFFECT_TINT } from './taxonomy.js';
 import { ramp, toLch, fromLch, hueToward, shift } from './color.js';
@@ -47,10 +49,10 @@ const CACHE_MAX = 400;
 
 /** The descriptor of an identity (cached). @param {VisualIdentity} id @returns {Descriptor} */
 export function describe(id) {
-  const k = identityKey(id);
+  const k = artRevision() + ":" + identityKey(id);
   let d = cache.get(k);
   if (d) return d;
-  d = build(id);
+  d = directDescriptor(build(id));
   if (cache.size >= CACHE_MAX) cache.delete(/** @type {string} */ (cache.keys().next().value));
   cache.set(k, d);
   return d;

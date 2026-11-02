@@ -504,6 +504,8 @@ docs/                            architecture, report, checklist, measured resul
 
 ## Documentation
 
+* [docs/ART_STUDIO.md](docs/ART_STUDIO.md): the integrated Procedural Art Studio, its pixel/component workflow, portable format, runtime palette profiles, tests and explicit delivery limits. Open it from the main menu.
+
 * [FEATURE_PARITY.md](FEATURE_PARITY.md): feature-by-feature comparison
   with `Ram8o211/fluid-pocket-sandbox`, and how each idea was integrated.
 * [docs/GAME_ARCHITECTURE.md](docs/GAME_ARCHITECTURE.md): how the
