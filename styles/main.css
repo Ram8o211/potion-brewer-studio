@@ -1260,6 +1260,15 @@ details.steps summary { cursor: pointer; min-height: 24px; }
     grid-template-columns:clamp(160px,var(--art-left),32vw) minmax(240px,1fr) clamp(205px,var(--art-right),34vw);
     grid-template-rows:auto minmax(160px,1fr) clamp(140px,var(--art-bottom),35dvh) auto;
   }
+  .art-studio.art-hide-library {
+    grid-template-columns:0 minmax(240px,1fr) clamp(205px,var(--art-right),34vw);
+  }
+  .art-studio.art-hide-inspector {
+    grid-template-columns:clamp(160px,var(--art-left),32vw) minmax(240px,1fr) 0;
+  }
+  .art-studio.art-hide-library.art-hide-inspector {
+    grid-template-columns:0 minmax(240px,1fr) 0;
+  }
 }
 .art-studio .art-inspector {
   overflow-y:auto;
