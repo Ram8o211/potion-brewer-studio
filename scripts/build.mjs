@@ -148,6 +148,14 @@ const js = bundle(path.join(ROOT, 'src', 'main.js'));
 const jsName = `app.${hash(js)}.js`;
 fs.writeFileSync(path.join(DIST, jsName), js);
 
+// The editor's pure environment worker uses the same bundler and ships offline.
+modules.clear(); order.length = 0;
+const studioWorker = bundle(path.join(ROOT, 'src', 'studio', 'worker.js'));
+fs.writeFileSync(path.join(DIST, 'studio-worker.js'), studioWorker);
+// Restore the application graph for the module count/report below.
+modules.clear(); order.length = 0; load(path.join(ROOT, 'src', 'main.js'));
+
+
 const css = fs.readFileSync(path.join(ROOT, 'styles', 'main.css'), 'utf8');
 const cssName = `styles/main.${hash(css)}.css`;
 fs.mkdirSync(path.join(DIST, 'styles'), { recursive: true });
@@ -163,7 +171,7 @@ fs.writeFileSync(path.join(DIST, 'index.html'), html);
 
 let sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
 // the worker's own code is part of the version, so a change to it also gets a fresh cache
-const version = `${pkg.version}-${hash(js + css + sw)}`;
+const version = `${pkg.version}-${hash(js + css + sw + studioWorker)}`;
 const precache = ['./', ...listFiles(DIST)];
 if (!sw.includes("const VERSION = 'dev';") || !sw.includes('const ASSETS = [];')) throw new Error('sw.js placeholders missing');
 sw = sw.replace("const VERSION = 'dev';", `const VERSION = '${version}';`).replace('const ASSETS = [];', `const ASSETS = ${JSON.stringify(precache)};`);

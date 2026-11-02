@@ -8,7 +8,7 @@ test('native ingredient editor binds graphs and extracts editable geometry',asyn
  await page.locator('[data-act=domain-bind-species]').click();
  expect(await state(page,()=>window.__alchemist.screen.project.domains.ingredients.silverleaf.asset)).toBeTruthy();
  await page.getByLabel('Game construction',{exact:true}).selectOption('');
- await page.locator('[data-act=domain-extract-native]').click();await expect(page.locator('.art-canvas')).toBeVisible();
+ await page.locator('[data-act=domain-extract-native]').click();await expect(page.locator('.art-canvas')).toBeVisible();await expect(page.getByLabel('Editor workspace',{exact:true})).toHaveValue('components');
  expect(await state(page,()=>window.__alchemist.screen.component.geometry.length+window.__alchemist.screen.component.layers[0].pixels.filter(Boolean).length)).toBeGreaterThan(0);
  expect(errors).toEqual([]);
 });
@@ -16,7 +16,7 @@ test('terrain edits are structural, undoable and portable',async({page})=>{
  const errors=watchErrors(page);await open(page,'environments');await page.getByLabel('Domain target',{exact:true}).selectOption('forest');
  const cv=page.locator('.art-domain-canvas'),b=await cv.boundingBox();await page.mouse.click(b.x+b.width*.3,b.y+b.height*.2);
  await expect.poll(()=>state(page,()=>window.__alchemist.screen.project.domains.environments.forest.strokes.length)).toBe(1);
- expect(await state(page,()=>window.__alchemist.screen.domainEditor.scene.solid[43*384+115])).toBe(1);
+ await expect.poll(()=>state(page,()=>window.__alchemist.screen.domainEditor.scene?.solid[43*384+115])).toBe(1);
  await page.locator('[data-act=art-save]').click();await expect(page.locator('.art-status')).toContainText('Draft saved');
  await page.reload();await page.locator('[data-act=art-studio]').click();await page.getByLabel('Editor workspace',{exact:true}).selectOption('environments');await page.getByLabel('Domain target',{exact:true}).selectOption('forest');
  expect(await state(page,()=>window.__alchemist.screen.project.domains.environments.forest.strokes.length)).toBe(1);expect(errors).toEqual([]);

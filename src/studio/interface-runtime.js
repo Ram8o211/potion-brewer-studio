@@ -1,12 +1,12 @@
-import { artInterface, onArtChanged } from './direction.js';
+import { artInterface, onArtChanged, artAssets } from './direction.js';
 import { assetPixels } from './asset-runtime.js';
 export function interfaceIcon(name, size) {
   const id = artInterface()?.icons[name];
-  return id ? assetPixels(id, 1, 2, size, size)?.toCanvas().toDataURL() || null : null;
+  return id ? assetPixels(id, artAssets().find((a) => a.id === id)?.seed || 0, 2, size, size)?.toCanvas().toDataURL() || null : null;
 }
 export function interfaceDecoration(config, type) {
   const id = config?.[type];
-  const image = id && assetPixels(id, 1, 2, 32, 32);
+  const image = id && assetPixels(id, artAssets().find((a) => a.id === id)?.seed || 0, 2, 32, 32);
   return image ? `url("${image.toCanvas().toDataURL()}") 8 fill / ${config.border || 1}px / 0 stretch` : '';
 }
 export function refreshArtUI() {

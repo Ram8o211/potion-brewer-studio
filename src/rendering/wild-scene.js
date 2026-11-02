@@ -700,8 +700,8 @@ function cavern(ctx, region, t, meta) {
  * (no state).
  * @param {CanvasRenderingContext2D} ctx @param {string} region @param {number} t seconds @param {string} seed
  */
-export function animateRegion(ctx, region, t, seed) {
-  const W = SCENE_W, H = SCENE_H, meta = sceneOf(region, seed).meta;
+export function animateRegion(ctx, region, t, seed, authoredScene = null) {
+  const W = SCENE_W, H = SCENE_H, meta = (authoredScene || sceneOf(region, seed)).meta;
   if (meta.artAtmosphere !== undefined) {
     if (meta.artAtmosphere === 0) return;
     ctx.save(); ctx.globalAlpha *= Math.min(1, meta.artAtmosphere);

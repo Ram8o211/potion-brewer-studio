@@ -49,5 +49,8 @@ test('the bundled Art Studio opens, draws and saves offline without writing a ga
   expect(await page.evaluate(() => localStorage.getItem('alchemist-shop.save'))).toBeNull();
   await page.locator('[data-act=art-exit]').click(); await page.locator('[data-act=art-studio]').click();
   await page.waitForFunction(() => window.__alchemist.screen.component.layers[0].pixels.some((p) => p > 0));
+  await page.getByLabel('Editor workspace', { exact: true }).selectOption('environments');
+  await page.waitForFunction(() => !!window.__alchemist.screen.domainEditor.sceneKey, null, { timeout: 30000 });
+  expect(await page.evaluate(() => !!window.__alchemist.screen.domainEditor.worker && !window.__alchemist.screen.domainEditor.workerFailed)).toBe(true);
   expect(errors.filter((e) => !/ERR_CONNECTION_REFUSED|Failed to fetch|net::/.test(e))).toEqual([]);
 });

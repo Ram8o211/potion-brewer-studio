@@ -131,6 +131,7 @@ export class StudioScreen {
   redo() { this.project = this.history.redo(this.project); this.dirty = true; this.selection = null; this.refresh(); }
   refresh() {
     if (!this.mounted) return;
+    const workspaceControl = this.el.querySelector('[aria-label="Editor workspace"]'); if (workspaceControl) workspaceControl.value = this.workspace;
     this.title.textContent = this.project.name + (this.dirty ? ' •' : '');
     if (this.workspace !== 'components') {
       this.renderLibrary();
