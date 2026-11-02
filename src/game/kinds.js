@@ -153,12 +153,14 @@ const r2 = (v) => Math.round(v * 100) / 100;
  * A wild look for a kind other than the rabbit (rabbits use wild-rabbits.js
  * wildLook). Fields are those of a RabbitLook, read by the kind's own art.
  * @param {AnimalKind} kind @param {Rng} rng
+ * @returns {import('./colony.js').RabbitLook}
  */
 export function kindLook(kind, rng) {
   const seed = 1 + rng.int(0, 2147483000);
   const size = r2(Math.max(0.85, Math.min(1.15, 1 + 0.06 * rng.gauss())));
   if (kind === 'cat') {
     // tabbies, gingers, blacks, greys, a tuxedo now and then; green or amber eyes
+    /** @type {[number[], number[], import('./colony.js').RabbitLook['pattern'], number][]} */
     const coats = [
       [[0.55, 0.45, 0.33], [0.24, 0.18, 0.13], 'tabby', 3], [[0.85, 0.52, 0.24], [0.62, 0.32, 0.12], 'tabby', 2],
       [[0.2, 0.18, 0.2], [0.97, 0.96, 0.94], 'dutch', 1], [[0.16, 0.15, 0.17], [0.16, 0.15, 0.17], 'solid', 2],
