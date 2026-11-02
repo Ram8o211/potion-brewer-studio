@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { newProject, newComponent, newNode, newLayer, clone, validateProject, parseProject, History } from '../src/studio/model.js';
 import { generate, componentPixels } from '../src/studio/engine.js';
-import { composite, transformed, region, colorWord } from '../src/studio/pixels.js';
+import { composite, transformed, region, colorWord, validatePNGHeader } from '../src/studio/pixels.js';
 import { Pixels } from '../src/visual/pixels.js';
 import { setArtDirection, artRevision } from '../src/studio/direction.js';
 import { archetypeIdentity, pieceMask, piecePalette } from '../src/visual/pieces.js';
@@ -78,4 +78,12 @@ test('runtime palettes change linked images and powder colors, preserve physical
   assert.equal(JSON.stringify(state.world), serialized);
   const normal = clone(profile.global); profile.species.silverleaf = { ...normal, tint: '#4488ff', mix: 1 }; setArtDirection(profile); assert.notDeepEqual(describe(id).pal.main, changed.pal.main);
   setArtDirection(null); assert.equal(iconFrame(describe(id)).pix.hash(), hash);
+});
+
+test('PNG headers reject oversized decode allocations before image decoding', () => {
+  const header = new Uint8Array(24); header.set([137,80,78,71,13,10,26,10]); header.set([73,72,68,82],12);
+  const data = new DataView(header.buffer); data.setUint32(16,32); data.setUint32(20,32);
+  assert.deepEqual(validatePNGHeader(header), {w:32,h:32});
+  data.setUint32(16,100000); assert.throws(() => validatePNGHeader(header), /dimensions/);
+  assert.throws(() => validatePNGHeader(new Uint8Array(24)), /header/);
 });

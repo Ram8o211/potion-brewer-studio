@@ -59,3 +59,12 @@ export function transformed(src, angle = 0, scale = 1, flip = false) {
   }
   return out;
 }
+
+/** Inspect PNG IHDR before allocating a decoded bitmap. @param {Uint8Array} bytes */
+export function validatePNGHeader(bytes) {
+  const signature = [137, 80, 78, 71, 13, 10, 26, 10];
+  if (bytes.length < 24 || !signature.every((v, i) => bytes[i] === v) || String.fromCharCode(...bytes.slice(12, 16)) !== 'IHDR') throw new Error('Not a valid PNG header');
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), w = view.getUint32(16), h = view.getUint32(20);
+  if (!w || !h || w > 4096 || h > 4096) throw new Error('PNG dimensions must be between 1 and 4096 pixels');
+  return { w, h };
+}

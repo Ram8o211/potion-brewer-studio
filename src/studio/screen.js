@@ -2,7 +2,7 @@ import { h, btn, clear, modal, confirmDialog } from '../ui/dom.js';
 import { newProject, newAsset, newComponent, newNode, newLayer, clone, uid, validateProject, parseProject, History, STAGES } from './model.js';
 import { componentPixels, generate } from './engine.js';
 import { Pixels } from '../visual/pixels.js';
-import { colorWord, wordColor, line, region, inPolygon, transformed } from './pixels.js';
+import { colorWord, wordColor, line, region, inPolygon, transformed, validatePNGHeader } from './pixels.js';
 import { saveProject, loadProject, listProjects, deleteProject, getSetting, putSetting } from './storage.js';
 import { artDirection, setArtDirection, artRevision } from './direction.js';
 import { archetypeIdentity } from '../visual/pieces.js';
@@ -196,6 +196,7 @@ export class StudioScreen {
     for (const [index, l] of c.layers.entries()) this.inspector.append(h('div', { class: 'art-layer' }, btn(l.name, () => { this.layerId = l.id; this.renderInspector(); }, { cls: l === this.layer ? 'active' : '' }), this.check('Visible ' + l.name, l.visible, (v) => this.edit('Layer visibility', () => { l.visible = v; })),
       this.field('Layer name ' + (index + 1), l.name, (v) => this.edit('Layer name', () => { l.name = v; })), this.field('Opacity ' + (index + 1), l.opacity, (v) => this.edit('Layer opacity', () => { l.opacity = v; }), 'number', { min: 0, max: 1, step: 0.1 }),
       this.select('Correction scope ' + (index + 1), l.scope, ['all', 'variant', 'stage'].map((s) => [s, s]), (v) => this.edit('Correction scope', () => { l.scope = v; l.variant = this.seed; l.stage = this.stage; })),
+      h('small', { class: 'muted', text: l.scope === 'variant' ? 'Only seed ' + l.variant : l.scope === 'stage' ? 'Only ' + STAGES[l.stage] : 'Every use of this component' }),
       btn('Raise layer ' + (index + 1), () => this.edit('Layer order', () => { if (index < c.layers.length - 1) [c.layers[index], c.layers[index + 1]] = [c.layers[index + 1], c.layers[index]]; })),
       btn('Delete layer ' + (index + 1), () => this.edit('Delete layer', () => { c.layers.splice(index, 1); this.layerId = ''; }))));
     this.inspector.append(btn('+ Layer', () => this.edit('Add layer', () => { const l = newLayer(); c.layers.push(l); this.layerId = l.id; }), { act: 'art-add-layer' }),
@@ -411,6 +412,7 @@ export class StudioScreen {
   exportPNG() { componentPixels(this.component, this.stage, this.seed).toCanvas().toBlob((b) => { if (b) download(this.component.name + '.png', b); }, 'image/png'); }
   async importPNG(file) {
     if (!file) return; if (file.type !== 'image/png' || file.size > 8 * 1024 * 1024) throw new Error('Choose a PNG under 8 MB');
+    validatePNGHeader(new Uint8Array(await file.slice(0, 24).arrayBuffer()));
     const image = await createImageBitmap(file);
     try {
       if (image.width > 4096 || image.height > 4096) throw new Error('PNG dimensions must be below 4096 pixels');
