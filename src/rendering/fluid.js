@@ -40,6 +40,7 @@
 //     or burning, still glows and spills light into a soft pixel halo;
 // Rendering resolution is independent of the physics resolution.
 
+import { directMaterialImage } from '../studio/material-runtime.js';
 import { PHASE, SIM } from '../simulation/constants.js';
 import { LOOK, piece } from '../materials/shapes.js';
 import { PIECE_ART, PIECE_CELL, piecePalette, pieceSprite } from '../visual/pieces.js';
@@ -1060,6 +1061,15 @@ export class FluidRenderer {
     this.simT = sim.time;
     if (fxN) this.fx.step(time, { w, h, bx, by, data: this.image.data, liquid: this.fxLiq, pix: this.fxPix, npix: fxN, mfx, emit, mask: fxMask, flow, weight: liq, stride: LS, simDt });
     else if (this.fx.n) this.fx.clear();
+    if (!thermal) directMaterialImage(this.image.data, w, (k) => {
+      if (fxN && this.fx.cover[k]) return 'effect';
+      const i = this.pieceCol[k] ? this.pieceIdx[k] : this.solIdx[k];
+      if (i >= 0 && (this.sol[k * 4] > 0.45 || this.pieceCol[k])) return sim.p.temp[i] < 0 ? 'frozen' : sim.p.phase[i];
+      if (this.grain[k] >>> 24 && liq[k * LS] < 0.3) return POWDER;
+      const x = k % w, y = Math.floor(k / w), gas = this.gas[((y >> 1) * this.hw + (x >> 1)) * 4];
+      if (gas > 0.01 && liq[k * LS] < 0.1) return GAS;
+      return liq[k * LS + 5] / Math.max(0.001, liq[k * LS]) > 0.2 ? PASTE : LIQUID;
+    }, time);
     this.ctx.putImageData(this.image, 0, 0);
     const halo = anyGlow && this.halo && !thermal ? this._halo(w, h) : null;
     return { canvas: this.canvas, x: bx, y: by, halo };

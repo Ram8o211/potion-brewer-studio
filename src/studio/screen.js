@@ -1,5 +1,7 @@
+import { reviewProposal } from './proposals.js';
+import { DomainWorkspace } from './workspaces.js';
 import { h, btn, clear, modal, confirmDialog } from '../ui/dom.js';
-import { newProject, newAsset, newComponent, newNode, newLayer, clone, uid, validateProject, parseProject, History, STAGES } from './model.js';
+import { newProject, newAsset, newComponent, newNode, newLayer, clone, uid, validateProject, parseProject, History, STAGES, compileProfile } from './model.js';
 import { componentPixels, generate } from './engine.js';
 import { Pixels } from '../visual/pixels.js';
 import { colorWord, wordColor, line, region, inPolygon, transformed, validatePNGHeader } from './pixels.js';
@@ -11,7 +13,7 @@ import { plantFrame, iconFrame, pieceArt } from '../visual/render.js';
 import { WILD_SPECS } from '../materials/wild.js';
 import { FAMILIES } from '../visual/families/index.js';
 
-const TOOLS = ['pencil', 'eraser', 'line', 'rectangle', 'ellipse', 'fill', 'eyedropper', 'select', 'lasso', 'contiguous', 'move', 'anchor', 'tip', 'pan'];
+const TOOLS = ['pencil', 'eraser', 'line', 'rectangle', 'ellipse', 'fill', 'eyedropper', 'select', 'lasso', 'contiguous', 'move', 'anchor', 'tip', 'vertex', 'pan'];
 function named(title, initial = '') {
   return new Promise((resolve) => {
     const input = h('input', { value: initial, maxlength: 100, 'aria-label': title }); let accepted = false;
@@ -24,7 +26,7 @@ function download(name, blob) {
 }
 export class StudioScreen {
   constructor(app) {
-    this.app = app; this.project = newProject(); this.history = new History(); this.assetId = this.project.assets[0].id;
+    this.workspace = 'components'; this.app = app; this.project = newProject(); this.history = new History(); this.assetId = this.project.assets[0].id;
     this.componentId = this.project.assets[0].components[0].id; this.nodeId = this.project.assets[0].nodes[0].id; this.layerId = '';
     this.tool = 'pencil'; this.color = '#76b98a'; this.brush = 1; this.round = false; this.grid = true; this.guides = true;
     this.zoom = 10; this.pan = [0, 0]; this.stage = 2; this.seed = 1; this.tab = 'rules'; this.mode = 'component';
@@ -62,6 +64,7 @@ export class StudioScreen {
     this.status = h('span', { class: 'art-status', role: 'status', 'aria-live': 'polite' });
     this.title = h('strong');
     const header = h('header', { class: 'art-header' }, h('div', {}, h('span', { class: 'art-kicker', text: 'POTION BREWER / AUTHORING' }), this.title),
+      this.select('Editor workspace', this.workspace, [['components','Components & rules'],['ingredients','Ingredients & growth'],['environments','Environments & terrain'],['creatures','Creatures & animation'],['materials','Materials & phases'],['effects','Magical effects'],['interface','Interface & icons']], (v) => { this.workspace = v; this.domainEditor?.destroy(); this.domainEditor = null; this.refresh(); }),
       action('Projects', () => this.projects(), 'projects'), action('Save Draft', () => this.save(), 'save'),
       action('Export Project', () => this.exportProject(), 'export'), action('Import Project', () => this.projectFile.click(), 'import'),
       action('Preview in Game', () => this.preview(), 'preview'), action('Apply Art Profile', () => this.apply(), 'apply'), action('Revert', () => this.revert(), 'revert'),
@@ -105,6 +108,7 @@ export class StudioScreen {
     const foot = h('footer', { class: 'art-footer' }, this.status, action('Toggle library', () => this.togglePanel('library'), 'toggle-library'), action('Toggle properties', () => this.togglePanel('inspector'), 'toggle-inspector'));
     this.projectFile = h('input', { type: 'file', accept: '.json,application/json', hidden: true, onchange: (e) => this.run(() => this.importProject(e.target.files[0])) });
     this.pngFile = h('input', { type: 'file', accept: 'image/png', hidden: true, onchange: (e) => this.run(() => this.importPNG(e.target.files[0])) });
+    this.center = center; this.componentChildren = [...center.children];
     this.el.append(header, this.library, center, this.inspector, this.bottom, foot, this.projectFile, this.pngFile); root.append(this.el);
     for (const p of this.hiddenPanels) this.el.classList.add('art-hide-' + p);
     if (!this.origin) this.zoom = Math.max(2, Math.min(16, Math.floor(Math.min(this.canvas.clientWidth, this.canvas.clientHeight) / 40)));
@@ -128,6 +132,12 @@ export class StudioScreen {
   refresh() {
     if (!this.mounted) return;
     this.title.textContent = this.project.name + (this.dirty ? ' •' : '');
+    if (this.workspace !== 'components') {
+      this.renderLibrary();
+      if (!this.domainEditor) this.domainEditor = new DomainWorkspace(this);
+      this.domainEditor.render(); return;
+    }
+    if (this.center.querySelector('.art-domain')) { this.domainEditor?.destroy(); this.domainEditor = null; this.center.replaceChildren(...this.componentChildren); }
     this.renderLibrary(); this.renderInspector(); this.renderBottom(); this.refreshTools(); this.draw();
   }
   refreshTools() { for (const b of this.tools.querySelectorAll('[data-act^="art-tool-"]')) { const on = b.dataset.act === 'art-tool-' + this.tool; b.classList.toggle('active', on); b.setAttribute('aria-pressed', String(on)); } }
@@ -188,9 +198,10 @@ export class StudioScreen {
       btn('Add paint color to palette', () => this.edit('Palette color', () => { if (!this.project.palette.includes(this.color)) this.project.palette.push(this.color); })),
       btn('Replace selected palette color', () => this.edit('Edit palette', () => { this.project.palette[this.paletteIndex || 0] = this.color; })),
       h('h3', { text: 'Source geometry' }));
-    for (const [index, g] of c.geometry.entries()) this.inspector.append(this.select('Shape ' + (index + 1), g.shape, ['leaf', 'stem', 'ellipse', 'rectangle', 'crystal'].map((s) => [s, s]), (v) => this.edit('Geometry shape', () => { g.shape = v; })),
+    for (const [index, g] of c.geometry.entries()) this.inspector.append(this.select('Shape ' + (index + 1), g.shape, ['leaf', 'stem', 'ellipse', 'rectangle', 'crystal', 'polygon'].map((s) => [s, s]), (v) => this.edit('Geometry shape', () => { g.shape = v; if (v === 'polygon' && !g.points) g.points = [[16, 2], [30, 28], [2, 28]]; })),
       editField('Geometry color ' + (index + 1), g, 'color', 'color'), editField('Geometry width ' + (index + 1), g, 'width', 'number', { min: 1, max: 32 }), editField('Geometry height ' + (index + 1), g, 'height', 'number', { min: 1, max: 32 }),
       editField('Geometry X ' + (index + 1), g, 'x', 'number', { min: 0, max: 32 }), editField('Geometry Y ' + (index + 1), g, 'y', 'number', { min: 0, max: 32 }), btn('Remove geometry ' + (index + 1), () => this.edit('Remove geometry', () => c.geometry.splice(index, 1))));
+    for (const [key, label] of [['texture', 'Procedural texture'], ['lighting', 'Material lighting'], ['irregularity', 'Organic deformation'], ['paletteVariation', 'Seeded palette variation']]) this.inspector.append(this.field(label, c[key] ?? (key === 'texture' || key === 'lighting' ? 1 : 0), (v) => this.edit(label, () => { c[key] = v; }), 'number', { min: 0, max: 2, step: 0.1 }));
     this.inspector.append(btn('Add geometry', () => this.edit('Add geometry', () => c.geometry.push({ shape: 'leaf', color: this.color, width: 12, height: 24, x: 16, y: 16 }))),
       h('p', { class: 'small muted', text: `Anchors: base ${c.anchor.join(', ')} · tip ${c.tip.join(', ')}. Use Anchor / Tip tools to place them.` }), h('h3', { text: 'Pixel correction layers' }));
     for (const [index, l] of c.layers.entries()) this.inspector.append(h('div', { class: 'art-layer' }, btn(l.name, () => { this.layerId = l.id; this.renderInspector(); }, { cls: l === this.layer ? 'active' : '' }), this.check('Visible ' + l.name, l.visible, (v) => this.edit('Layer visibility', () => { l.visible = v; })),
@@ -217,8 +228,9 @@ export class StudioScreen {
       section.append(this.field(String(label), style[String(name)], (v) => this.edit('Art direction', () => { if (scope !== 'global' && !d[scope][key]) d[scope][key] = clone(d.global); (scope === 'global' ? d.global : d[scope][key])[String(name)] = v; }), String(type), attrs));
     }
     if (scope !== 'global') section.append(btn('Remove override', () => this.edit('Remove override', () => { delete d[scope][key]; })));
+    section.append(this.select('Saved style preset', '', [['', 'Choose preset'], ...(this.project.presets || []).map((p, i) => [String(i), p.name])], (v) => { if (v !== '') this.edit('Load art-direction preset', () => { this.project.direction = clone(this.project.presets[+v].style); }); }), btn('Save named style preset', () => this.run(async () => { const name = await named('Style preset name', 'My art direction'); if (name) this.edit('Save art-direction preset', () => { this.project.presets ??= []; this.project.presets.push({ name, style: clone(this.project.direction) }); }); })));
     section.append(btn('Preset: Cavern', () => this.edit('Cavern palette', () => { d.global = { tint: '#668b9e', mix: 0.2, saturation: 0.7, contrast: 1.15 }; })), btn('Preset: Original ramps', () => this.edit('Original ramps', () => { d.global = { tint: '#ffffff', mix: 0, saturation: 1, contrast: 1 }; })),
-      btn('Preview linked ingredient', () => this.linkedPreview(), { act: 'art-linked-preview' }), h('p', { class: 'small muted', text: 'Global → biome → family → species. Only visual ramps are applied to gameplay in this delivery; custom constructions stay in the Studio.' }));
+      btn('Preview linked ingredient', () => this.linkedPreview(), { act: 'art-linked-preview' }), h('p', { class: 'small muted', text: 'Global → biome → family → species. Profiles apply the native ingredient, custom graph, environment, creature, material, effect and interface adapters.' }));
     this.inspector.append(section);
   }
   renderBottom() {
@@ -234,7 +246,7 @@ export class StudioScreen {
       for (let i = 0; i < 6; i++) { const seed = (this.seed + i) >>> 0, cv = generate(this.asset, seed, this.stage).pix.toCanvas(); const b = btn('Seed ' + seed, () => { this.seed = seed; this.edit('Choose variant', () => { this.asset.seed = seed; }); }); b.prepend(cv); content.append(b); }
     } else if (this.tab === 'rules') this.renderRules(content);
     else if (this.tab === 'history') { content.append(btn('Undo', () => this.undo()), btn('Redo', () => this.redo()), h('p', { text: 'Snapshots bounded to 60 steps / 8 MB. One gesture is one history step.' })); for (const entry of [...this.history.undoStack].reverse()) content.append(h('div', { text: entry.label })); }
-    else { const result = generate(this.asset, this.seed, this.stage); content.append(h('p', { text: `${result.instances.length} component instances · ${this.renderMs.toFixed(1)} ms last regeneration · art cache revision ${artRevision()}` }), h('p', { text: result.warnings.join(' · ') || 'Graph valid. No instance/depth limits reached.' }), h('p', { text: 'Delivery: component authoring + attachment rules + ingredient palette runtime adapter. Terrain, creature anatomy, fluid/effect and UI adapters are not implemented yet.' })); }
+    else { const result = generate(this.asset, this.seed, this.stage); content.append(h('p', { text: `${result.instances.length} component instances · ${this.renderMs.toFixed(1)} ms last regeneration · art cache revision ${artRevision()}` }), h('p', { text: result.warnings.join(' · ') || 'Graph valid. No instance/depth limits reached.' }), h('p', { text: 'Runtime editors: ingredients and graph bindings, structural terrain, native creature anchors and animation, material/effect rendering and interface artwork. Use Editor workspace to switch; all are stored in this project.' })); }
   }
   renderRules(content) {
     const a = this.asset; const list = h('div', { class: 'art-rule-list' });
@@ -257,6 +269,7 @@ export class StudioScreen {
     content.append(form);
   }
   draw() {
+    if (this.workspace !== 'components') { this.domainEditor?.draw(); return; }
     if (!this.mounted || this.drawRequest) return;
     this.drawRequest = requestAnimationFrame(() => { this.drawRequest = 0; if (this.mounted) this.paint(); });
   }
@@ -285,6 +298,7 @@ export class StudioScreen {
       const markers = [[this.component.anchor, '#ffd38a', 'B'], [this.component.tip, '#8ce0cc', 'T']];
       for (const [point, color, label] of markers) { const x = ox + point[0] * this.zoom, y = oy + point[1] * this.zoom; ctx.strokeStyle = color; ctx.beginPath(); ctx.moveTo(x - 8, y); ctx.lineTo(x + 8, y); ctx.moveTo(x, y - 8); ctx.lineTo(x, y + 8); ctx.stroke(); ctx.fillText(label, x + 7, y - 7); }
     }
+    if (this.tool === 'vertex') { ctx.fillStyle = '#ffcc66'; for (const g of this.component.geometry) for (const p of g.points || []) ctx.fillRect(ox + (g.x + (p[0] - 16) * g.width / 32) * this.zoom - 3, oy + (g.y + (p[1] - 16) * g.height / 32) * this.zoom - 3, 6, 6); }
     this.drawGenerated();
   }
   drawGenerated() {
@@ -318,6 +332,10 @@ export class StudioScreen {
         else this.edit('Fill', () => { this.ensureLayer(); for (const i of pixels) if (!this.selection || this.selection.has(i)) this.layer.pixels[i] = colorWord(this.color); }); return;
       }
       this.stroke = { before: clone(this.project), start: p, last: p, screen: [e.clientX, e.clientY], pan: this.pan.slice(), pixels: this.layer?.pixels.slice(), lasso: [p], tool };
+      if (tool === 'vertex') {
+        const vertices = this.component.geometry.flatMap((g, gi) => (g.points || []).map((v, vi) => ({ gi, vi, distance: Math.hypot(g.x + (v[0] - 16) * g.width / 32 - p[0], g.y + (v[1] - 16) * g.height / 32 - p[1]) }))).sort((a, b) => a.distance - b.distance);
+        this.stroke.vertex = vertices[0];
+      }
       if (tool === 'pencil' || tool === 'eraser') this.strokeAt(p, p, tool);
       if (tool === 'anchor' || tool === 'tip') this.component[tool] = p;
       this.draw();
@@ -335,7 +353,7 @@ export class StudioScreen {
         this.ensureLayer(); const dx = p[0] - s.start[0], dy = p[1] - s.start[1], src = s.pixels || Array(1024).fill(0), indices = this.selection || new Set(Array.from({ length: 1024 }, (_, i) => i));
         this.layer.pixels = src.slice(); for (const i of indices) this.layer.pixels[i] = 0;
         for (const i of indices) { const x = i % 32 + dx, y = Math.floor(i / 32) + dy; if (x >= 0 && x < 32 && y >= 0 && y < 32) this.layer.pixels[y * 32 + x] = src[i]; }
-      } else if (s.tool === 'anchor' || s.tool === 'tip') this.component[s.tool] = p;
+      } else if (s.tool === 'vertex' && s.vertex) { const g = this.component.geometry[s.vertex.gi]; g.points[s.vertex.vi] = [Math.max(0, Math.min(32, (p[0] - g.x) * 32 / g.width + 16)), Math.max(0, Math.min(32, (p[1] - g.y) * 32 / g.height + 16))]; } else if (s.tool === 'anchor' || s.tool === 'tip') this.component[s.tool] = p;
       s.last = p; this.draw();
     });
     cv.addEventListener('pointerup', () => this.endStroke());
@@ -405,7 +423,16 @@ export class StudioScreen {
   exportProject() { validateProject(this.project); download(this.project.name + '.potion-art.json', new Blob([JSON.stringify(this.project)], { type: 'application/json' })); this.message('Project exported, including all editable layers and rules.'); }
   async importProject(file) {
     if (!file) return; if (file.size > 16 * 1024 * 1024) throw new Error('Project files must be below 16 MB');
-    const p = parseProject(await file.text());
+    const text = await file.text();
+    const header = JSON.parse(text);
+    if (header?.format === 'potion-art-proposal') {
+      const review = await reviewProposal(this.project, header);
+      const before = generate(this.asset, this.seed, this.stage).pix.toCanvas(), after = generate(review.candidate.assets[0], this.seed, this.stage).pix.toCanvas();
+      const list = h('div', {}, h('div', { class: 'art-linked-previews' }, before, after), review.changes.map((c) => h('p', { text: c.path + ': ' + c.before + ' → ' + c.after })));
+      const dialog = modal({ title: 'Review proposed art changes', body: [list], foot: [btn('Apply proposed changes', () => { this.edit('Accept structured art proposal', () => { this.project = review.candidate; }); dialog.close(); })] });
+      this.projectFile.value = ''; return;
+    }
+    const p = parseProject(text);
     if (this.dirty && !await confirmDialog('Replace unsaved work?', 'Export or save your current draft first.', 'Import')) return;
     p.id = uid(); this.setProject(p); this.dirty = true; this.refresh(); this.message('Project imported as a separate draft.'); this.projectFile.value = '';
   }
@@ -431,7 +458,7 @@ export class StudioScreen {
     })), btn('Duplicate current', () => this.run(async () => { const p = clone(this.project); p.id = uid(); p.name += ' copy'; await saveProject(p); if (this.dirty) await this.save(); this.setProject(p); await this.save(); this.refresh(); m.close(); }))] });
     for (const row of rows.sort((a, b) => b.updated - a.updated)) content.append(h('div', { class: 'row' }, btn(row.name, () => this.run(async () => { if (this.dirty) await this.save(); const p = await loadProject(row.id); if (!p) throw new Error('Project no longer exists'); this.setProject(p); await putSetting('last-project', p.id); this.refresh(); m.close(); })), btn('Delete', () => this.run(async () => { if (await confirmDialog('Delete saved art project?', row.name + '. Export a backup first.', 'Delete', 'danger')) { await deleteProject(row.id); m.close(); } }))));
   }
-  async apply() { await this.save(); await putSetting('active-direction', { version: 1, direction: this.project.direction }); setArtDirection(this.project.direction); this.message('Art profile applied to ingredient generators. Gameplay and save data are unchanged.'); }
+  async apply() { await this.save(); await putSetting('active-direction', { version: 1, direction: compileProfile(this.project) }); setArtDirection(compileProfile(this.project)); this.message('Art profile applied to ingredient generators. Gameplay and save data are unchanged.'); }
   async revert() { await putSetting('active-direction', null); setArtDirection(null); this.message('Original game visuals restored. Your draft is retained.'); }
   async preview() { await this.save(); this.app.previewStudio(this); }
   async exit() { await this.save(); this.app.showMenu(); }
@@ -439,7 +466,7 @@ export class StudioScreen {
     const before = artDirection(), key = this.directionScope === 'species' ? this.directionKey : WILD_SPECS.find((s) => this.directionScope === 'biomes' ? s.region === this.directionKey : this.directionScope === 'families' ? describe(archetypeIdentity(s.key)).family === this.directionKey : true)?.key || WILD_SPECS[0].key;
     const body = h('div', { class: 'art-linked-previews' });
     try {
-      setArtDirection(this.project.direction); const d = describe(archetypeIdentity(key));
+      setArtDirection(compileProfile(this.project)); const d = describe(archetypeIdentity(key));
       for (let stage = 0; stage < 3; stage++) body.append(h('figure', {}, plantFrame(d, stage).pix.toCanvas(), h('figcaption', { text: STAGES[stage] })));
       body.append(h('figure', {}, iconFrame(d).pix.toCanvas(), h('figcaption', { text: 'Inventory icon' })), h('figure', {}, pieceArt(d, 0, 40).toCanvas(), h('figcaption', { text: 'Physical fragment' })));
     } finally { setArtDirection(before); }
@@ -456,6 +483,7 @@ export class StudioScreen {
     try { await putSetting('layout', layout); } catch { /* Layout persistence must not interrupt authoring. */ }
   }
   unmount() {
+    this.domainEditor?.destroy(); this.domainEditor = null;
     this.mounted = false; this.stroke = null; this.nodeDrag = null; this.space = false; cancelAnimationFrame(this.drawRequest); clearInterval(this.playTimer); this.playTimer = null; clearTimeout(this.layoutTimer);
     window.removeEventListener('keyup', this.keyUpHandler); window.removeEventListener('blur', this.blurHandler);
     window.removeEventListener('keydown', this.keyHandler); window.removeEventListener('beforeunload', this.unload); this.observer?.disconnect();

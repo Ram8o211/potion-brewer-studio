@@ -4,6 +4,8 @@
 // yields the same pixels — and cached, since a region is composed once and
 // then only drawn.
 
+import { directEnvironment } from '../../studio/environment-runtime.js';
+import { artRevision, artDomain } from '../../studio/direction.js';
 import { Canvas, SCENE_W, SCENE_H } from './paint.js';
 import { hashString } from '../../core/rng.js';
 import { finish } from './cave.js';
@@ -49,8 +51,10 @@ const cache = new Map();
 export function composeScene(region, seed) {
   const id = COMPOSERS[region] ? region : 'forest';
   const cv = new Canvas(hashString(`scene:${seed}:${id}`));
+  cv.meta.artDensity = artDomain('environments', id)?.density ?? 1;
   COMPOSERS[id].compose(cv, String(seed));
   // what stands in it told apart from what is behind it, and the ground given detail
+  directEnvironment(cv, id, seed);
   legible(cv, id);
   // the ground's own flora and creepers on the rock faces
   flourish(cv, id);
@@ -74,7 +78,7 @@ export function composeScene(region, seed) {
  */
 export function sceneOf(region, seed) {
   const id = COMPOSERS[region] ? region : 'forest';
-  const key = `${ENV_VERSION}:${id}:${seed}`;
+  const key = `${ENV_VERSION}:${artRevision()}:${id}:${seed}`;
   let s = cache.get(key);
   if (s) return s;
   s = composeScene(id, seed);

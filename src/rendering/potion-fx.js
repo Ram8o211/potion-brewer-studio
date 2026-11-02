@@ -33,6 +33,8 @@
 // them. fluid.js gives them the liquid's pixels, velocity and per-effect
 // magic each frame (PotionParticles.step).
 
+import { artDomain } from '../studio/direction.js';
+import { hex } from '../visual/color.js';
 import { EFFECTS, NE } from '../alchemy/effects.js';
 
 const K = Object.fromEntries(EFFECTS.map((e, k) => [e.key, k]));
@@ -165,7 +167,7 @@ export class PotionParticles {
       const S = Math.min(240, npix);
       let sum = 0;
       for (let s = 0; s < S; s++) sum += PotionParticles.strength(f, f.pix[(this.rand() * npix) | 0], e);
-      const target = Math.min(CAP, Math.round((sum / S) * npix * DENSITY[EFFECTS[e].key] / 1000));
+      const target = Math.min(CAP, Math.round((sum / S) * npix * DENSITY[EFFECTS[e].key] * (artDomain('effects', EFFECTS[e].key)?.density || 1) / 1000));
       const deficit = target - this.count[e];
       if (deficit <= 0) { this.warm[e] = 1; continue; }
       let make;
@@ -338,6 +340,10 @@ export class PotionParticles {
   _draw(i, time, f) {
     const { w, h, bx, by, data, liquid } = f;
     const e = this.k[i], v = this.v[i], free = this.free[i] === 1;
+    const style = artDomain('effects', EFFECTS[e].key);
+    if (style && i % 100 >= style.density * 100) return;
+    const tint = style ? hex(style.tint) : null;
+    if (style) time *= style.speed;
     const t = this.age[i] / this.life[i];
     // fade in and out, stronger where the effect is stronger
     const fade = Math.min(1, t * 6, (1 - t) * 5) * Math.min(1, 0.6 + this.amp[i] * 0.5);
@@ -345,6 +351,10 @@ export class PotionParticles {
     const cover = this.cover;
     /** @param {number} x @param {number} y @param {number[]} c @param {number} a */
     const px = (x, y, c, a) => {
+      if (style) {
+        x = Math.round(x * style.size); y = Math.round(y * style.size);
+        a *= style.opacity; c = c.map((v, ch) => v * (1 - style.mix) + tint[ch] * style.mix + style.emission * 0.1 + Math.sin(x * 7 + y * 13 + time) * (style.grain - 1) * 0.03);
+      }
       x += X; y += Y;
       if (x < 0 || y < 0 || x >= w || y >= h || a <= 0.01) return;
       const q = y * w + x, o = q * 4;
@@ -360,6 +370,13 @@ export class PotionParticles {
       }
       cover[q] = 1;
     };
+    if (style && style.shape !== 'native') {
+      const c = tint, a = fade * style.opacity;
+      px(0, 0, c, a);
+      if (style.shape === 'square') { px(1, 0, c, a); px(0, 1, c, a); px(1, 1, c, a); }
+      else { px(-1, 0, c, a); px(1, 0, c, a); px(0, -1, c, a); if (style.shape === 'cross') px(0, 1, c, a); }
+      return;
+    }
     /** a mote: a core pixel and, at strength g, a soft glow on its four sides @param {number} x @param {number} y @param {number[]} core @param {number[]} rim @param {number} a @param {number} g */
     const mote = (x, y, core, rim, a, g) => {
       if (g > 0.05) { px(x - 1, y, rim, a * g); px(x + 1, y, rim, a * g); px(x, y - 1, rim, a * g); px(x, y + 1, rim, a * g); }

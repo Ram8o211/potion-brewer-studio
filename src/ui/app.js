@@ -1,6 +1,7 @@
 // Application shell: settings, screen switching (menu ↔ laboratory ↔ free
 // experiment), first-gesture audio unlock and error recovery.
 
+import { compileProfile } from '../studio/model.js';
 import { StudioScreen } from '../studio/screen.js';
 import { getSetting } from '../studio/storage.js';
 import { artDirection, setArtDirection } from '../studio/direction.js';
@@ -127,7 +128,7 @@ export class App {
 
   previewStudio(studio) {
     this.studioPreview = { studio, before: artDirection() };
-    setArtDirection(studio.project.direction); this.startSandbox(true);
+    setArtDirection(compileProfile(studio.project)); this.startSandbox(true);
   }
 
   startSandbox(preview = false) {

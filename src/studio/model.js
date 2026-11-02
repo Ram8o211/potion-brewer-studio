@@ -1,6 +1,7 @@
 // Versioned, bounded authoring documents. No DOM, eval, URLs or gameplay data.
+import { newDomains, validateDomains } from './domain-model.js';
 export const FORMAT = 'potion-art-studio';
-export const VERSION = 1;
+export const VERSION = 2;
 export const CATEGORIES = ['Ingredients and plants', 'Crystals and minerals', 'Trees and vegetation', 'Terrain and environments', 'Creatures and rabbits', 'Buildings and props', 'Liquids, powders and vapours', 'Magical and physical effects', 'UI and icons'];
 export const STAGES = ['Sprout', 'Ripe', 'Mature'];
 export const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -26,7 +27,7 @@ export function newAsset(name = 'Untitled plant') {
 }
 export function newProject(name = 'Untitled art project') {
   return { format: FORMAT, version: VERSION, id: uid(), name, assets: [newAsset()], palette: ['#172331', '#35594a', '#76b98a', '#e5d4a1', '#ad718d', '#77b7ce'],
-    direction: { global: { tint: '#ffffff', mix: 0, saturation: 1, contrast: 1 }, biomes: {}, families: {}, species: {} }, updated: Date.now() };
+    presets: [], domains: newDomains(), direction: { global: { tint: '#ffffff', mix: 0, saturation: 1, contrast: 1 }, biomes: {}, families: {}, species: {} }, updated: Date.now() };
 }
 const fail = (message) => { throw new Error(`Invalid art project: ${message}`); };
 const obj = (v) => v && typeof v === 'object' && !Array.isArray(v);
@@ -51,7 +52,9 @@ export function validateProject(input) {
       components.add(c.id);
       for (const p of [c.anchor, c.tip]) if (!Array.isArray(p) || p.length !== 2 || !p.every((n) => num(n, 0, 32))) fail('anchors');
       if (!Array.isArray(c.geometry) || c.geometry.length > 32 || !Array.isArray(c.layers) || c.layers.length > 16) fail('geometry/layer count');
-      for (const g of c.geometry) if (!obj(g) || !['leaf', 'stem', 'ellipse', 'rectangle', 'crystal'].includes(g.shape) || !color(g.color) || !num(g.width, 1, 32) || !num(g.height, 1, 32) || !num(g.x, 0, 32) || !num(g.y, 0, 32)) fail('geometry');
+      for (const g of c.geometry) if (!obj(g) || !['leaf', 'stem', 'ellipse', 'rectangle', 'crystal', 'polygon'].includes(g.shape) || !color(g.color) || !num(g.width, 1, 32) || !num(g.height, 1, 32) || !num(g.x, 0, 32) || !num(g.y, 0, 32)) fail('geometry');
+      for (const g of c.geometry) if (g.shape === 'polygon' && (!Array.isArray(g.points) || g.points.length < 3 || g.points.length > 64 || !g.points.every((p) => Array.isArray(p) && p.length === 2 && p.every((n) => num(n, 0, 32))))) fail('polygon points');
+      for (const k of ['texture', 'lighting', 'irregularity', 'paletteVariation']) if (c[k] !== undefined && !num(c[k], 0, 2)) fail('component material');
       const layerIds = new Set();
       for (const l of c.layers) {
         if (!obj(l) || (!text(l.id) || !l.id) || layerIds.has(l.id) || !text(l.name) || typeof l.visible !== 'boolean' || !num(l.opacity, 0, 1) || !['all', 'variant', 'stage'].includes(l.scope) || !num(l.variant, 0, 4294967295) || !Number.isInteger(l.stage) || !num(l.stage, 0, 2)) fail('layer metadata');
@@ -72,6 +75,18 @@ export function validateProject(input) {
       while (p) { if (path.has(p) || !nodes.has(p)) fail('cyclic or missing parent'); path.add(p); p = nodes.get(p).parent; }
     }
   }
+  if (input.presets !== undefined) {
+    if (!Array.isArray(input.presets) || input.presets.length > 32) fail('style presets');
+    for (const preset of input.presets) {
+      if (!text(preset.name) || !obj(preset.style)) fail('preset name');
+      validateStyle(preset.style.global);
+      for (const type of ['biomes', 'families', 'species']) {
+        if (!obj(preset.style[type]) || Object.keys(preset.style[type]).length > 100) fail('preset overrides');
+        for (const style of Object.values(preset.style[type])) validateStyle(style);
+      }
+    }
+  }
+  validateDomains(input.domains, input.assets);
   if (budget > 1048576) fail('pixel memory limit (1M pixels)');
   if (!obj(input.direction)) fail('art direction');
   validateStyle(input.direction.global);
@@ -92,7 +107,17 @@ export function parseProject(json) {
   if (typeof json !== 'string' || json.length > 16 * 1024 * 1024) fail('file exceeds 16 MB');
   const p = JSON.parse(json);
   if (p?.format === FORMAT && p.version === 0) { p.version = 1; for (const a of p.assets || []) { a.folder ??= ''; a.tags ??= ''; } }
+  return upgradeProject(p);
+}
+
+export function upgradeProject(input) {
+  const p = clone(input);
+  if (p?.format === FORMAT && p.version === 1) { p.version = 2; p.domains = newDomains(); }
   return clone(validateProject(p));
+}
+export function compileProfile(project) {
+  validateProject(project);
+  return clone({ ...project.direction, domains: project.domains, assets: project.assets });
 }
 
 /** Full snapshots, bounded by both entries and serialized bytes. */

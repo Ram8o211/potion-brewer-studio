@@ -9,6 +9,7 @@
 // swinging on for seconds (SceneTouch). The trees and bushes of the
 // painting stay put: they move with the wind alone.
 
+import { artRevision } from '../studio/direction.js';
 import { sceneOf, SCENE_W, SCENE_H } from '../visual/env/scene.js';
 import { MIN_HIT } from './species-sprites.js';
 import { hashString } from '../core/rng.js';
@@ -21,7 +22,7 @@ const canvases = new Map();
 
 /** A region's painted scene as a canvas (browser), made once per world and region. @param {string} region @param {string} seed */
 export function sceneCanvas(region, seed) {
-  const k = region + ':' + seed;
+  const k = artRevision() + ':' + region + ':' + seed;
   let cv = canvases.get(k);
   if (!cv) {
     cv = sceneOf(region, seed).pix.toCanvas();
@@ -213,7 +214,7 @@ const touches = new Map();
 
 /** The finger's hold on a region's scenery (null where nothing sways). @param {string} region @param {string} seed */
 export function sceneTouch(region, seed) {
-  const k = region + ':' + seed;
+  const k = artRevision() + ':' + region + ':' + seed;
   let t = touches.get(k);
   if (!t) {
     const sw = sceneOf(region, seed).sway;
@@ -275,7 +276,7 @@ const TOUCH_RATE = 30;
 export function sceneFrame(region, seed, t) {
   const sc = sceneOf(region, seed);
   if (!sc.sway) return sceneCanvas(region, seed);
-  const key = region + ':' + seed;
+  const key = artRevision() + ':' + region + ':' + seed;
   let f = frames.get(key);
   if (!f) {
     const cv = document.createElement('canvas');
@@ -701,6 +702,11 @@ function cavern(ctx, region, t, meta) {
  */
 export function animateRegion(ctx, region, t, seed) {
   const W = SCENE_W, H = SCENE_H, meta = sceneOf(region, seed).meta;
+  if (meta.artAtmosphere !== undefined) {
+    if (meta.artAtmosphere === 0) return;
+    ctx.save(); ctx.globalAlpha *= Math.min(1, meta.artAtmosphere);
+    for (let k = 0; k < Math.max(0, Math.floor((meta.artAtmosphere - 1) * 24)); k++) { ctx.fillStyle = '#b4e8d075'; ctx.fillRect((k * 71 + t * 4) % W, (k * 31 + t * 2) % H, 1, 1); }
+  }
   cavern(ctx, region, t, meta);
   if (region === 'meadow') {
     // birds crossing the sky beyond the cave mouth, two wingbeats apart
@@ -807,4 +813,5 @@ export function animateRegion(ctx, region, t, seed) {
     if (lava) halo(ctx, (lava.x0 + lava.x1) / 2, lava.level, (lava.x1 - lava.x0) / 2 + 10, '#ff6a20', 0.06 + 0.03 * Math.sin(t * 3) + 0.02 * Math.sin(t * 11));
     trickles(ctx, meta.trickles || [], t, '#5a4e4c', '#3e3438');
   }
+  if (meta.artAtmosphere !== undefined) ctx.restore();
 }

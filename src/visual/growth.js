@@ -28,6 +28,7 @@
 // Pure: a descriptor, a stage, a mount and a variant always paint the same
 // pixels. Colours come from the descriptor's ramps, lit from the upper left.
 
+import { artDomain } from '../studio/direction.js';
 import { Rng } from '../core/rng.js';
 import { Pixels } from './pixels.js';
 import { inked } from './style.js';
@@ -473,7 +474,7 @@ const EMBER = [[0.55, 0.12, 0.05], [0.85, 0.3, 0.06], [1, 0.55, 0.12], [1, 0.78,
 const PARAMS = new WeakMap();
 
 /** A species' variation parameters, from its morphology stream and the clues of its effects. @param {any} d */
-export function growthParams(d) {
+function baseGrowthParams(d) {
   let P = PARAMS.get(d);
   if (P) return P;
   const r = new Rng((d.seeds.morph ^ 0x6a09e667) >>> 0), tr = d.tr, f = () => r.next();
@@ -1227,4 +1228,10 @@ export function growFrame(d, stage, o = {}) {
   (DANGLERS.includes(d.form) ? dangle : ORCHARD.includes(d.form) ? orchard : BUILD[d.family] || BUILD.mineral)(c);
   sk.flush();
   return sk.frame(!!o.flip);
+}
+
+export function growthParams(d) {
+  const p = baseGrowthParams(d), edits = artDomain('ingredients', d.id.key)?.growth || {};
+  for (const [k, v] of Object.entries(edits)) if (typeof p[k] === typeof v) p[k] = v;
+  return p;
 }

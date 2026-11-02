@@ -12,7 +12,7 @@ import { GameState } from '../src/game/state.js';
 
 test('projects round-trip editable data, reject malicious and resource-exhausting documents, migrate only v0', () => {
   const p = newProject(); assert.deepEqual(parseProject(JSON.stringify(p)), p);
-  const old = clone(p); old.version = 0; delete old.assets[0].folder; assert.equal(parseProject(JSON.stringify(old)).version, 1);
+  const old = clone(p); old.version = 0; delete old.assets[0].folder; assert.equal(parseProject(JSON.stringify(old)).version, 2);
   for (const mutate of [
     (x) => { x.version = 900; }, (x) => { x.assets[0].nodes[0].parent = x.assets[0].nodes[1].id; },
     (x) => { x.assets[0].nodes[0].component = 'missing'; }, (x) => { x.assets[0].components[0].layers[0].pixels[2] = NaN; },

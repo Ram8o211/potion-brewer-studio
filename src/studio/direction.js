@@ -27,5 +27,19 @@ export function directDescriptor(d) {
       return contrasted * (1 - style.mix) + tint[i] * style.mix;
     }), (value >>> 24) / 255);
   });
-  return { ...d, pal };
+  const native = artDomain('ingredients', d.id.key);
+  const m = { ...d.m };
+  for (const [k, value] of Object.entries(native?.morph || {})) if (typeof m[k] === typeof value) m[k] = value;
+  return { ...d, m, pal };
+}
+
+/** Read-only runtime adapters; rendering must never mutate these records. */
+export const artDomain = (section, key) => active?.domains?.[section]?.[key] || null;
+export const artAssets = () => active?.assets || [];
+export const artInterface = () => active?.domains?.interface?.enabled ? active.domains.interface : null;
+/** Synchronous editor rendering scope with its own cache namespace. Never changes the applied profile. */
+export function withArtProfile(profile, token, fn) {
+  const old = active, oldRevision = revision;
+  active = profile; revision = token;
+  try { return fn(); } finally { active = old; revision = oldRevision; }
 }

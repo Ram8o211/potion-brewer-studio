@@ -20,6 +20,9 @@ import { pack, hex } from '../color.js';
  */
 export function treeRow(cv, rng, pal, o) {
   const haze = pack(hex(o.haze));
+  const density = cv.meta.artDensity ?? 1;
+  if (density === 0) return;
+  o = { ...o, gap: [Math.max(2, o.gap[0] / density), Math.max(2, o.gap[1] / density)] };
   for (let x = rng.int(-6, 6); x < cv.W + 10; x += rng.int(o.gap[0], o.gap[1])) {
     const h = rng.int(o.h[0], o.h[1]), xi = Math.max(0, Math.min(cv.W - 1, x));
     const m = o.kind ? tree(rng, o.kind, h, Math.max(2, h / 16), { look: o.look }) : branchTree(rng, h, Math.max(2, h / 12), { shape: o.shape || 'tall', mats: o.look?.mats });
@@ -41,6 +44,7 @@ export function treeRow(cv, rng, pal, o) {
  * @returns {[number, number, number][]} the trees placed: foot x, foot y, height
  */
 export function terrainTrees(cv, rng, pal, o) {
+  o = { ...o, n: Math.round(o.n * (cv.meta.artDensity ?? 1)) };
   const W = cv.W, H = cv.H, S = cv.solid, gap = o.gap ?? 22, [xa, xb] = o.x || [4, W - 5];
   // the spots: dry surface pixels with room above them, away from liquids
   const spots = [];

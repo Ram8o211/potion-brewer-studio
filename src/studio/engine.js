@@ -12,9 +12,15 @@ export function componentPixels(component, stage = 2, variant = 0) {
   const pal = {};
   for (const [i, g] of component.geometry.entries()) {
     const x = g.x, y = g.y, w = g.width / 2, h = g.height / 2, mat = 'g' + i;
-    pal[mat] = ramp(hex(g.color));
+    const prng = new Rng(`${variant}:palette:${component.id}:${i}`);
+    const color = hex(g.color).map((v) => Math.max(0, Math.min(1, v + (prng.next() - 0.5) * (component.paletteVariation || 0) * 0.2)));
+    pal[mat] = ramp(color);
     /** @type {import('../visual/geometry.js').Pt[]} */
     let pts;
+    if (g.shape === 'polygon') {
+      const rng = new Rng(`${variant}:morph:${component.id}:${i}`);
+      m.poly(g.points.map(([x, y]) => [g.x + (x - 16) * g.width / 32, g.y + (y - 16) * g.height / 32]), mat, { tone: ((component.lighting ?? 1) - 1) * 0.4, tex: component.texture ?? 1 }); continue;
+    }
     if (g.shape === 'stem') { m.stroke([[x, y + h], [x - 1, y], [x, y - h]], Math.max(1, w / 2), mat); continue; }
     if (g.shape === 'leaf') pts = [[x, y + h], [x - w, y + h / 3], [x - w * 0.7, y - h / 2], [x, y - h], [x + w, y - h / 3], [x + w * 0.6, y + h / 2]];
     else if (g.shape === 'crystal') pts = [[x - w, y + h], [x - w, y - h / 2], [x, y - h], [x + w, y - h / 2], [x + w * 0.7, y + h]];
@@ -22,7 +28,12 @@ export function componentPixels(component, stage = 2, variant = 0) {
     else pts = [[x - w, y - h], [x + w, y - h], [x + w, y + h], [x - w, y + h]];
     m.poly(pts, mat, { shade: g.shape === 'crystal' ? 'facet' : 'round', lum: 0.7 });
   }
-  const base = rasterize(m, 32, 32, pal, { seed: hashString(component.id + ':surface') }).pix;
+  const morphology = new Rng(`${variant}:morph:${component.id}`);
+  for (const part of m.parts) {
+    if (part.pts && component.irregularity) part.pts = part.pts.map(([x, y]) => [x + morphology.range(-1, 1) * component.irregularity, y + morphology.range(-1, 1) * component.irregularity]);
+    if (part.tone === undefined) part.tone = ((component.lighting ?? 1) - 1) * 0.4;
+  }
+  const base = rasterize(m, 32, 32, pal, { seed: hashString(component.id + ':surface'), texture: component.texture ?? 1 }).pix;
   return composite(base, component.layers, stage, variant);
 }
 const transform = (m, x, y) => [m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]];

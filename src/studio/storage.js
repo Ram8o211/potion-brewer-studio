@@ -1,4 +1,4 @@
-import { validateProject, clone } from './model.js';
+import { validateProject, clone, upgradeProject } from './model.js';
 const DB = 'potion-art-studio';
 /** Open per transaction; no global handle survives a screen's lifecycle. */
 async function open() {
@@ -28,7 +28,7 @@ export async function listProjects() {
     tx.onerror = tx.onabort = () => { db.close(); reject(tx.error || new Error('Could not list art projects')); };
   });
 }
-export const loadProject = (id) => transaction('projects', 'readonly', (s) => s.get(id)).then((p) => p ? clone(validateProject(p)) : null);
+export const loadProject = (id) => transaction('projects', 'readonly', (s) => s.get(id)).then((p) => p ? upgradeProject(p) : null);
 export async function saveProject(p) { validateProject(p); const data = clone(p); data.updated = Date.now(); await transaction('projects', 'readwrite', (s) => s.put(data)); return data; }
 export const deleteProject = (id) => transaction('projects', 'readwrite', (s) => s.delete(id));
 export const getSetting = (key) => transaction('settings', 'readonly', (s) => s.get(key));
