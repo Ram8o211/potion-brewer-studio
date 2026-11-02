@@ -39,3 +39,44 @@ test('material, magical effect and UI workspaces persist real visual settings',a
  await page.locator('[data-act=art-exit]').click();await expect(page.locator('#custom-art-profile')).toBeAttached();
  await page.locator('[data-act=art-studio]').click();await page.locator('[data-act=art-revert]').click();await expect(page.locator('#custom-art-profile')).toHaveCount(0);expect(errors).toEqual([]);
 });
+
+
+test('Wilds inspector controls remain reachable on short and narrow screens', async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.setViewportSize({ width: 844, height: 390 });
+  await page.goto('/?nosw');
+  await page.locator('[data-act=art-studio]').click();
+  // A previously hidden panel must not silently hide Wilds authoring controls.
+  await page.locator('[data-act=art-toggle-inspector]').click();
+  await expect(page.locator('.art-inspector')).toBeHidden();
+  await page.getByLabel('Editor workspace', { exact: true }).selectOption('environments');
+  const inspector = page.locator('.art-inspector');
+  await expect(inspector).toBeVisible();
+  await expect(page.getByLabel('Terrain tool', { exact: true })).toBeVisible();
+  await page.getByLabel('Terrain tool', { exact: true }).selectOption('light');
+  const cv = page.locator('.art-domain-canvas');
+  await cv.scrollIntoViewIfNeeded();
+  const bounds = await cv.boundingBox();
+  await page.mouse.click(bounds.x + bounds.width * 0.3, bounds.y + bounds.height * 0.4);
+  const deepField = page.getByLabel('Light strength 0', { exact: true });
+  await deepField.scrollIntoViewIfNeeded();
+  expect(await inspector.evaluate(el => el.scrollTop)).toBeGreaterThan(0);
+  await deepField.fill('1.1');
+  await deepField.press('Tab');
+  expect(await inspector.evaluate(el => el.scrollTop)).toBeGreaterThan(0);
+  await expect(page.getByLabel('Light strength 0', { exact: true })).toHaveValue('1.1');
+  await page.locator('[data-act=art-save]').scrollIntoViewIfNeeded();
+  await expect(page.locator('[data-act=art-save]')).toBeInViewport();
+  await page.setViewportSize({ width: 390, height: 680 });
+  await expect(inspector).toBeVisible();
+  const width = await inspector.evaluate(el => el.getBoundingClientRect().width);
+  expect(width).toBeGreaterThan(320);
+  const appearance = page.getByLabel('Atmospheric density', { exact: true });
+  await appearance.scrollIntoViewIfNeeded();
+  await expect(appearance).toBeInViewport();
+  await page.locator('[data-act=domain-clear-terrain]').scrollIntoViewIfNeeded();
+  await expect(page.locator('[data-act=domain-clear-terrain]')).toBeInViewport();
+  await page.locator('[data-act=art-exit]').scrollIntoViewIfNeeded();
+  await expect(page.locator('[data-act=art-exit]')).toBeInViewport();
+  expect(errors).toEqual([]);
+});
