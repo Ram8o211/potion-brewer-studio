@@ -61,6 +61,17 @@ export class DomainWorkspace {
   change(label, fn) { this.studio.edit(label, fn); }
   field(label, obj, key, min, max, step = 0.1) { return this.studio.field(label, obj[key], (v) => this.change(label, () => { obj[key] = v; }), 'number', { min, max, step }); }
   color(label, obj, key) { return this.studio.field(label, obj[key], (v) => this.change(label, () => { obj[key] = v; }), 'color'); }
+  sliderField(label, obj, key, min, max, step = 0.1) {
+    // Keep a precise numeric field for existing workflows, but make adjustment a drag.
+    const number = this.field(label, obj, key, min, max, step);
+    const range = h('input', { type: 'range', min, max, step, value: obj[key],
+      'aria-label': label + ' slider', oninput: () => {
+        const input = number.querySelector('input');
+        if (input) input.value = range.value;
+      }, onchange: () => this.change(label, () => { obj[key] = Number(range.value); }) });
+    return h('div', { class: 'art-slider-field' }, number, range);
+  }
+
   select(label, value, choices, fn) { return this.studio.select(label, value, choices.map((v) => Array.isArray(v) ? v : [v, v]), fn); }
   group(id, title, description, initiallyOpen = false) {
     const expanded = this.groupState.has(id) ? this.groupState.get(id) : initiallyOpen;
@@ -160,9 +171,9 @@ export class DomainWorkspace {
     i.append(brush);
 
     const appearance = h('section', { class: 'art-control-group' }, h('h3', { text: 'Scene appearance' }),
-      this.field('Vegetation density', cfg, 'density', 0, 2), this.field('Environment lighting', cfg, 'light', 0.1, 2),
-      this.color('Background tint', cfg, 'tint'), this.field('Background tint strength', cfg, 'mix', 0, 1),
-      this.field('Atmospheric density', cfg, 'atmosphere', 0, 3));
+      this.sliderField('Vegetation density', cfg, 'density', 0, 2), this.sliderField('Environment lighting', cfg, 'light', 0.1, 2),
+      this.color('Background tint', cfg, 'tint'), this.sliderField('Background tint strength', cfg, 'mix', 0, 1),
+      this.sliderField('Atmospheric density', cfg, 'atmosphere', 0, 3));
     i.append(appearance);
 
     const objects = this.group('wilds-objects', 'Placed props', cfg.objects.length + ' objects · select Place prop above to add more', cfg.objects.length > 0);
@@ -172,7 +183,7 @@ export class DomainWorkspace {
           this.terrainTool = 'select'; this.sceneSelection = { kind: 'object', index }; this.render();
         }, { act: 'domain-select-object-' + index }),
         this.field('Object X ' + index, o, 'x', 0, 383, 1), this.field('Object Y ' + index, o, 'y', 0, 215, 1),
-        this.field('Object scale ' + index, o, 'scale', 0.1, 2),
+        this.sliderField('Object scale ' + index, o, 'scale', 0.1, 2),
         s.check('Lock object ' + index, o.locked, (v) => this.change('Lock scene object', () => { o.locked = v; })),
         btn('Remove object ' + index, () => this.change('Remove scene object', () => cfg.objects.splice(index, 1))));
       objects.append(item);
@@ -185,8 +196,8 @@ export class DomainWorkspace {
           this.terrainTool = 'select'; this.sceneSelection = { kind: 'light', index }; this.render();
         }, { act: 'domain-select-light-' + index }),
         this.field('Light X ' + index, l, 'x', 0, 383, 1), this.field('Light Y ' + index, l, 'y', 0, 215, 1),
-        this.field('Light radius ' + index, l, 'radius', 2, 120, 1),
-        this.field('Light strength ' + index, l, 'strength', 0, 2),
+        this.sliderField('Light radius ' + index, l, 'radius', 2, 120, 1),
+        this.sliderField('Light strength ' + index, l, 'strength', 0, 2),
         this.color('Light color ' + index, l, 'color'),
         btn('Remove light ' + index, () => this.change('Remove localized light', () => cfg.lights.splice(index, 1)))));
     }
@@ -213,15 +224,15 @@ export class DomainWorkspace {
       if (selected) {
         const o = selected.kind === 'object' ? cfg.objects[selected.index] : cfg.lights[selected.index];
         if (o) {
-          const hx = o.x + (selected.kind === 'object' ? 20 * o.scale : o.radius);
-          const hy = o.y + (selected.kind === 'object' ? -20 * o.scale : 0);
-          if (Math.hypot(p[0] - hx, p[1] - hy) <= 13) return { ...selected, action: 'resize' };
+          const hx = o.x + (selected.kind === 'object' ? Math.max(16, 20 * o.scale) : Math.max(24, o.radius));
+          const hy = o.y + (selected.kind === 'object' ? -Math.max(16, 20 * o.scale) : 0);
+          if (Math.hypot(p[0] - hx, p[1] - hy) <= 16) return { ...selected, action: 'resize' };
         }
       }
       for (const kind of ['object', 'light']) {
         const entries = kind === 'object' ? cfg.objects : cfg.lights;
         for (let index = entries.length - 1; index >= 0; index--) {
-          if (Math.hypot(p[0] - entries[index].x, p[1] - entries[index].y) <= 15)
+          if (Math.hypot(p[0] - entries[index].x, p[1] - entries[index].y) <= 20)
             return { kind, index, action: 'move' };
         }
       }
@@ -390,8 +401,8 @@ export class DomainWorkspace {
               ctx.beginPath(); ctx.moveTo(o.x - 3, o.y); ctx.lineTo(o.x + 3, o.y);
               ctx.moveTo(o.x, o.y - 3); ctx.lineTo(o.x, o.y + 3); ctx.stroke();
               if (selected) {
-                const hx = o.x + (kind === 'object' ? 20 * o.scale : o.radius);
-                const hy = o.y + (kind === 'object' ? -20 * o.scale : 0);
+                const hx = o.x + (kind === 'object' ? Math.max(16, 20 * o.scale) : Math.max(24, o.radius));
+                const hy = o.y + (kind === 'object' ? -Math.max(16, 20 * o.scale) : 0);
                 ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(o.x, o.y); ctx.lineTo(hx, hy); ctx.stroke(); ctx.setLineDash([]);
                 ctx.fillRect(hx - 4, hy - 4, 8, 8);
                 ctx.strokeStyle = '#182833'; ctx.strokeRect(hx - 4, hy - 4, 8, 8);
