@@ -137,20 +137,22 @@ export class DomainWorkspace {
     const tools = h('div', { class: 'art-wilds-tools', role: 'toolbar', 'aria-label': 'Wilds painting tools' });
     for (const [id, label, hint] of WILDS_TOOLS) {
       const button = btn(label, () => chooseTool(id), { cls: this.terrainTool === id ? 'active' : '', act: 'domain-tool-' + id, title: hint });
+      button.setAttribute('aria-label', label);
       button.setAttribute('aria-pressed', String(this.terrainTool === id));
       tools.append(button);
     }
     this.el.insertBefore(tools, this.canvas);
-    this.el.append(h('p', { class: 'art-workspace-hint', role: 'status', text: tool[2] + ' · Drag to paint, or click to place.' }));
+    this.el.append(h('p', { class: 'art-workspace-hint', role: 'status', text: tool[2] + (['place', 'light'].includes(this.terrainTool) ? ' Select a spot in the preview.' : ' Click or drag in the preview.') }));
 
     i.append(h('p', { class: 'art-inspector-intro', text: '1. Pick a tool above the scene. 2. Edit its settings here. 3. Draw or place directly on the preview.' }));
     const brush = h('section', { class: 'art-control-group' }, h('h3', { text: 'Current tool' }),
       this.select('Terrain tool', this.terrainTool, WILDS_TOOLS.map(([id, label]) => [id, label]), chooseTool));
     if (!['place', 'light'].includes(this.terrainTool)) brush.append(
-      s.field('Terrain brush radius', this.radius, (v) => { this.radius = Math.max(1, Math.min(32, v)); }, 'number', { min: 1, max: 32 }),
+      s.field('Terrain brush radius', this.radius, (v) => { this.radius = Math.max(1, Math.min(32, v)); }, 'number', { min: 1, max: 32 }));
+    if (!['place', 'light', 'erase'].includes(this.terrainTool)) brush.append(
       s.field('Terrain material color', this.terrainColor, (v) => { this.terrainColor = v; }, 'color'));
     if (this.terrainTool === 'light') brush.append(
-      s.field('Terrain material color', this.terrainColor, (v) => { this.terrainColor = v; }, 'color'));
+      s.field('New light color', this.terrainColor, (v) => { this.terrainColor = v; }, 'color'));
     if (this.terrainTool === 'place') brush.append(
       this.select('Placement asset', this.placeAsset || s.asset.id, s.project.assets.map((a) => [a.id, a.name]), (v) => { this.placeAsset = v; }));
     i.append(brush);
