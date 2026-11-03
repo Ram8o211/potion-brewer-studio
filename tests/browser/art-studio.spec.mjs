@@ -131,3 +131,36 @@ test('component editor keeps the drawing workflow visible and advanced groups op
   await expect(page.getByRole('dialog', { name: 'Art Studio guide' })).toContainText('Draw a component');
   expect(errors).toEqual([]);
 });
+
+
+test('generated geometry can be moved and resized directly with one undo step per drag', async ({ page }) => {
+  await enter(page);
+  await page.locator('[data-act=art-add-shape]').click();
+  await page.locator('[data-act=art-tool-shape]').click();
+  const index = await page.evaluate(() => window.__alchemist.screen.geometryIndex);
+  const initial = await page.evaluate(i => structuredClone(window.__alchemist.screen.component.geometry[i]), index);
+  const at = (x, y) => page.evaluate(([x, y]) => {
+    const s = window.__alchemist.screen, b = s.canvas.getBoundingClientRect();
+    return { x: b.left + s.origin[0] + x * s.zoom, y: b.top + s.origin[1] + y * s.zoom };
+  }, [x, y]);
+  const start = await at(initial.x, initial.y), end = await at(initial.x + 4, initial.y + 3);
+  await page.mouse.move(start.x, start.y);
+  await page.mouse.down();
+  await page.mouse.move(end.x, end.y, { steps: 5 });
+  await page.mouse.up();
+  await expect.poll(() => page.evaluate(i => window.__alchemist.screen.component.geometry[i].x, index)).toBe(initial.x + 4);
+  await expect.poll(() => page.evaluate(i => window.__alchemist.screen.component.geometry[i].y, index)).toBe(initial.y + 3);
+  await page.locator('[data-act=art-undo]').click();
+  await expect.poll(() => page.evaluate(i => window.__alchemist.screen.component.geometry[i].x, index)).toBe(initial.x);
+  await page.locator('[data-act=art-redo]').click();
+  const g = await page.evaluate(i => structuredClone(window.__alchemist.screen.component.geometry[i]), index);
+  const corner = await at(g.x + g.width / 2, g.y + g.height / 2);
+  const bigger = await at(g.x + g.width / 2 + 2, g.y + g.height / 2 + 2);
+  await page.mouse.move(corner.x, corner.y);
+  await page.mouse.down();
+  await page.mouse.move(bigger.x, bigger.y, { steps: 5 });
+  await page.mouse.up();
+  await expect.poll(() => page.evaluate(i => window.__alchemist.screen.component.geometry[i].width, index)).toBe(g.width + 4);
+  await page.locator('[data-act=art-undo]').click();
+  await expect.poll(() => page.evaluate(i => window.__alchemist.screen.component.geometry[i].width, index)).toBe(g.width);
+});
