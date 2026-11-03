@@ -27,6 +27,7 @@ test('draw, extract, attach, vary, grow and recover an editable project without 
   expect(pixels.filter(Boolean).length).toBe(3);
   await page.locator('[data-act=art-undo]').click(); expect(await state(page, () => window.__alchemist.screen.component.layers[0].pixels.filter(Boolean).length)).toBe(2);
   await page.locator('[data-act=art-redo]').click(); expect(await state(page, () => window.__alchemist.screen.component.layers[0].pixels.filter(Boolean).length)).toBe(3);
+  await page.locator('.art-tool-more > summary').click();
   await page.locator('[data-act=art-tool-contiguous]').click(); await drawPoint(page, 15, 16);
   await named(page, '[data-act=art-extract]', 'Reusable moon leaf');
   await page.locator('[data-act=art-attach]').click();
@@ -51,6 +52,7 @@ test('draw, extract, attach, vary, grow and recover an editable project without 
 test('project and transparent PNG export/import perform real round trips; invalid imports preserve work', async ({ page }) => {
   const errors = watchErrors(page); await enter(page); await drawPoint(page, 16, 15);
   const before = await state(page, () => JSON.stringify(window.__alchemist.screen.project.assets));
+  await page.locator('.art-project-menu > summary').click();
   const exported = page.waitForEvent('download'); await page.locator('[data-act=art-export]').click(); const file = await exported; const path = await file.path();
   // Start from saved state to avoid an intentional unsaved-replacement dialog.
   await page.locator('[data-act=art-save]').click();
@@ -59,6 +61,7 @@ test('project and transparent PNG export/import perform real round trips; invali
   expect(await state(page, () => JSON.stringify(window.__alchemist.screen.project.assets))).toBe(before);
   await page.locator('input[type=file][accept=".json,application/json"]').setInputFiles({ name: 'bad.json', mimeType: 'application/json', buffer: Buffer.from('{"format":"potion-art-studio","version":999}') });
   await expect(page.locator('.art-status')).toContainText('unsupported version'); expect(await state(page, () => JSON.stringify(window.__alchemist.screen.project.assets))).toBe(before);
+  await page.locator('[data-editor-group="component-layers"] > summary').click();
   const image = page.waitForEvent('download'); await page.locator('[data-act=art-export-png]').click(); const png = await image; const pngPath = await png.path();
   await page.locator('input[type=file][accept="image/png"]').setInputFiles({ name: png.suggestedFilename(), mimeType: 'image/png', buffer: await readFile(pngPath) });
   await expect.poll(() => state(page, () => window.__alchemist.screen.component.layers.length)).toBe(2);
@@ -79,9 +82,10 @@ test('art preview is temporary, apply persists, revert restores original generat
   await page.locator('[data-act=art-preview]').click(); await expect(page.locator('[data-act=art-return]')).toBeVisible();
   await page.locator('[data-act=art-return]').click(); await expect(page.locator('[data-screen=studio]')).toBeVisible();
   expect(await page.evaluate((snapshot) => Object.keys(snapshot).every((k) => localStorage.getItem(k) === snapshot[k]), saved)).toBe(true);
+  await page.locator('.art-project-menu > summary').click();
   await page.locator('[data-act=art-apply]').click(); await expect(page.locator('.art-status')).toContainText('Art profile applied');
   await page.reload(); await page.locator('[data-act=continue]').click(); await page.waitForFunction(() => window.__alchemist.screen.state?.seed === 'studio-legacy');
-  await page.evaluate(() => window.__alchemist.showMenu()); await page.locator('[data-act=art-studio]').click(); await page.locator('[data-act=art-revert]').click();
+  await page.evaluate(() => window.__alchemist.showMenu()); await page.locator('[data-act=art-studio]').click(); await page.locator('.art-project-menu > summary').click(); await page.locator('[data-act=art-revert]').click();
   await expect(page.locator('.art-status')).toContainText('Original game visuals restored'); expect(errors).toEqual([]);
 });
 
@@ -104,4 +108,26 @@ test('zoomed coordinates, cancelled gestures and hidden layouts remain reliable'
   await page.locator('[data-act=art-toggle-library]').click(); await expect(page.locator('.art-library')).toBeHidden();
   await page.locator('[data-act=art-save]').click(); await page.reload(); await page.locator('[data-act=art-studio]').click();
   await expect(page.locator('.art-library')).toBeHidden(); await page.locator('[data-act=art-toggle-library]').click(); await expect(page.locator('.art-library')).toBeVisible();
+});
+
+
+test('component editor keeps the drawing workflow visible and advanced groups optional', async ({ page }) => {
+  const errors = watchErrors(page);
+  await enter(page);
+  await expect(page.getByLabel('Asset name', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Paint color', { exact: true })).toBeVisible();
+  await expect(page.locator('.art-tool-more > summary')).toBeVisible();
+  await expect(page.getByLabel('Shape 1', { exact: true })).toBeHidden();
+  const advancedShapes = page.locator('[data-editor-group="component-shapes"]');
+  await advancedShapes.locator('summary').click();
+  await expect(page.getByLabel('Shape 1', { exact: true })).toBeVisible();
+  await page.getByLabel('Shape 1', { exact: true }).selectOption('ellipse');
+  await expect(advancedShapes).toHaveAttribute('open', '');
+  await expect(page.getByLabel('Shape 1', { exact: true })).toHaveValue('ellipse');
+  await expect(page.getByLabel('Category', { exact: true })).toBeHidden();
+  await page.locator('[data-editor-group="component-meta"] > summary').click();
+  await expect(page.getByLabel('Category', { exact: true })).toBeVisible();
+  await page.locator('[data-act=art-help]').click();
+  await expect(page.getByRole('dialog', { name: 'Art Studio guide' })).toContainText('Draw a component');
+  expect(errors).toEqual([]);
 });

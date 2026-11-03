@@ -1355,3 +1355,177 @@ details.steps summary { cursor: pointer; min-height: 24px; }
   .art-studio .art-domain { padding:8px; }
   .art-studio .art-domain-toolbar .art-field { min-width:min(130px,100%); }
 }
+
+
+/* Art Studio: focused primary actions and progressive disclosure. */
+.art-studio .art-header {
+  position:relative;
+  z-index:12;
+}
+.art-studio .art-project-menu {
+  position:relative;
+  flex:none;
+  font:12px/1.4 system-ui,sans-serif;
+}
+.art-studio .art-project-menu > summary,
+.art-studio .art-tool-more > summary {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid #526c74;
+  background:#263640;
+  color:#e3ece5;
+  border-radius:4px;
+  cursor:pointer;
+  padding:8px 11px;
+  min-height:34px;
+  user-select:none;
+}
+.art-studio .art-project-menu > summary:hover,
+.art-studio .art-tool-more > summary:hover { background:#365e59; }
+.art-studio .art-project-menu > summary:focus-visible,
+.art-studio .art-tool-more > summary:focus-visible,
+.art-studio .art-settings-group > summary:focus-visible {
+  outline:2px solid #f0ca87;
+  outline-offset:2px;
+}
+.art-studio .art-project-menu-content {
+  position:absolute;
+  z-index:20;
+  right:0;
+  top:calc(100% + 5px);
+  width:min(235px,80vw);
+  padding:8px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  background:#1b2c36;
+  border:1px solid #6b8a8a;
+  box-shadow:0 8px 22px #000b;
+}
+.art-studio .art-project-menu-content > button { text-align:left; }
+.art-studio .art-workspace-guide {
+  flex:none;
+  margin:0;
+  padding:5px 12px;
+  font-size:11px;
+  background:#1a3038;
+  color:#b5d4c9;
+}
+.art-studio .art-tools {
+  align-items:center;
+  min-width:0;
+}
+.art-studio .art-tool-more {
+  flex:none;
+  max-width:100%;
+}
+.art-studio .art-tool-more-content {
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  margin-top:6px;
+  padding:7px;
+  background:#152731;
+  border:1px solid #476168;
+}
+.art-studio .art-inspector-intro {
+  font-size:12px;
+  line-height:1.5;
+  color:#bdd2cb;
+  padding:8px 10px;
+  margin:4px 0 12px;
+  background:#203742;
+  border-left:3px solid #79bba6;
+}
+.art-studio .art-settings-group {
+  margin:9px 0;
+  padding:0 9px 9px;
+  border:1px solid #3c5661;
+  background:#172630;
+}
+.art-studio .art-settings-group > summary {
+  cursor:pointer;
+  padding:10px 4px;
+  color:#e1eee6;
+  font-size:12px;
+  line-height:1.4;
+}
+.art-studio .art-settings-group[open] > summary {
+  border-bottom:1px solid #38535a;
+  margin-bottom:10px;
+}
+.art-studio .art-settings-group .art-group-description {
+  display:block;
+  font-size:10px;
+  font-weight:400;
+  color:#a7bdc0;
+  padding-left:18px;
+  margin-top:2px;
+}
+.art-studio .art-control-group {
+  padding:9px 10px 4px;
+  margin:10px 0;
+  background:#172832;
+  border:1px solid #3e5961;
+}
+.art-studio .art-control-group h3 {
+  margin:0 0 12px;
+  font-size:12px;
+  color:#d4dfd9;
+}
+.art-studio .art-control-item {
+  border-bottom:1px solid #3c5560;
+  padding:8px 3px;
+  margin-bottom:8px;
+}
+.art-studio .art-control-item:last-child { border-bottom:0; }
+.art-studio .art-wilds-tools {
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  flex:0 0 auto;
+  padding:8px;
+  background:#1c303a;
+  border:1px solid #39515b;
+}
+.art-studio .art-wilds-tools .btn {
+  flex:1 1 auto;
+  min-height:36px;
+  padding:7px 10px;
+}
+.art-studio .art-wilds-tools .btn.active {
+  box-shadow:inset 0 -3px 0 #95ddc0;
+}
+.art-studio .art-workspace-hint {
+  flex:0 0 auto;
+  margin:0;
+  padding:6px 10px;
+  background:#172832;
+  border-left:3px solid #649d8d;
+  color:#bdd5cb;
+  line-height:1.4;
+  font-size:11px;
+}
+.art-studio .art-domain-toolbar { gap:6px; }
+.art-studio .art-domain-toolbar .btn { min-height:34px; }
+.art-studio .art-domain-canvas { cursor:crosshair; }
+@media (max-width:700px) {
+  .art-studio .art-header { gap:5px; }
+  .art-studio .art-header > .art-field { flex:1 1 140px; }
+  .art-studio .art-header > .btn { flex:1 0 auto; }
+  .art-studio .art-project-menu { flex:1 0 auto; }
+  .art-studio .art-project-menu > summary { width:100%; }
+  .art-studio .art-wilds-tools .btn { flex:1 1 25%; min-height:40px; }
+  .art-studio .art-domain { gap:6px; }
+  .art-studio .art-workspace-hint { font-size:10px; }
+}
+
+/* Domain editors need preview space, not the tall component-rules footer. */
+@media (min-width:701px) and (min-height:651px) {
+  .art-studio.art-domain-active {
+    grid-template-rows:auto minmax(240px,1fr) 90px auto;
+  }
+}
+.art-studio .art-guide-content { max-width:520px; }
+.art-studio .art-guide-content li { padding:5px 0; line-height:1.45; }

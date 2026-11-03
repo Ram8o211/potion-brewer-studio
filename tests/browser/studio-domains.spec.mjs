@@ -35,9 +35,9 @@ test('material, magical effect and UI workspaces persist real visual settings',a
  await page.getByLabel('Editor workspace',{exact:true}).selectOption('effects');await page.getByLabel('Domain target',{exact:true}).selectOption('fire');await field(page,'Particle density',2);await page.getByLabel('Particle shape',{exact:true}).selectOption('cross');
  await page.waitForTimeout(400);await page.getByLabel('Editor workspace',{exact:true}).selectOption('interface');await page.getByLabel('Enable interface profile',{exact:true}).check();
  const id=await state(page,()=>window.__alchemist.screen.asset.id);await page.getByLabel('frame artwork',{exact:true}).selectOption(id);await page.getByLabel('Icon artwork',{exact:true}).selectOption(id);
- await page.locator('[data-act=art-apply]').click();await expect(page.locator('.art-status')).toContainText('Art profile applied');
+ await page.locator('.art-project-menu > summary').click();await page.locator('[data-act=art-apply]').click();await expect(page.locator('.art-status')).toContainText('Art profile applied');
  await page.locator('[data-act=art-exit]').click();await expect(page.locator('#custom-art-profile')).toBeAttached();
- await page.locator('[data-act=art-studio]').click();await page.locator('[data-act=art-revert]').click();await expect(page.locator('#custom-art-profile')).toHaveCount(0);expect(errors).toEqual([]);
+ await page.locator('[data-act=art-studio]').click();await page.locator('.art-project-menu > summary').click();await page.locator('[data-act=art-revert]').click();await expect(page.locator('#custom-art-profile')).toHaveCount(0);expect(errors).toEqual([]);
 });
 
 
@@ -74,9 +74,45 @@ test('Wilds inspector controls remain reachable on short and narrow screens', as
   const appearance = page.getByLabel('Atmospheric density', { exact: true });
   await appearance.scrollIntoViewIfNeeded();
   await expect(appearance).toBeInViewport();
+  await page.locator('[data-editor-group="wilds-advanced"] > summary').click();
   await page.locator('[data-act=domain-clear-terrain]').scrollIntoViewIfNeeded();
   await expect(page.locator('[data-act=domain-clear-terrain]')).toBeInViewport();
   await page.locator('[data-act=art-exit]').scrollIntoViewIfNeeded();
   await expect(page.locator('[data-act=art-exit]')).toBeInViewport();
+  expect(errors).toEqual([]);
+});
+
+
+test('Wilds painting tools are direct, contextual and reversible', async ({ page }) => {
+  const errors = watchErrors(page);
+  await open(page, 'environments');
+  const palette = page.getByRole('toolbar', { name: 'Wilds painting tools' });
+  await expect(palette).toBeVisible();
+  for (const tool of ['rock', 'soil', 'erase', 'water', 'lava', 'place', 'light']) {
+    await expect(page.locator('[data-act=domain-tool-' + tool + ']')).toBeVisible();
+  }
+  await page.locator('[data-act=domain-tool-place]').click();
+  await expect(page.getByLabel('Placement asset', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Terrain brush radius', { exact: true })).toHaveCount(0);
+  await page.locator('[data-act=domain-tool-rock]').click();
+  await expect(page.getByLabel('Terrain brush radius', { exact: true })).toBeVisible();
+  const canvas = page.locator('.art-domain-canvas');
+  const b = await canvas.boundingBox();
+  await page.mouse.click(b.x + b.width * 0.3, b.y + b.height * 0.2);
+  await expect.poll(() => state(page, () => window.__alchemist.screen.project.domains.environments.meadow.strokes.length)).toBe(1);
+  await page.locator('[data-act=domain-undo]').click();
+  await expect.poll(() => state(page, () => window.__alchemist.screen.project.domains.environments.meadow.strokes.length)).toBe(0);
+  await page.locator('[data-act=domain-redo]').click();
+  await expect.poll(() => state(page, () => window.__alchemist.screen.project.domains.environments.meadow.strokes.length)).toBe(1);
+  await page.locator('[data-editor-group="wilds-advanced"] > summary').click();
+  await page.locator('[data-act=domain-clear-terrain]').click();
+  await expect(page.getByRole('dialog', { name: 'Clear painted terrain?' })).toBeVisible();
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  expect(await state(page, () => window.__alchemist.screen.project.domains.environments.meadow.strokes.length)).toBe(1);
+  await page.locator('[data-act=domain-clear-terrain]').click();
+  await page.getByRole('button', { name: 'Clear terrain', exact: true }).click();
+  await expect.poll(() => state(page, () => window.__alchemist.screen.project.domains.environments.meadow.strokes.length)).toBe(0);
+  await page.locator('[data-act=art-help]').click();
+  await expect(page.getByRole('dialog', { name: 'Art Studio guide' })).toContainText('Choose a biome');
   expect(errors).toEqual([]);
 });

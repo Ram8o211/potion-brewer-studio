@@ -30,7 +30,7 @@ export class StudioScreen {
     this.componentId = this.project.assets[0].components[0].id; this.nodeId = this.project.assets[0].nodes[0].id; this.layerId = '';
     this.tool = 'pencil'; this.color = '#76b98a'; this.brush = 1; this.round = false; this.grid = true; this.guides = true;
     this.zoom = 10; this.pan = [0, 0]; this.stage = 2; this.seed = 1; this.tab = 'rules'; this.mode = 'component';
-    this.selection = null; this.clipboard = null; this.dirty = false; this.loaded = false; this.mounted = false; this.background = '#17212b'; this.hiddenPanels = []; this.compare = null; this.renderMs = 0;
+    this.selection = null; this.clipboard = null; this.dirty = false; this.loaded = false; this.mounted = false; this.background = '#17212b'; this.hiddenPanels = []; this.componentGroups = new Map(); this.compare = null; this.renderMs = 0;
   }
   get asset() { return this.project.assets.find((a) => a.id === this.assetId) || this.project.assets[0]; }
   get component() { return this.asset.components.find((c) => c.id === this.componentId) || this.asset.components[0]; }
@@ -63,12 +63,20 @@ export class StudioScreen {
     const action = (label, fn, act) => btn(label, () => this.run(fn), { act: 'art-' + act });
     this.status = h('span', { class: 'art-status', role: 'status', 'aria-live': 'polite' });
     this.title = h('strong');
+    const projectMenu = h('details', { class: 'art-project-menu' },
+      h('summary', { text: 'Project options' }),
+      h('div', { class: 'art-project-menu-content' },
+        action('Projects', () => this.projects(), 'projects'),
+        action('Import Project', () => this.projectFile.click(), 'import'),
+        action('Export Project', () => this.exportProject(), 'export'),
+        action('Apply Art Profile', () => this.apply(), 'apply'),
+        action('Revert', () => this.revert(), 'revert')));
+    projectMenu.addEventListener('click', (e) => { if (e.target instanceof Element && e.target.closest('button')) projectMenu.open = false; });
     const header = h('header', { class: 'art-header' }, h('div', {}, h('span', { class: 'art-kicker', text: 'POTION BREWER / AUTHORING' }), this.title),
-      this.select('Editor workspace', this.workspace, [['components','Components & rules'],['ingredients','Ingredients & growth'],['environments','Environments & terrain'],['creatures','Creatures & animation'],['materials','Materials & phases'],['effects','Magical effects'],['interface','Interface & icons']], (v) => { this.workspace = v; this.inspector.scrollTop = 0; if (v === 'environments' && this.hiddenPanels.includes('inspector')) this.togglePanel('inspector'); this.domainEditor?.destroy(); this.domainEditor = null; this.refresh(); }),
-      action('Projects', () => this.projects(), 'projects'), action('Save Draft', () => this.save(), 'save'),
-      action('Export Project', () => this.exportProject(), 'export'), action('Import Project', () => this.projectFile.click(), 'import'),
-      action('Preview in Game', () => this.preview(), 'preview'), action('Apply Art Profile', () => this.apply(), 'apply'), action('Revert', () => this.revert(), 'revert'),
-      action('Back to Game', () => this.exit(), 'exit'));
+      this.select('Editor workspace', this.workspace, [['components','Draw components'],['ingredients','Ingredients & growth'],['environments','Wilds & terrain'],['creatures','Creatures'],['materials','Materials'],['effects','Magic effects'],['interface','Interface']], (v) => { this.workspace = v; this.inspector.scrollTop = 0; if (v === 'environments' && this.hiddenPanels.includes('inspector')) this.togglePanel('inspector'); this.domainEditor?.destroy(); this.domainEditor = null; this.refresh(); }),
+      action('Save Draft', () => this.save(), 'save'),
+      action('Preview in Game', () => this.preview(), 'preview'), projectMenu,
+      action('How to edit', () => this.showGuide(), 'help'), action('Back to Game', () => this.exit(), 'exit'));
     this.library = h('aside', { class: 'art-library art-panel', 'aria-label': 'Asset library' });
     this.inspector = h('aside', { class: 'art-inspector art-panel', 'aria-label': 'Properties' });
     this.bottom = h('section', { class: 'art-bottom art-panel', 'aria-label': 'Procedural workspace' });
@@ -94,12 +102,18 @@ export class StudioScreen {
     this.previewCanvas.addEventListener('dragover', (e) => e.preventDefault());
     this.previewCanvas.addEventListener('drop', (e) => { e.preventDefault(); const id = e.dataTransfer.getData('application/x-potion-component'); if (!this.asset.components.some((c) => c.id === id)) return; const b = this.previewCanvas.getBoundingClientRect(); this.edit('Place procedural component', () => { const n = newNode(id); n.x = Math.round((e.clientX - b.left) * 96 / b.width); n.y = Math.round((e.clientY - b.top) * 96 / b.height); this.asset.nodes.push(n); this.nodeId = n.id; this.componentId = id; }); });
     const tools = h('div', { class: 'art-tools', role: 'toolbar', 'aria-label': 'Pixel tools' });
-    for (const t of TOOLS) tools.append(btn(t[0].toUpperCase() + t.slice(1), () => { this.tool = t; this.refreshTools(); }, { act: 'art-tool-' + t }));
+    const moreTools = h('details', { class: 'art-tool-more' }, h('summary', { text: 'More tools' }), h('div', { class: 'art-tool-more-content' }));
+    for (const t of TOOLS) {
+      const item = btn(t[0].toUpperCase() + t.slice(1), () => { this.tool = t; this.refreshTools(); }, { act: 'art-tool-' + t });
+      (['pencil', 'eraser', 'line', 'rectangle', 'fill', 'select', 'pan'].includes(t) ? tools : moreTools.lastChild).append(item);
+    }
+    tools.append(moreTools);
     tools.append(action('Undo', () => this.undo(), 'undo'), action('Redo', () => this.redo(), 'redo'), action('Fit', () => { this.pan = [0, 0]; this.zoom = Math.max(2, Math.floor(Math.min(this.canvas.clientWidth, this.canvas.clientHeight) / 40)); this.draw(); }, 'fit'),
       this.check('Pixel grid', this.grid, (v) => { this.grid = v; this.draw(); }), this.check('Guides', this.guides, (v) => { this.guides = v; this.draw(); }));
     this.tools = tools;
-    const center = h('main', { class: 'art-center' }, tools,
-      h('div', { class: 'art-canvases' }, h('div', { class: 'art-edit-area' }, this.canvas),
+    const center = h('main', { class: 'art-center' },
+      h('p', { class: 'art-workspace-guide', text: 'Draw a component → see it assembled on the right → adjust its growth and rules below.' }),
+      tools, h('div', { class: 'art-canvases' }, h('div', { class: 'art-edit-area' }, this.canvas),
         h('section', { class: 'art-preview-pane' }, h('h2', { text: 'Live construction' }), this.previewCanvas,
           h('p', { class: 'muted small', text: 'Select a part here to edit its component and attachment rules.' }),
           action('Capture comparison', () => { this.compare = this.generated.pix.toCanvas(); this.drawGenerated(); }, 'compare'),
@@ -117,6 +131,22 @@ export class StudioScreen {
     this.observer.observe(this.canvas); this.observer.observe(this.library); this.observer.observe(this.inspector); this.observer.observe(this.bottom);
     this.refresh();
   }
+  showGuide() {
+    const guides = {
+      components: ['Choose a plant or component in the library.', 'Draw with Pencil, Eraser or Fill. Expand More tools when you need precise edits.', 'Watch the assembled result on the right; adjust growth and attachments in the tabs below.'],
+      ingredients: ['Choose an ingredient species in Domain target.', 'Select its growth stage and see the icon, plant and fragments together.', 'Bind a reusable component graph, or open the native morphology details for precise adjustments.'],
+      environments: ['Choose a biome in Domain target.', 'Pick Rock, Soil, Erase, Water, Lava, Place prop or Add light above the preview.', 'Drag on the canvas to paint, or tap to place. Fine-tune colors and atmosphere in Properties.'],
+      creatures: ['Choose a creature.', 'Adjust its anatomy and pose while watching the live animation.', 'Preview mutations and magical effects before applying the art profile.'],
+      materials: ['Choose a material type.', 'Change color, opacity and texture while watching the live simulation.', 'Use the sample buttons to test its appearance in different conditions.'],
+      effects: ['Choose a magical effect.', 'Edit particle size, density, shape and color.', 'Preview the effect against simulated material.'],
+      interface: ['Choose an interface icon or artwork target.', 'Tune the colors and frame artwork.', 'Switch preview widths to check phone and tablet layouts.']
+    };
+    const body = h('div', { class: 'art-guide-content' },
+      h('p', { text: 'A quick workflow for this workspace:' }),
+      h('ol', {}, (guides[this.workspace] || guides.components).map((tip) => h('li', { text: tip }))),
+      h('p', { text: 'Save Draft stores your project locally. Apply Art Profile makes it active in the game. Export Project creates a portable backup; both are in Project options.' }));
+    modal({ title: 'Art Studio guide', body });
+  }
   async run(fn) { try { await fn(); } catch (e) { this.message(e.message || String(e), true); } }
   message(text, error = false) { if (!this.mounted) return; this.status.textContent = text; this.status.classList.toggle('error', error); }
   edit(label, fn, refresh = true) {
@@ -133,6 +163,7 @@ export class StudioScreen {
     if (!this.mounted) return;
     const workspaceControl = this.el.querySelector('[aria-label="Editor workspace"]'); if (workspaceControl) workspaceControl.value = this.workspace;
     this.title.textContent = this.project.name + (this.dirty ? ' •' : '');
+    this.el.classList.toggle('art-domain-active', this.workspace !== 'components');
     if (this.workspace !== 'components') {
       this.renderLibrary();
       if (!this.domainEditor) this.domainEditor = new DomainWorkspace(this);
@@ -141,7 +172,14 @@ export class StudioScreen {
     if (this.center.querySelector('.art-domain')) { this.domainEditor?.destroy(); this.domainEditor = null; this.center.replaceChildren(...this.componentChildren); }
     this.renderLibrary(); this.renderInspector(); this.renderBottom(); this.refreshTools(); this.draw();
   }
-  refreshTools() { for (const b of this.tools.querySelectorAll('[data-act^="art-tool-"]')) { const on = b.dataset.act === 'art-tool-' + this.tool; b.classList.toggle('active', on); b.setAttribute('aria-pressed', String(on)); } }
+  refreshTools() {
+    for (const b of this.tools.querySelectorAll('[data-act^="art-tool-"]')) {
+      const on = b.dataset.act === 'art-tool-' + this.tool;
+      b.classList.toggle('active', on); b.setAttribute('aria-pressed', String(on));
+    }
+    const label = this.tools.querySelector('.art-tool-more > summary');
+    if (label) label.textContent = ['pencil', 'eraser', 'line', 'rectangle', 'fill', 'select', 'pan'].includes(this.tool) ? 'More tools' : 'More: ' + this.tool;
+  }
   check(label, checked, change) {
     const input = h('input', { type: 'checkbox', 'aria-label': label, onchange: () => change(input.checked) }); input.checked = checked;
     return h('label', { class: 'art-check' }, input, label);
@@ -186,7 +224,10 @@ export class StudioScreen {
     }
   }
   renderInspector() {
-    const a = this.asset, c = this.component; clear(this.inspector);
+    const a = this.asset, c = this.component;
+    this.componentGroups ??= new Map();
+    for (const group of this.inspector.querySelectorAll('details[data-editor-group]')) this.componentGroups.set(group.dataset.editorGroup, group.open);
+    clear(this.inspector);
     const editField = (label, obj, key, type = 'text', attrs = {}) => this.field(label, obj[key], (v) => this.edit(label, () => { obj[key] = v; }), type, attrs);
     this.inspector.append(h('h2', { text: 'Asset & component' }), editField('Asset name', a, 'name'), editField('Category', a, 'category'), editField('Folder', a, 'folder'), editField('Tags', a, 'tags'),
       btn('Duplicate asset', () => this.edit('Duplicate asset', () => { const copy = clone(a); copy.id = uid(); copy.name += ' copy'; this.project.assets.push(copy); this.assetId = copy.id; }), { act: 'art-duplicate-asset' }),
@@ -214,6 +255,36 @@ export class StudioScreen {
     this.inspector.append(btn('+ Layer', () => this.edit('Add layer', () => { const l = newLayer(); c.layers.push(l); this.layerId = l.id; }), { act: 'art-add-layer' }),
       h('div', { class: 'art-row' }, btn('Copy', () => this.copy()), btn('Paste', () => this.paste()), btn('Flip', () => this.transform(0, 1, true)), btn('Rotate 90°', () => this.transform(90)), btn('Scale 2×', () => this.transform(0, 2)), btn('Scale ½', () => this.transform(0, 0.5))),
       btn('Import PNG', () => this.pngFile.click(), { act: 'art-import-png' }), btn('Export transparent PNG', () => this.exportPNG(), { act: 'art-export-png' }), this.field('Preview background', this.background, (v) => { this.background = v; this.draw(); }, 'color'));
+    // The everyday painting controls remain visible. Detailed construction,
+    // layer management and metadata are available without a giant settings list.
+    const fold = (heading, label, id) => {
+      const children = [...this.inspector.children];
+      const start = children.findIndex((el) => el.tagName === 'H3' && el.textContent === heading);
+      if (start < 0) return;
+      const next = children.findIndex((el, index) => index > start && el.tagName === 'H3');
+      const end = next < 0 ? children.length : next;
+      const panel = h('details', { class: 'art-settings-group', 'data-editor-group': id, open: this.componentGroups.get(id) ? true : null },
+        h('summary', { text: label }));
+      children.slice(start, end).forEach((node) => panel.append(node));
+      this.inspector.insertBefore(panel, children[end] || null);
+    };
+    fold('Source geometry', 'Shapes & procedural details', 'component-shapes');
+    fold('Pixel correction layers', 'Layers, transforms & image import/export', 'component-layers');
+    const metadata = h('details', { class: 'art-settings-group', 'data-editor-group': 'component-meta', open: this.componentGroups.get('component-meta') ? true : null }, h('summary', { text: 'Asset metadata & management' }));
+    for (const label of ['Category', 'Folder', 'Tags', 'Component tags']) {
+      const control = [...this.inspector.querySelectorAll('input')].find((input) => input.getAttribute('aria-label') === label);
+      if (control?.parentElement?.classList.contains('art-field')) metadata.append(control.parentElement);
+    }
+    for (const act of ['art-duplicate-asset', 'art-delete-asset']) {
+      const button = this.inspector.querySelector('[data-act="' + act + '"]');
+      if (button) metadata.append(button);
+    }
+    for (const name of ['Duplicate component', 'Delete unattached component']) {
+      const button = [...this.inspector.querySelectorAll('button')].find((b) => b.textContent === name);
+      if (button) metadata.append(button);
+    }
+    this.inspector.append(metadata);
+    this.inspector.insertBefore(h('p', { class: 'art-inspector-intro', text: 'Select a component from the left, then paint its pixels here. Open the sections below for precise geometry, layers and asset details.' }), this.inspector.children[1] || null);
     this.renderDirection();
   }
   renderDirection() {
@@ -221,7 +292,7 @@ export class StudioScreen {
     this.directionScope ??= 'global'; this.directionKey ??= 'herb';
     const scope = this.directionScope, key = this.directionKey;
     const style = scope === 'global' ? d.global : d[scope][key] || d.global;
-    const section = h('details', {}, h('summary', { text: 'Game art direction — ingredient ramps' }));
+    const section = h('details', { class: 'art-settings-group', 'data-editor-group': 'direction', open: this.componentGroups.get('direction') ? true : null }, h('summary', { text: 'Game art direction — ingredient ramps' }));
     const targets = scope === 'biomes' ? ['meadow', 'forest', 'river', 'moonfen', 'quarry', 'crags', 'netherwood'] : scope === 'families' ? Object.keys(FAMILIES) : WILD_SPECS.map((s) => s.key);
     section.append(this.select('Style scope', scope, ['global', 'biomes', 'families', 'species'].map((s) => [s, s]), (v) => { this.directionScope = v; this.directionKey = v === 'biomes' ? 'forest' : v === 'families' ? 'herb' : WILD_SPECS[0].key; this.renderInspector(); }));
     if (scope !== 'global') section.append(this.select('Style target', key, targets.map((s) => [s, s]), (v) => { this.directionKey = v; this.renderInspector(); }));

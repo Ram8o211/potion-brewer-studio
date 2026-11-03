@@ -1,5 +1,5 @@
 // Domain editors share the Studio document, transactions, history and runtime profile.
-import { h, btn, clear } from '../ui/dom.js';
+import { h, btn, clear, confirmDialog } from '../ui/dom.js';
 import { compileProfile, newComponent, newNode, clone, newLayer } from './model.js';
 import { REGIONS, MATERIALS, EFFECT_NAMES, CREATURES, visualStyle, creatureStyle, environmentStyle } from './domain-model.js';
 import { withArtProfile } from './direction.js';
@@ -26,13 +26,23 @@ import { wordColor } from './pixels.js';
 let nextToken = -1;
 const POSES = ['idle', 'hop', 'rear', 'eat', 'loaf', 'hurt', 'sick', 'flop', 'collapse', 'dead'];
 const TRAITS = ['', 'horns', 'antlers', 'unihorn', 'wings', 'scales', 'eye3', 'spines', 'tail-lizard', 'giant', 'tiny'];
+const WILDS_TOOLS = [
+  ['rock', 'Rock', 'Paint solid stone into the scene.'],
+  ['soil', 'Soil', 'Paint soft ground for vegetation.'],
+  ['erase', 'Erase', 'Clear painted terrain.'],
+  ['water', 'Water', 'Paint pools and streams.'],
+  ['lava', 'Lava', 'Paint hot liquid terrain.'],
+  ['place', 'Place prop', 'Click a free surface to place the selected asset.'],
+  ['light', 'Add light', 'Click the scene to place a light.']
+];
+
 export class DomainWorkspace {
   constructor(studio) {
     this.destroyed = false; this.studio = studio; this.kind = studio.workspace; this.target = this.targets()[0];
     /** @type {number|string} */
     this.seed = 1;
     this.stage = 2; this.pose = 'idle'; this.trait = ''; this.level = 0; this.effect = 'vitality'; this.hp = 0; this.play = this.kind !== 'ingredients' && this.kind !== 'interface';
-    this.terrainTool = 'rock'; this.terrainColor = '#5e665f'; this.radius = 8; this.mask = false; this.time = 0; this.last = 0;
+    this.groupState = new Map(); this.terrainTool = 'rock'; this.terrainColor = '#5e665f'; this.radius = 8; this.mask = false; this.time = 0; this.last = 0;
     this.render(); this.frame = requestAnimationFrame((t) => this.loop(t));
   }
   targets() { return this.kind === 'ingredients' ? WILD_SPECS.map((s) => s.key) : this.kind === 'environments' ? REGIONS : this.kind === 'creatures' ? CREATURES : this.kind === 'materials' ? MATERIALS : this.kind === 'effects' ? EFFECT_NAMES : ICON_NAMES; }
@@ -51,6 +61,14 @@ export class DomainWorkspace {
   field(label, obj, key, min, max, step = 0.1) { return this.studio.field(label, obj[key], (v) => this.change(label, () => { obj[key] = v; }), 'number', { min, max, step }); }
   color(label, obj, key) { return this.studio.field(label, obj[key], (v) => this.change(label, () => { obj[key] = v; }), 'color'); }
   select(label, value, choices, fn) { return this.studio.select(label, value, choices.map((v) => Array.isArray(v) ? v : [v, v]), fn); }
+  group(id, title, description, initiallyOpen = false) {
+    const expanded = this.groupState.has(id) ? this.groupState.get(id) : initiallyOpen;
+    const el = h('details', { class: 'art-settings-group', 'data-editor-group': id, open: expanded ? true : null },
+      h('summary', {}, h('strong', { text: title }), description ? h('span', { class: 'art-group-description', text: description }) : null));
+    el.addEventListener('toggle', () => { if (this.studio.inspector.contains(el)) this.groupState.set(id, el.open); });
+    return el;
+  }
+
   render() {
     const s = this.studio; if (!s.mounted) return;
     // Rebuilding the inspector after every change must not jump back to its top.
@@ -60,10 +78,11 @@ export class DomainWorkspace {
     this.el = h('div', { class: 'art-domain', 'data-domain': this.kind });
     this.canvas = h('canvas', { width: 384, height: 216, class: 'art-domain-canvas', 'aria-label': this.kind + ' live preview' });
     const cfg = this.config(), toolbar = h('div', { class: 'art-domain-toolbar' },
-      this.select('Domain target', this.target, this.targets(), (v) => { this.target = v; this.sim = null; this.render(); }),
+      this.select('Domain target', this.target, this.targets(), (v) => { this.target = v; this.sim = null; s.inspector.scrollTop = 0; this.render(); }),
       this.kind === 'interface' ? null : this.kind === 'environments' ? s.field('World seed', this.seed, (v) => { this.seed = v; this.render(); }) : s.field('Preview seed', this.seed, (v) => { this.seed = Math.max(0, Math.floor(v)) >>> 0; this.sim = null; this.render(); }, 'number', { min: 0, max: 4294967295 }),
       this.kind === 'interface' ? null : btn(this.play ? 'Pause animation' : 'Play animation', () => { this.play = !this.play; this.render(); }, { act: 'domain-play' }),
-      this.kind === 'interface' ? null : btn('Regenerate unlocked', () => { this.seed = typeof this.seed === 'string' ? this.seed + '-next' : (this.seed + 1) >>> 0; this.sim = null; this.render(); }, { act: 'domain-regenerate' }));
+      this.kind === 'interface' ? null : btn('Regenerate unlocked', () => { this.seed = typeof this.seed === 'string' ? this.seed + '-next' : (this.seed + 1) >>> 0; this.sim = null; this.render(); }, { act: 'domain-regenerate' }),
+      btn('Undo', () => s.undo(), { act: 'domain-undo' }), btn('Redo', () => s.redo(), { act: 'domain-redo' }));
     this.el.append(toolbar, this.canvas); s.center.append(this.el);
     s.inspector.append(h('h2', { text: this.kind + ' properties' }));
     this.messages = h('div', { class: 'art-domain-messages', role: 'status' }); s.bottom.append(this.messages);
@@ -85,7 +104,7 @@ export class DomainWorkspace {
       btn('Use current graph for this native family', () => this.change('Bind procedural family', () => { for (const spec of WILD_SPECS) if (describe(archetypeIdentity(spec.key)).family === d.family) s.project.domains.ingredients[spec.key] = { ...(s.project.domains.ingredients[spec.key] || { morph: {}, growth: {} }), asset: s.asset.id }; }), { act: 'domain-bind-family' }),
       h('p', { text: `Native family: ${d.family}. Its geometry, growth, icons and shards use the same identity. Parameter edits change the native generator; graph binding replaces the shared construction.` }));
     for (const [name, source, target] of [['Morphology', d.m, cfg.morph], ['Growth grammar', growth, cfg.growth]]) {
-      const details = h('details', { open: true }, h('summary', { text: name }));
+      const details = this.group('ingredient-' + name, name, name === 'Morphology' ? 'Fine-tune the native shape and proportions' : 'Fine-tune how the ingredient grows');
       for (const [key, value] of Object.entries(source)) {
         if (typeof value === 'number') details.append(s.field(name + ': ' + key, target[key] ?? value, (v) => this.change('Native ' + key, () => { target[key] = v; }), 'number', { min: 0, max: 120, step: 0.1 }));
         else if (typeof value === 'boolean') details.append(s.check(name + ': ' + key, target[key] ?? value, (v) => this.change('Native ' + key, () => { target[key] = v; })));
@@ -109,19 +128,72 @@ export class DomainWorkspace {
     this.studio.workspace = 'components'; this.destroy(); this.studio.domainEditor = null; this.studio.refresh();
   }
   environments(cfg) {
-    const s = this.studio, i = s.inspector; cfg.lights ??= [];
-    i.append(this.select('Terrain tool', this.terrainTool, ['rock', 'soil', 'erase', 'water', 'lava', 'place', 'light'], (v) => { this.terrainTool = v; this.render(); }),
-      s.field('Terrain brush radius', this.radius, (v) => { this.radius = v; }, 'number', { min: 1, max: 32 }),
-      s.field('Terrain material color', this.terrainColor, (v) => { this.terrainColor = v; }, 'color'),
-      s.check('Show structural masks', this.mask, (v) => { this.mask = v; this.draw(); }),
-      this.color('Background tint', cfg, 'tint'), this.field('Background tint strength', cfg, 'mix', 0, 1), this.field('Vegetation density', cfg, 'density', 0, 2), this.field('Environment lighting', cfg, 'light', 0.1, 2), this.field('Atmospheric density', cfg, 'atmosphere', 0, 3),
-      this.select('Placement asset', this.placeAsset || s.asset.id, s.project.assets.map((a) => [a.id, a.name]), (v) => { this.placeAsset = v; }),
-      btn('Clear terrain edits', () => this.change('Clear terrain', () => { cfg.strokes = []; }), { act: 'domain-clear-terrain' }));
-    for (const [index, o] of cfg.objects.entries()) {
-      i.append(h('h3', { text: `Object ${index + 1}` }), this.field('Object X ' + index, o, 'x', 0, 383, 1), this.field('Object Y ' + index, o, 'y', 0, 215, 1), this.field('Object scale ' + index, o, 'scale', 0.1, 2),
-        s.check('Lock object ' + index, o.locked, (v) => this.change('Lock scene object', () => { o.locked = v; })), btn('Remove object ' + index, () => this.change('Remove scene object', () => cfg.objects.splice(index, 1))));
+    const s = this.studio, i = s.inspector;
+    cfg.lights ??= [];
+    const tool = WILDS_TOOLS.find(([id]) => id === this.terrainTool) || WILDS_TOOLS[0];
+    const chooseTool = (id) => { this.terrainTool = id; this.render(); };
+
+    // The actions used on the canvas stay beside the canvas, not at the bottom of a long inspector.
+    const tools = h('div', { class: 'art-wilds-tools', role: 'toolbar', 'aria-label': 'Wilds painting tools' });
+    for (const [id, label, hint] of WILDS_TOOLS) {
+      const button = btn(label, () => chooseTool(id), { cls: this.terrainTool === id ? 'active' : '', act: 'domain-tool-' + id, title: hint });
+      button.setAttribute('aria-label', label);
+      button.setAttribute('aria-pressed', String(this.terrainTool === id));
+      tools.append(button);
     }
-    for (const [index, l] of cfg.lights.entries()) i.append(h('h3', { text: 'Light ' + (index + 1) }), this.field('Light X ' + index, l, 'x', 0, 383, 1), this.field('Light Y ' + index, l, 'y', 0, 215, 1), this.field('Light radius ' + index, l, 'radius', 2, 120, 1), this.field('Light strength ' + index, l, 'strength', 0, 2), this.color('Light color ' + index, l, 'color'), btn('Remove light ' + index, () => this.change('Remove localized light', () => cfg.lights.splice(index, 1))));
+    this.el.insertBefore(tools, this.canvas);
+    this.el.append(h('p', { class: 'art-workspace-hint', role: 'status', text: tool[2] + (['place', 'light'].includes(this.terrainTool) ? ' Select a spot in the preview.' : ' Click or drag in the preview.') }));
+
+    i.append(h('p', { class: 'art-inspector-intro', text: '1. Pick a tool above the scene. 2. Edit its settings here. 3. Draw or place directly on the preview.' }));
+    const brush = h('section', { class: 'art-control-group' }, h('h3', { text: 'Current tool' }),
+      this.select('Terrain tool', this.terrainTool, WILDS_TOOLS.map(([id, label]) => [id, label]), chooseTool));
+    if (!['place', 'light'].includes(this.terrainTool)) brush.append(
+      s.field('Terrain brush radius', this.radius, (v) => { this.radius = Math.max(1, Math.min(32, v)); }, 'number', { min: 1, max: 32 }));
+    if (!['place', 'light', 'erase'].includes(this.terrainTool)) brush.append(
+      s.field('Terrain material color', this.terrainColor, (v) => { this.terrainColor = v; }, 'color'));
+    if (this.terrainTool === 'light') brush.append(
+      s.field('New light color', this.terrainColor, (v) => { this.terrainColor = v; }, 'color'));
+    if (this.terrainTool === 'place') brush.append(
+      this.select('Placement asset', this.placeAsset || s.asset.id, s.project.assets.map((a) => [a.id, a.name]), (v) => { this.placeAsset = v; }));
+    i.append(brush);
+
+    const appearance = h('section', { class: 'art-control-group' }, h('h3', { text: 'Scene appearance' }),
+      this.field('Vegetation density', cfg, 'density', 0, 2), this.field('Environment lighting', cfg, 'light', 0.1, 2),
+      this.color('Background tint', cfg, 'tint'), this.field('Background tint strength', cfg, 'mix', 0, 1),
+      this.field('Atmospheric density', cfg, 'atmosphere', 0, 3));
+    i.append(appearance);
+
+    const objects = this.group('wilds-objects', 'Placed props', cfg.objects.length + ' objects · select Place prop above to add more', cfg.objects.length > 0);
+    for (const [index, o] of cfg.objects.entries()) {
+      const item = h('div', { class: 'art-control-item' }, h('h3', { text: 'Prop ' + (index + 1) }),
+        this.field('Object X ' + index, o, 'x', 0, 383, 1), this.field('Object Y ' + index, o, 'y', 0, 215, 1),
+        this.field('Object scale ' + index, o, 'scale', 0.1, 2),
+        s.check('Lock object ' + index, o.locked, (v) => this.change('Lock scene object', () => { o.locked = v; })),
+        btn('Remove object ' + index, () => this.change('Remove scene object', () => cfg.objects.splice(index, 1))));
+      objects.append(item);
+    }
+    i.append(objects);
+    const lights = this.group('wilds-lights', 'Scene lights', cfg.lights.length + ' lights · select Add light above to add more', cfg.lights.length > 0);
+    for (const [index, l] of cfg.lights.entries()) {
+      lights.append(h('div', { class: 'art-control-item' }, h('h3', { text: 'Light ' + (index + 1) }),
+        this.field('Light X ' + index, l, 'x', 0, 383, 1), this.field('Light Y ' + index, l, 'y', 0, 215, 1),
+        this.field('Light radius ' + index, l, 'radius', 2, 120, 1),
+        this.field('Light strength ' + index, l, 'strength', 0, 2),
+        this.color('Light color ' + index, l, 'color'),
+        btn('Remove light ' + index, () => this.change('Remove localized light', () => cfg.lights.splice(index, 1)))));
+    }
+    i.append(lights);
+
+    const advanced = this.group('wilds-advanced', 'Advanced & reset', 'Structural masks and destructive actions');
+    advanced.append(s.check('Show structural masks', this.mask, (v) => { this.mask = v; this.draw(); }),
+      btn('Clear terrain edits', () => s.run(async () => {
+        if (!cfg.strokes.length) { s.message('There are no painted terrain edits to clear.'); return; }
+        if (await confirmDialog('Clear painted terrain?', 'This removes every hand-painted terrain stroke in this biome. You can undo the change.', 'Clear terrain', 'danger')) {
+          this.change('Clear terrain', () => { cfg.strokes = []; });
+        }
+      }), { act: 'domain-clear-terrain' }));
+    i.append(advanced);
+
     const point = (e) => { const b = this.canvas.getBoundingClientRect(); return [Math.max(0, Math.min(383, Math.round((e.clientX - b.left) * 384 / b.width))), Math.max(0, Math.min(215, Math.round((e.clientY - b.top) * 216 / b.height)))]; };
     this.canvas.onpointerdown = (e) => {
       e.preventDefault(); this.canvas.setPointerCapture(e.pointerId); const p = point(e);
@@ -132,7 +204,7 @@ export class DomainWorkspace {
     this.canvas.onpointermove = (e) => { if (this.stroke && this.stroke.points.length < 1024) { this.stroke.points.push(point(e)); this.draw(); } };
     this.canvas.onpointerup = () => { if (!this.stroke) return; const stroke = this.stroke; this.stroke = null; this.change('Sculpt ' + stroke.kind, () => cfg.strokes.push(stroke)); };
     this.canvas.onpointercancel = () => { this.stroke = null; this.draw(); };
-    this.messages.textContent = 'Paint changes solid/liquid/rock/open masks. Place snaps to a dry free surface and rejects overlap with terrain or existing props. Locked objects retain their generation seed.';
+    this.messages.textContent = 'Canvas edits affect visuals only. Undo / Redo are available above the preview. Drafts are stored separately from gameplay.';
   }
   creatures(cfg) {
     const s = this.studio, i = s.inspector;
