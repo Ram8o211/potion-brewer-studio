@@ -356,6 +356,14 @@ export function cloud(rng, w, h, mat = 'cloud') {
 /** Beams: a straight timber from a to b. */
 export function beam(m, a, b, w, mat = 'timber') {
   m.stroke([a, b], w, mat, { shade: 'cyl', tex: 1.2 });
+  const dx = b[0] - a[0], dy = b[1] - a[1], length = Math.hypot(dx, dy);
+  if (w >= 2 && length > 6) {
+    const nx = -dy / length, ny = dx / length, side = nx + ny > 0 ? -1 : 1;
+    const at = (t, off) => /** @type {[number,number]} */ ([a[0] + dx * t + nx * off, a[1] + dy * t + ny * off]);
+    m.line([at(0.06, side * w * 0.28), at(0.94, side * w * 0.28)], mat, { lum: 0.86 });
+    // Grain runs along the beam; short dark cuts leave its bright bevel whole.
+    for (let t = 0.15; t < 0.85; t += 0.26) m.line([at(t, -side * 0.2), at(Math.min(0.94, t + 0.14), -side * 0.2)], mat, { lum: 0.24 });
+  }
   return m;
 }
 

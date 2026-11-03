@@ -11,6 +11,7 @@ import { fbm1, fbm2, hash2 } from '../noise.js';
 import { mixPacked } from '../color.js';
 import { col, far } from './side.js';
 import { cobble } from './stone.js';
+import { illuminate } from './lighting.js';
 
 /**
  * Far pillars of the cave, standing between its floor and its roof: wavy
@@ -304,7 +305,7 @@ export function finish(cv, k = 0.55) {
     const u = (x - W / 2) / (W * 0.62), v = (y - H * 0.55) / (H * 0.75), t = Math.max(0, u * u + v * v - 0.3) * k;
     return t > 0.01 ? Math.min(0.8, t) : 0;
   });
-  for (const [x, y, r, rgb, s] of cv.pending) cv.light(rgb, (px, py) => { const d = Math.hypot(px - x, py - y) / r; return d >= 1 ? 0 : (1 - d) * (1 - d) * s; }, Math.floor(y - r), Math.ceil(y + r));
+  illuminate(cv, cv.pending);
   cv.pending = [];
 }
 

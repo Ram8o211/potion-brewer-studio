@@ -32,12 +32,17 @@ Committed reference-seed previews:
 - [Meadow in the game](screenshots/reference-environments/game-desktop-meadow.png).
 - [Netherwood in the game](screenshots/reference-environments/game-desktop-netherwood.png).
 - [Phone layout](screenshots/reference-environments/game-phone-meadow.png).
+- [All seven biomes in Free Experiment at phone size](screenshots/reference-environments/game-phone-wilds.png), including ingredients, animals and animated light overlays.
 - [Netherwood in Art Studio](screenshots/reference-environments/editor-netherwood.png).
 
 ## Shared drawing rules
 
-`stone.js` draws tightly packed, irregular cobbles with chipped corners, thin joints and five lighting tones. `foliage.js` builds crowns from overlapping leafy facets with broken highlights. Both remain deterministic, and foliage retains the existing wind and touch groups.
+`stone.js` draws tightly packed, irregular cobbles with chipped corners, thin joints and five lighting tones. A shallow dome, mineral chips and short cracks give each face volume. Soil has small clods and pebbles; sand has sparse grain and broken ripples; sandstone has weathered bedding lines. Turf highlights break into short clumps. Timber bevels and grain follow each beam's direction.
 
-The biome composers choose material ramps, terrain layers, scenery, local lights and background depth. `side.js` adds palette-matched water/lava reflections and background sun shafts. The final grade and vignette preserve visible midtones in dark environments. Enclosures use the same stone and grade with their own timber, grass and wall materials.
+`foliage.js` builds crowns from overlapping leafy facets, small leaf planes and dark notches, with broken highlights. Materials remain seeded, and foliage retains the existing wind and touch groups.
+
+The biome composers choose material ramps, terrain layers, scenery, local lights and background depth. Blue and teal cavern columns separate the foreground from the dark backdrop. `side.js` adds palette-matched water/lava reflections and gentle background sun shafts. The final grade and vignette preserve visible midtones in dark environments. Enclosures use the same stone and grade with their own timber, grass and wall materials.
+
+`lighting.js` accumulates local lights before shading, using a bounded material response so overlapping sources preserve stone facets and foliage texture. Terrain and cave walls catch the light and shade its direct spill, with a small amount of scattered bloom around ledges. Background air receives a soft coloured glow. The still painting, the background revealed by wind, and the individual wind layers are shaded consistently; a calm frame reproduces the painting exactly. Light and shadow are baked once when composing a scene, while the runtime overlay adds a quieter flicker.
 
 Solid terrain, liquids, open surfaces, prop claims, tree attachments and animal walking areas remain separate structural maps. Newly placed decorative crystals use the existing placement/claim checks. Editor terrain strokes, custom props, lights and saved art profiles continue through the existing rendering pipeline.

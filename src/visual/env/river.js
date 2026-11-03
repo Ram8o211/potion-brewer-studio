@@ -23,9 +23,9 @@ export function compose(cv, seed) {
   const fs = s('frame'), cave = fs.next() < 0.75;
   if (cave) {
     sky(cv, 0, H, ['#05090c', '#08121a', '#0c1c20', '#102624']);
-    farPillars(cv, { n: 8, fill: '#0f1e1e', rim: '#162a28', seed: s('far1').int(0, 1e9), w: [10, 20], floor: 180, caps: true });
+    farPillars(cv, { n: 8, fill: '#0c2930', rim: '#154149', seed: s('far1').int(0, 1e9), w: [10, 20], floor: 180, caps: true });
     fog(cv, '#1e4040', 90, 200, 0.35, s('fog1').int(0, 1e9));
-    farPillars(cv, { n: 5, fill: '#142824', rim: '#1e3a32', seed: s('far2').int(0, 1e9), w: [16, 28], floor: 185, caps: true });
+    farPillars(cv, { n: 5, fill: '#103137', rim: '#1c4648', seed: s('far2').int(0, 1e9), w: [16, 28], floor: 185, caps: true });
     fog(cv, '#24504a', 120, 210, 0.25, s('fog2').int(0, 1e9));
     const frame = caveFrame(cv, {
       seed: fs.int(0, 1e9), stones: ['#494c44', '#5a5b4e', '#41463e'], mortar: '#0b100d', dark: 0.2, roof: [10, 28], walls: [8, 9],

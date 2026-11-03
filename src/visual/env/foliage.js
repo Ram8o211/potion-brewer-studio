@@ -126,6 +126,13 @@ export function cluster(m, rng, x, y, rx, ry, o = {}) {
       [px - r * 0.55, py + r * 0.25],
     ], mat, { ...leafy, step: st(b + 0.17) });
     m.poly(leaf(rnd, px - r * 0.48, py - r * 0.55, Math.max(0.8, r * 0.42)), mat, { ...leafy, step: st(b + 0.3) });
+    // Small leaf planes and dark notches interrupt the broad facets. These
+    // stay inside the clump, so the canopy reads as leaves at phone scale.
+    for (let j = 0; j < 3; j++) {
+      const lx = px + (rnd() - 0.5) * r * 1.25, ly = py + (rnd() - 0.55) * r;
+      const width = 1 + rnd() * 0.7;
+      m.line([[lx, ly], [lx + width, ly - 0.5]], mat, { ...sw, step: st(b + (j === 0 ? -0.2 : 0.2 + rnd() * 0.12)) });
+    }
     // a leaf or two standing out of its top edge
     for (let j = 0; j < Math.max(1, Math.round(r * 0.35)); j++) {
       const a = Math.PI * (1.15 + rnd() * 0.6);

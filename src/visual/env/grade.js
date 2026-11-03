@@ -52,6 +52,7 @@ function gradePx(c, T, sat) {
 export function grade(cv, region) {
   const [con, sat, ink] = GRADE[region] || [0.38, 1.28, 0.4];
   const T = curve(con), W = cv.W, H = cv.H, S = cv.solid, px = cv.pix.px, s = cv.sw;
+  const edges = s ? new Uint8Array(px.length) : null;
   // the rock's silhouette first, on the graded colours' source (ground with air beside or under it)
   const air = (/** @type {number} */ k) => !S[k] && !cv.liquid[k] && !cv.rock[k];
   for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
@@ -60,12 +61,14 @@ export function grade(cv, region) {
     // (the grass on top keeps its bright edge)
     if (!(air(k - 1) || air(k + 1) || air(k + W)) || air(k - W)) continue;
     px[k] = mul(px[k], 1 - ink);
-    if (s) s.bare[k] = mul(s.bare[k], 1 - ink);
+    if (s) { s.bare[k] = mul(s.bare[k], 1 - ink); edges[k] = 1; }
   }
   for (let k = 0; k < px.length; k++) px[k] = gradePx(px[k], T, sat);
   if (s) {
     for (let k = 0; k < s.bare.length; k++) s.bare[k] = gradePx(s.bare[k], T, sat);
-    for (let i = 0; i < s.c.length; i++) s.c[i] = gradePx(s.c[i], T, sat);
+    // A leaf can overlap a terrain edge. Give its wind layer the same ink
+    // as the still painting, or a calm frame reveals an unshaded pixel.
+    for (let i = 0; i < s.c.length; i++) s.c[i] = gradePx(edges[s.k[i]] ? mul(s.c[i], 1 - ink) : s.c[i], T, sat);
   }
 }
 

@@ -5323,7 +5323,7 @@ const TONES = new Map();
 function tones(c) {
 let t = TONES.get(c);
 if (!t) {
-t = [mixPacked(c, 0xffffffff, 0.34), mixPacked(c, 0xffffffff, 0.16), c, mixPacked(c, 0xff000000, 0.2), mixPacked(c, 0xff000000, 0.4)];
+t = [mixPacked(c, 0xffffffff, 0.42), mixPacked(c, 0xffffffff, 0.21), c, mixPacked(c, 0xff000000, 0.23), mixPacked(c, 0xff000000, 0.48)];
 TONES.set(c, t);
 }
 return t;
@@ -5346,20 +5346,25 @@ const edge = Math.sqrt(d2) - Math.sqrt(d1);
 if (edge < 0.75 || Math.sqrt(d3) - Math.sqrt(d1) < 1.7) return o.mortar;
 const r = s * 0.56, e = Math.sqrt(d1) / r;
 const T = tones(o.stones[Math.floor(hash2(id, 3, o.seed) * o.stones.length)]);
-const u = bx / r, v = by / r, lit = -(u * 0.55 + v * 0.85);
+const u = bx / r, v = by / r;
+const dome = Math.max(0, 1 - u * u - v * v);
+const lit = -(u * 0.55 + v * 0.85) + dome * 0.22;
 if (o.moss && v < -0.22 && e > 0.3 && hash2(id, 11, o.seed) < 0.12) {
 const m = Math.abs(u - (hash2(id, 12, o.seed) - 0.5) * 0.8);
 if (m < 0.6 - (e - 0.3) * 0.25) return v < -0.55 || m < 0.2 ? o.moss[1] : o.moss[0];
 }
 let t;
-if (edge < 1.35 && v > -0.3) t = 4;
-else if (lit > 0.6 && edge < 2.7) t = 0;
-else if (lit > 0.25) t = 1;
-else if (lit > -0.35) t = 2;
+if (edge < 1.6 && v > -0.22) t = 4;
+else if (lit > 0.76 && v < -0.12) t = 0;
+else if (lit > 0.27) t = 1;
+else if (lit > -0.28) t = 2;
 else t = lit > -0.7 ? 3 : 4;
-const n = noise2((x + id % 7) * 0.2, y * 0.24, o.seed + 31);
-if (t === 2 && n > 0.68) t = 1;
-else if (t === 2 && n < 0.23) t = 3;
+const n = noise2((x + id % 7) * 0.38, y * 0.42, o.seed + 31);
+if (t > 0 && t < 4) {
+if (n > 0.67 && lit > -0.15) t--;
+else if (n < 0.27) t++;
+if (edge > 2 && hash2(x >> 1, y, o.seed + 44) > 0.965) t = Math.max(0, t - 1);
+}
 if (hash2(id, 13, o.seed) < 0.08 && e < 0.7) {
 const ca = hash2(id, 14, o.seed) * Math.PI, d = Math.abs(u * Math.sin(ca) - v * Math.cos(ca) + (hash2(id, 15, o.seed) - 0.5) * 0.4);
 if (d < 0.07 + 0.04 * Math.abs(Math.sin(u * 9))) return T[4];
@@ -5451,7 +5456,13 @@ const g = cv.ground ? Math.round(cv.ground[x]) : -1, e = g >= 0 && y >= g ? y - 
 for (let i = 0, top = 0; i < layers.length; top = floors[x * layers.length + i], i++) if (e >= 0 && e < floors[x * layers.length + i]) { li = i; into = e - top; thick = floors[x * layers.length + i] - top; break; }
 }
 const drip = hash2(x >> 1, 5, o.seed) < 0.32 ? 1 + Math.floor(hash2(x >> 1, 6, o.seed) * 2) : 0;
-if (d < ch) c = crust[Math.min(crust.length - 1, d)];
+if (d < ch) {
+let tone = Math.min(crust.length - 1, d);
+const tuft = hash2(x >> 1, y - d, o.seed + 19);
+if (d === 0 && tuft < 0.16) tone = Math.min(crust.length - 1, 1);
+else if (d > 0 && tuft > 0.74) tone--;
+c = crust[tone];
+}
 else if (d < ch + drip && floors) c = crust[Math.min(crust.length - 1, d - 1)];
 else if (li >= 0) {
 const l = layers[li];
@@ -5486,7 +5497,7 @@ if (o.grass) grass(cv, o.grass, o.seed);
 }
 const STRATA = {
 dirt(x, y, into, c, seed, thick) {
-const band = 2 + Math.round(fbm1(x * 0.09, seed + 11, 2) * 3);
+const band = 1 + Math.round(fbm1(x * 0.13, seed + 11, 2) * 2);
 if (thick - into <= 1 + (hash2(x >> 1, 7, seed) < 0.4 ? 1 : 0)) return mixPacked(c[0], 0xff000000, 0.3);
 const cx = Math.floor(x / 10), cy = Math.floor((y + (cx & 1) * 3) / 7);
 if (hash2(cx, cy, seed + 3) < 0.42) {
@@ -5495,9 +5506,13 @@ const px = cx * 10 + 1 + Math.floor(hash2(cx, cy, seed + 4) * (9 - pw)), py = cy
 const u = x - px, v = y - py;
 if (u >= 0 && u < pw && v >= 0 && v < ph && !((u === 0 || u === pw - 1) && (v === 0 || v === ph - 1))) return v === 0 ? c[4] : v === ph - 1 ? c[5] : (u < 2 ? c[4] : mixPacked(c[4], c[5], 0.45));
 }
-if (into < band) return into === band - 1 && hash2(x, y, seed + 9) < 0.5 ? c[2] : c[3];
-if (hash2(Math.floor((x + (y & 3) * 2) / 6), y, seed + 7) < 0.07) return c[2];
-return fbm2(x * 0.07, y * 0.18, seed, 2) > 0.55 ? c[1] : c[0];
+if (into < band) return hash2(x >> 1, y, seed + 9) < 0.2 ? c[2] : c[3];
+const clod = noise2(x * 0.23, y * 0.38, seed + 17);
+const streak = hash2(Math.floor((x + (y & 3) * 2) / 4), y, seed + 7);
+if (streak < 0.12 && clod > 0.45) return c[2];
+if (clod < 0.24) return mixPacked(c[0], 0xff000000, 0.18);
+if (clod > 0.72) return mixPacked(c[1], c[2], 0.5);
+return fbm2(x * 0.13, y * 0.25, seed, 2) > 0.5 ? c[1] : c[0];
 },
 band(x, y, into, c, seed, thick) {
 if (into === 0) return c[2];
@@ -5507,10 +5522,12 @@ return hash2(Math.floor((x + into * 3) / 6), y, seed) < 0.28 ? c[1] : c[0];
 sand(x, y, into, c, seed) {
 if (into === 0) return c[0];
 const g = hash2(x, y, seed + 1);
-if (g < 0.035) return c[3];
-if (g > 0.985) return c[0];
+if (g < 0.018) return c[3];
+if (g > 0.98) return c[0];
 const v = y + fbm1(x * 0.05, seed, 2) * 5;
-return Math.floor(v / 4) % 3 === 2 && hash2(x >> 3, Math.floor(v / 4), seed + 2) < 0.7 ? c[2] : c[1];
+if (Math.floor(v / 4) % 3 === 2 && hash2(x >> 3, Math.floor(v / 4), seed + 2) < 0.7) return c[2];
+const patch = noise2(x * 0.22, y * 0.32, seed + 12);
+return patch > 0.68 ? mixPacked(c[1], c[0], 0.45) : patch < 0.28 ? mixPacked(c[1], c[2], 0.4) : c[1];
 },
 soil(x, y, into, c, seed) {
 const cx = Math.floor(x / 5), cy = Math.floor((y + (cx & 1) * 2) / 4);
@@ -5527,8 +5544,10 @@ return c[Math.floor(v / 2) % c.length];
 banded(x, y, into, c, seed) {
 const n = c.length - 1, v = y + fbm1(x * 0.025, seed, 2) * 7 + fbm1(x * 0.11, seed + 3, 2) * 1.5, h = 4, b = Math.floor(v / h), f = v - b * h;
 const t = c[((b % n) + n) % n];
-if (f >= h - 1 && hash2(x >> 2, b, seed + 4) < 0.8) return c[n];
-return f < 1 ? mixPacked(t, 0xffffffff, 0.14) : t;
+if (f >= h - 1 && hash2(x >> 2, b, seed + 4) < 0.65) return c[n];
+const grain = noise2(x * 0.35, y * 0.4, seed + 8);
+if (f < 1) return mixPacked(t, 0xffffffff, grain > 0.5 ? 0.18 : 0.08);
+return grain < 0.24 ? mixPacked(t, c[n], 0.22) : grain > 0.74 ? mixPacked(t, 0xffffffff, 0.1) : t;
 },
 gravel(x, y, into, c, seed) {
 return cobble(x, y, { stones: [c[1], c[1], c[0], c[2]], mortar: c[3], s: 3.6, seed, flat: 1.15, round: true });
@@ -5636,7 +5655,7 @@ for (const off of [-15, 0, 19]) {
 const q = Math.abs(u - off) / (3 + d * 0.08);
 if (q < 1) a = Math.max(a, (1 - q) * strength * Math.max(0, 1 - d / cv.H));
 }
-return a;
+return a * 0.48;
 }, sy, cv.H);
 }
 function markOpen(cv, minY = 30) {
@@ -5847,12 +5866,80 @@ return out.filter((_, i) => i % Math.max(1, Math.floor(out.length / n)) === 0).s
 }
 return { col, far, heights, dip, raise, fillSolid, blob, paintTerrain, STRATA, hanging, pool, sunbeams, markOpen, ledges, surfaceAt, silhouette, mountains, rockFace, treeShape, glow, drips };
 })();
+// src/visual/env/lighting.js
+const __m53 = (() => {
+function litColour(colour, r, g, b, surface) {
+const shade = (v, energy) => {
+const exposure = 1 - Math.exp(-Math.max(0, energy));
+const lift = surface ? (v * 1.25 + 45) * exposure : 200 * exposure;
+const room = 255 - v;
+return Math.round(v + (room > 0 ? room * (1 - Math.exp(-lift / room)) : 0));
+};
+return ((colour & 0xff000000) | (shade((colour >>> 16) & 255, b) << 16)
+| (shade((colour >>> 8) & 255, g) << 8) | shade(colour & 255, r)) >>> 0;
+}
+function horizons(cv, x, y, radius) {
+const count = 192, out = new Float32Array(count).fill(radius), W = cv.W, H = cv.H;
+for (let i = 0; i < count; i++) {
+const a = i * Math.PI * 2 / count, dx = Math.cos(a), dy = Math.sin(a);
+for (let d = 2; d < radius; d++) {
+const xx = Math.round(x + dx * d), yy = Math.round(y + dy * d);
+if (xx < 0 || yy < 0 || xx >= W || yy >= H) break;
+const k = yy * W + xx;
+if (cv.solid[k] || cv.rock[k]) { out[i] = d; break; }
+}
+}
+return out;
+}
+function illuminate(cv, lights) {
+if (!lights.length) return;
+const W = cv.W, H = cv.H, N = W * H, sw = cv.sw;
+const energy = new Float32Array(N * 3), surfaces = new Uint8Array(N);
+for (let k = 0; k < N; k++) surfaces[k] = cv.solid[k] || cv.rock[k] || cv.trees[k] || cv.things[k] || cv.liquid[k] ? 1 : 0;
+if (sw) for (let i = 0; i < sw.k.length; i++) {
+const k = sw.k[i];
+if (sw.layer[k] <= sw.s[i]) surfaces[k] = sw.far[sw.g[i]] ? 0 : 1;
+}
+for (const [sx, sy, radius, rgb, strength] of lights) {
+if (!(radius > 0) || !(strength > 0)) continue;
+const horizon = horizons(cv, sx, sy, radius), rays = horizon.length;
+for (let y = Math.max(0, Math.floor(sy - radius)); y < Math.min(H, Math.ceil(sy + radius)); y++) {
+for (let x = Math.max(0, Math.floor(sx - radius)); x < Math.min(W, Math.ceil(sx + radius)); x++) {
+const dx = x - sx, dy = y - sy, distance = Math.hypot(dx, dy), d = distance / radius;
+if (d >= 1) continue;
+const angle = (Math.atan2(dy, dx) + Math.PI * 2) % (Math.PI * 2);
+const ray = Math.round(angle * rays / (Math.PI * 2)) % rays;
+const penetration = Math.max(0, distance - horizon[ray]);
+const visibility = penetration ? 0.1 + 0.9 * Math.exp(-penetration / 5) : 1;
+const amount = (1 - d) ** 2 * strength * visibility;
+const k = (y * W + x) * 3;
+energy[k] += rgb[0] * amount; energy[k + 1] += rgb[1] * amount; energy[k + 2] += rgb[2] * amount;
+}
+}
+}
+const apply = (colour, k, surface) => litColour(colour, energy[k * 3], energy[k * 3 + 1], energy[k * 3 + 2], surface);
+for (let k = 0; k < N; k++) {
+const same = sw && sw.bare[k] === cv.pix.px[k];
+cv.pix.px[k] = apply(cv.pix.px[k], k, surfaces[k]);
+if (sw) {
+const fixed = cv.solid[k] || cv.rock[k] || cv.things[k] || cv.liquid[k];
+sw.bare[k] = apply(sw.bare[k], k, fixed || (cv.trees[k] && same));
+}
+}
+if (sw) for (let i = 0; i < sw.k.length; i++) {
+const k = sw.k[i], surface = !sw.far[sw.g[i]];
+sw.c[i] = apply(sw.c[i], k, surface);
+}
+}
+return { litColour, illuminate };
+})();
 // src/visual/env/cave.js
 const __m50 = (() => {
 const { fbm1, fbm2, hash2 } = __m19;
 const { mixPacked } = __m11;
 const { col, far } = __m51;
 const { cobble } = __m52;
+const { illuminate } = __m53;
 function farPillars(cv, o) {
 const fill = col(o.fill), rim = o.rim ? col(o.rim) : fill, W = cv.W;
 for (let i = 0; i < o.n; i++) {
@@ -6073,7 +6160,7 @@ if (k > 0) cv.wash(0xff000000, (x, y) => {
 const u = (x - W / 2) / (W * 0.62), v = (y - H * 0.55) / (H * 0.75), t = Math.max(0, u * u + v * v - 0.3) * k;
 return t > 0.01 ? Math.min(0.8, t) : 0;
 });
-for (const [x, y, r, rgb, s] of cv.pending) cv.light(rgb, (px, py) => { const d = Math.hypot(px - x, py - y) / r; return d >= 1 ? 0 : (1 - d) * (1 - d) * s; }, Math.floor(y - r), Math.ceil(y + r));
+illuminate(cv, cv.pending);
 cv.pending = [];
 }
 function ledgeTops(cv, n, seed, rise = 12) {
@@ -6193,7 +6280,7 @@ const LAVA_VEINS = (seed) => ({ from: ['#ffd060', '#ffb040', '#ff8a2a', '#e05a18
 return { farPillars, fog, caveFrame, vines, moss, glowShrooms, torch, fall, ruins, finish, ledgeTops, veins, WATER_VEINS, LAVA_VEINS };
 })();
 // src/visual/env/legible.js
-const __m53 = (() => {
+const __m54 = (() => {
 const { hash2, fbm2, noise2 } = __m19;
 const { mixPacked } = __m11;
 const { Rng } = __m15;
@@ -6361,7 +6448,7 @@ if (f !== 1 || add) L[k] = saturate(scale(c, f, add), f > 1 ? 1.05 : 1);
 return { legible };
 })();
 // src/visual/env/flourish.js
-const __m54 = (() => {
+const __m55 = (() => {
 const { hash2 } = __m19;
 const { col } = __m51;
 const FLORA = {
@@ -6643,7 +6730,7 @@ else if (berry && h > 0.95 && free(cx + side, yy)) cv.set(cx + side, yy, berry);
 return { flourish };
 })();
 // src/visual/env/grade.js
-const __m55 = (() => {
+const __m56 = (() => {
 const GRADE = {
 meadow: [0.25, 1.18, 0.42], forest: [0.24, 1.16, 0.42], netherwood: [0.18, 1.18, 0.4], river: [0.24, 1.18, 0.42],
 quarry: [0.23, 1.12, 0.42], moonfen: [0.18, 1.18, 0.4], crags: [0.2, 1.14, 0.42],
@@ -6668,18 +6755,19 @@ return ((c & 0xff000000) | (cl(b) << 16) | (cl(g) << 8) | cl(r)) >>> 0;
 function grade(cv, region) {
 const [con, sat, ink] = GRADE[region] || [0.38, 1.28, 0.4];
 const T = curve(con), W = cv.W, H = cv.H, S = cv.solid, px = cv.pix.px, s = cv.sw;
+const edges = s ? new Uint8Array(px.length) : null;
 const air = (/** @type {number} */ k) => !S[k] && !cv.liquid[k] && !cv.rock[k];
 for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
 const k = y * W + x;
 if (!S[k] || cv.liquid[k]) continue;
 if (!(air(k - 1) || air(k + 1) || air(k + W)) || air(k - W)) continue;
 px[k] = mul(px[k], 1 - ink);
-if (s) s.bare[k] = mul(s.bare[k], 1 - ink);
+if (s) { s.bare[k] = mul(s.bare[k], 1 - ink); edges[k] = 1; }
 }
 for (let k = 0; k < px.length; k++) px[k] = gradePx(px[k], T, sat);
 if (s) {
 for (let k = 0; k < s.bare.length; k++) s.bare[k] = gradePx(s.bare[k], T, sat);
-for (let i = 0; i < s.c.length; i++) s.c[i] = gradePx(s.c[i], T, sat);
+for (let i = 0; i < s.c.length; i++) s.c[i] = gradePx(edges[s.k[i]] ? mul(s.c[i], 1 - ink) : s.c[i], T, sat);
 }
 }
 function mul(c, f) {
@@ -6688,7 +6776,7 @@ return ((c & 0xff000000) | (Math.round(((c >>> 16) & 255) * f) << 16) | (Math.ro
 return { grade };
 })();
 // src/visual/env/kit.js
-const __m57 = (() => {
+const __m58 = (() => {
 const { ramp, hex } = __m49;
 const { Rng, hashString } = __m15;
 const { shift } = __m11;
@@ -6711,7 +6799,7 @@ const streamOf = (seed, region, part) => new Rng(hashString(`env:${seed}:${regio
 return { palette, vary, streamOf };
 })();
 // src/visual/env/foliage.js
-const __m59 = (() => {
+const __m60 = (() => {
 const { Model, bezier } = __m16;
 let groups = 0;
 const swayGroup = () => ++groups;
@@ -6779,6 +6867,11 @@ m.poly([
 [px - r * 0.55, py + r * 0.25],
 ], mat, { ...leafy, step: st(b + 0.17) });
 m.poly(leaf(rnd, px - r * 0.48, py - r * 0.55, Math.max(0.8, r * 0.42)), mat, { ...leafy, step: st(b + 0.3) });
+for (let j = 0; j < 3; j++) {
+const lx = px + (rnd() - 0.5) * r * 1.25, ly = py + (rnd() - 0.55) * r;
+const width = 1 + rnd() * 0.7;
+m.line([[lx, ly], [lx + width, ly - 0.5]], mat, { ...sw, step: st(b + (j === 0 ? -0.2 : 0.2 + rnd() * 0.12)) });
+}
 for (let j = 0; j < Math.max(1, Math.round(r * 0.35)); j++) {
 const a = Math.PI * (1.15 + rnd() * 0.6);
 m.poly(leaf(rnd, px + Math.cos(a) * r * 0.95, py + Math.sin(a) * r * 0.9, 0.8 + rnd() * 0.6), mat, { ...leafy, step: st(b + 0.24) });
@@ -6882,9 +6975,9 @@ return m;
 return { swayGroup, leaf, cluster, strand, grove };
 })();
 // src/visual/env/objects.js
-const __m58 = (() => {
+const __m59 = (() => {
 const { Model, blade, PROFILES, bezier, lumpy, ellipse, polygon } = __m16;
-const { cluster, strand, grove, swayGroup } = __m59;
+const { cluster, strand, grove, swayGroup } = __m60;
 const R = (rng) => () => rng.next();
 function leafBlock(x, y, hw, hh, rnd) {
 const c = Math.max(1, Math.round(Math.min(hw, hh) * 0.4)), j = () => Math.round((rnd() - 0.5) * 2);
@@ -7145,6 +7238,13 @@ return m;
 }
 function beam(m, a, b, w, mat = 'timber') {
 m.stroke([a, b], w, mat, { shade: 'cyl', tex: 1.2 });
+const dx = b[0] - a[0], dy = b[1] - a[1], length = Math.hypot(dx, dy);
+if (w >= 2 && length > 6) {
+const nx = -dy / length, ny = dx / length, side = nx + ny > 0 ? -1 : 1;
+const at = (t, off) => /** @type {[number,number]} */ ([a[0] + dx * t + nx * off, a[1] + dy * t + ny * off]);
+m.line([at(0.06, side * w * 0.28), at(0.94, side * w * 0.28)], mat, { lum: 0.86 });
+for (let t = 0.15; t < 0.85; t += 0.26) m.line([at(t, -side * 0.2), at(Math.min(0.94, t + 0.14), -side * 0.2)], mat, { lum: 0.24 });
+}
 return m;
 }
 function crane(rng, h) {
@@ -7241,8 +7341,8 @@ return m;
 return { leafBlock, crown, pad, branchTree, tree, branch, bush, boulder, reeds, fern, tuft, log, stump, mushroom, cloud, beam, crane, ladder, cart, crate, fence, skep, basalt, spire, cairn, scaffold, wheel };
 })();
 // src/visual/env/trees.js
-const __m60 = (() => {
-const { branchTree, tree } = __m58;
+const __m61 = (() => {
+const { branchTree, tree } = __m59;
 const { Rng } = __m15;
 const { pack, hex } = __m11;
 function treeRow(cv, rng, pal, o) {
@@ -7306,13 +7406,13 @@ return out;
 return { treeRow, terrainTrees };
 })();
 // src/visual/env/meadow.js
-const __m56 = (() => {
+const __m57 = (() => {
 const { sky } = __m49;
-const { palette, vary, streamOf } = __m57;
+const { palette, vary, streamOf } = __m58;
 const { heights, dip, raise, fillSolid, blob, paintTerrain, pool, markOpen, silhouette, mountains, treeShape, glow, drips, ledges, sunbeams } = __m51;
 const { caveFrame, fog, vines, moss, veins, WATER_VEINS } = __m50;
-const { cloud, fence, skep, boulder, spire } = __m58;
-const { terrainTrees } = __m60;
+const { cloud, fence, skep, boulder, spire } = __m59;
+const { terrainTrees } = __m61;
 const { Model, lumpy } = __m16;
 const { pack } = __m11;
 function compose(cv, seed) {
@@ -7413,13 +7513,13 @@ cv.meta.horizon = 120;
 return { compose };
 })();
 // src/visual/env/forest.js
-const __m61 = (() => {
+const __m62 = (() => {
 const { sky } = __m49;
-const { palette, vary, streamOf } = __m57;
+const { palette, vary, streamOf } = __m58;
 const { heights, raise, fillSolid, blob, paintTerrain, markOpen, surfaceAt, col, drips, ledges, hanging } = __m51;
 const { fog, moss, glowShrooms } = __m50;
-const { fern, log, stump } = __m58;
-const { treeRow, terrainTrees } = __m60;
+const { fern, log, stump } = __m59;
+const { treeRow, terrainTrees } = __m61;
 const { hash2 } = __m19;
 function compose(cv, seed) {
 const W = cv.W, H = cv.H, s = (p) => streamOf(seed, 'forest', p);
@@ -7499,13 +7599,13 @@ for (let i = 0, n = 0; i < 14 && n < 6; i++) if (cv.place(fern(fr, fr.int(8, 13)
 return { compose, roots, litter, ferns };
 })();
 // src/visual/env/river.js
-const __m62 = (() => {
+const __m63 = (() => {
 const { sky } = __m49;
-const { palette, vary, streamOf } = __m57;
+const { palette, vary, streamOf } = __m58;
 const { heights, dip, raise, fillSolid, ledges, paintTerrain, pool, markOpen, surfaceAt, silhouette, mountains, treeShape } = __m51;
 const { caveFrame, farPillars, fog, vines, moss, glowShrooms, ledgeTops, veins, WATER_VEINS } = __m50;
-const { reeds, beam, cloud } = __m58;
-const { terrainTrees } = __m60;
+const { reeds, beam, cloud } = __m59;
+const { terrainTrees } = __m61;
 const { Model } = __m16;
 function compose(cv, seed) {
 const W = cv.W, H = cv.H, s = (p) => streamOf(seed, 'river', p);
@@ -7516,9 +7616,9 @@ cattail: '#7a3a22', timber: '#6a4a2e', cloud: ['#eef2f4', { spread: 0.3 }],
 const fs = s('frame'), cave = fs.next() < 0.75;
 if (cave) {
 sky(cv, 0, H, ['#05090c', '#08121a', '#0c1c20', '#102624']);
-farPillars(cv, { n: 8, fill: '#0f1e1e', rim: '#162a28', seed: s('far1').int(0, 1e9), w: [10, 20], floor: 180, caps: true });
+farPillars(cv, { n: 8, fill: '#0c2930', rim: '#154149', seed: s('far1').int(0, 1e9), w: [10, 20], floor: 180, caps: true });
 fog(cv, '#1e4040', 90, 200, 0.35, s('fog1').int(0, 1e9));
-farPillars(cv, { n: 5, fill: '#142824', rim: '#1e3a32', seed: s('far2').int(0, 1e9), w: [16, 28], floor: 185, caps: true });
+farPillars(cv, { n: 5, fill: '#103137', rim: '#1c4648', seed: s('far2').int(0, 1e9), w: [16, 28], floor: 185, caps: true });
 fog(cv, '#24504a', 120, 210, 0.25, s('fog2').int(0, 1e9));
 const frame = caveFrame(cv, {
 seed: fs.int(0, 1e9), stones: ['#494c44', '#5a5b4e', '#41463e'], mortar: '#0b100d', dark: 0.2, roof: [10, 28], walls: [8, 9],
@@ -7585,13 +7685,13 @@ cv.meta.horizon = 116;
 return { compose };
 })();
 // src/visual/env/quarry.js
-const __m63 = (() => {
+const __m64 = (() => {
 const { sky } = __m49;
-const { palette, vary, streamOf } = __m57;
+const { palette, vary, streamOf } = __m58;
 const { fillSolid, blob, ledges, paintTerrain, markOpen, glow, drips, silhouette, mountains, sunbeams } = __m51;
 const { caveFrame, farPillars, fog, moss, torch, ledgeTops } = __m50;
-const { crane, ladder, cart, crate, beam, boulder, scaffold, wheel, cloud, spire } = __m58;
-const { terrainTrees } = __m60;
+const { crane, ladder, cart, crate, beam, boulder, scaffold, wheel, cloud, spire } = __m59;
+const { terrainTrees } = __m61;
 const { Model } = __m16;
 const { Rng } = __m15;
 function compose(cv, seed) {
@@ -7709,13 +7809,13 @@ cv.meta.horizon = 100;
 return { compose };
 })();
 // src/visual/env/moonfen.js
-const __m64 = (() => {
+const __m65 = (() => {
 const { sky } = __m49;
-const { palette, vary, streamOf } = __m57;
+const { palette, vary, streamOf } = __m58;
 const { heights, dip, raise, fillSolid, ledges, paintTerrain, pool, markOpen, surfaceAt, glow, silhouette, treeShape } = __m51;
 const { caveFrame, farPillars, fog, vines, moss, ruins, glowShrooms, veins, WATER_VEINS } = __m50;
-const { reeds, spire, cairn } = __m58;
-const { terrainTrees } = __m60;
+const { reeds, spire, cairn } = __m59;
+const { terrainTrees } = __m61;
 const { fbm2 } = __m19;
 const { pack } = __m11;
 function compose(cv, seed) {
@@ -7815,13 +7915,13 @@ cv.meta.horizon = 124;
 return { compose };
 })();
 // src/visual/env/crags.js
-const __m65 = (() => {
+const __m66 = (() => {
 const { sky } = __m49;
-const { palette, vary, streamOf } = __m57;
+const { palette, vary, streamOf } = __m58;
 const { heights, dip, raise, fillSolid, blob, ledges, paintTerrain, pool, markOpen, glow, drips, silhouette, col, rockFace } = __m51;
 const { caveFrame, farPillars, fog, moss, fall, veins, LAVA_VEINS } = __m50;
-const { basalt, spire, cloud } = __m58;
-const { terrainTrees } = __m60;
+const { basalt, spire, cloud } = __m59;
+const { terrainTrees } = __m61;
 const { fbm1, hash2 } = __m19;
 const { mixPacked } = __m11;
 const { Model, lumpy } = __m16;
@@ -7981,14 +8081,14 @@ cv.set(x, y, c);
 return { compose };
 })();
 // src/visual/env/netherwood.js
-const __m66 = (() => {
+const __m67 = (() => {
 const { sky } = __m49;
-const { palette, vary, streamOf } = __m57;
+const { palette, vary, streamOf } = __m58;
 const { heights, dip, raise, fillSolid, blob, paintTerrain, pool, markOpen, drips, ledges, glow } = __m51;
 const { caveFrame, farPillars, fog, vines, moss, glowShrooms, veins, WATER_VEINS } = __m50;
-const { mushroom } = __m58;
-const { treeRow, terrainTrees } = __m60;
-const { roots, litter, ferns } = __m61;
+const { mushroom } = __m59;
+const { treeRow, terrainTrees } = __m61;
+const { roots, litter, ferns } = __m62;
 function compose(cv, seed) {
 const W = cv.W, H = cv.H, s = (p) => streamOf(seed, 'netherwood', p);
 const pal = vary(palette({
@@ -7998,7 +8098,7 @@ stem: ['#d8d0ec', { spread: 0.4 }], cap: ['#9a5ae0', { spread: 0.6 }], spot: '#f
 }), s('pal'), 1);
 const back = '#0e1820';
 sky(cv, 0, H, ['#03080e', '#06121d', '#092536', '#123649']);
-farPillars(cv, { n: 8, fill: '#0c141c', rim: '#121c26', seed: s('far1').int(0, 1e9), w: [10, 22], floor: 180, caps: true });
+farPillars(cv, { n: 8, fill: '#0d2332', rim: '#15364a', seed: s('far1').int(0, 1e9), w: [10, 22], floor: 180, caps: true });
 fog(cv, '#1c2c40', 80, 200, 0.3, s('fog1').int(0, 1e9));
 const ts = s('terrain'), top = heights(W, ts.int(0, 1e9), { base: 172, amp: 8, freq: 0.012 });
 const rows = s('rows'), far = top.map((v) => v - 14), mid = top.map((v) => v - 6);
@@ -8072,17 +8172,17 @@ const { artRevision, artDomain } = __m10;
 const { Canvas, SCENE_W, SCENE_H } = __m49;
 const { hashString } = __m15;
 const { finish } = __m50;
-const { legible } = __m53;
-const { flourish } = __m54;
-const { grade } = __m55;
-const meadow = __m56;
-const forest = __m61;
-const river = __m62;
-const quarry = __m63;
-const moonfen = __m64;
-const crags = __m65;
-const netherwood = __m66;
-const ENV_VERSION = 13;
+const { legible } = __m54;
+const { flourish } = __m55;
+const { grade } = __m56;
+const meadow = __m57;
+const forest = __m62;
+const river = __m63;
+const quarry = __m64;
+const moonfen = __m65;
+const crags = __m66;
+const netherwood = __m67;
+const ENV_VERSION = 14;
 const COMPOSERS = { meadow, forest, netherwood, river, quarry, moonfen, crags };
 const cache = new Map();
 function composeScene(region, seed) {
@@ -8116,7 +8216,7 @@ return s;
 return { ENV_VERSION, composeScene, sceneOf, SCENE_W, SCENE_H };
 })();
 // src/rendering/scenes.js
-const __m69 = (() => {
+const __m70 = (() => {
 function R(ctx, x, y, w, h, c) {
 ctx.fillStyle = c;
 ctx.fillRect(Math.round(x), Math.round(y), Math.max(1, Math.round(w)), Math.max(1, Math.round(h)));
@@ -8168,7 +8268,7 @@ return cv;
 return { drawRaw, rawSprite };
 })();
 // src/rendering/species-sprites.js
-const __m68 = (() => {
+const __m69 = (() => {
 const { artRevision } = __m10;
 const { describe } = __m23;
 const { plantFrame, iconFrame, ICON_PX } = __m45;
@@ -8176,7 +8276,7 @@ const { identityKey, validIdentity } = __m25;
 const { archetypeIdentity } = __m39;
 const { Pixels } = __m18;
 const { isBotanical } = __m24;
-const { rawSprite } = __m69;
+const { rawSprite } = __m70;
 const { mountsOfForm, frameMount, growthParams } = __m46;
 const { hashString } = __m15;
 const { INK } = __m20;
@@ -8306,10 +8406,10 @@ return cv;
 return { MIN_HIT, identityOfMaterial, speciesOf, variantOf, mountsOf, plantFrameOf, plantCanvas, plantGlow, emitColour, silhouetteOf, iconFrameOf, ingredientSprite, ICON_PX };
 })();
 // src/rendering/wild-scene.js
-const __m67 = (() => {
+const __m68 = (() => {
 const { artRevision } = __m10;
 const { sceneOf, SCENE_W, SCENE_H } = __m47;
-const { MIN_HIT } = __m68;
+const { MIN_HIT } = __m69;
 const { hashString } = __m15;
 const { frameMount } = __m46;
 const canvases = new Map();
@@ -8678,7 +8778,7 @@ function halo(ctx, x, y, r, c, a) {
 ctx.globalCompositeOperation = 'lighter';
 ctx.fillStyle = c;
 for (let k = 3; k >= 1; k--) {
-ctx.globalAlpha = a * (4 - k) / 3;
+ctx.globalAlpha = a * (4 - k) / 6;
 ctx.beginPath(); ctx.arc(Math.round(x), Math.round(y), Math.max(1, Math.round(r * k / 3)), 0, Math.PI * 2); ctx.fill();
 }
 ctx.globalAlpha = 1;
@@ -8857,7 +8957,7 @@ if (meta.artAtmosphere !== undefined) ctx.restore();
 return { sceneCanvas, windAt, crosses, SceneTouch, sceneTouch, swayPixels, sceneFrame, findAnchors, PlantGround, mountOrder, plantBox, hitPlant, animateRegion, SCENE_W, SCENE_H };
 })();
 // src/studio/creature-runtime.js
-const __m71 = (() => {
+const __m72 = (() => {
 const { artDomain } = __m10;
 const { hex } = __m11;
 function directLook(look) {
@@ -8884,7 +8984,7 @@ const creatureClock = (look, time) => time * (artDomain('creatures', look?.kind 
 return { directLook, directAnatomy, creatureClock };
 })();
 // src/rendering/art.js
-const __m72 = (() => {
+const __m73 = (() => {
 const { Rng } = __m15;
 const PAL = {
 night0: '#0d0a10', night1: '#17121c', night2: '#221a28',
@@ -9486,7 +9586,7 @@ for (let k = 0; k < 14; k++) R(ctx, Math.round(v.ox + rng.range(-0.6, 0.6) * c.b
 return { PAL, hex2rgb, rgbStr, mixHex, paintBackground, drawJar, renderCauldron, renderLid, renderLidAside, makeCanvas, paintHearth, rect: R };
 })();
 // src/game/kinds.js
-const __m74 = (() => {
+const __m75 = (() => {
 const { Rng } = __m15;
 const RABBIT_SPREAD = 0.1;
 const STEADY_SPREAD = 0.012;
@@ -9626,10 +9726,10 @@ return { kind: 'salamander', coat: [0.14, 0.12, 0.13], coat2: spot, pattern: 'bl
 return { RABBIT_SPREAD, STEADY_SPREAD, STEADY_NOISE, KINDS, KIND_IDS, kindOf, kindDef, biasSpread, noiseFactor, aNoun, HABITAT, pickKind, kindLook };
 })();
 // src/game/colony.js
-const __m73 = (() => {
+const __m74 = (() => {
 const { EFFECT_INDEX } = __m42;
 const { Rng, hashString } = __m15;
-const { kindOf, biasSpread, kindLook, RABBIT_SPREAD } = __m74;
+const { kindOf, biasSpread, kindLook, RABBIT_SPREAD } = __m75;
 const RABBIT_MARKS = ['vitality', 'strength', 'love', 'arcana', 'transformation', 'fire', 'frost', 'acid', 'alkali', 'toxicity', 'death'];
 const MARK_INDEX = Object.fromEntries(RABBIT_MARKS.map((k, i) => [k, i]));
 const KIT_DAYS = 4;
@@ -10426,7 +10526,7 @@ return trials;
 return { RABBIT_MARKS, MARK_INDEX, KIT_DAYS, ADULT_DAYS, ELDER_DAYS, LIFESPAN_DAYS, FOUNDER_BORN, GESTATION_DAYS, DOSE_LIMIT, MEMORIAL_LIMIT, LEVEL_AT, TRAIT_AT, DEGEN_AT, MARK_MAX, LETHAL, AGGRO, FERAL, AGGRO_AT, LOVE_MATE, MATE_EVERY, MARK_TAU, BURNS, BURN_RATE, MAX_BONUS, DEGEN_RISE, ATTACK_EVERY, TRAITS, TRAIT_EXCLUSIVE, TRAIT_WORDS, COATS, rollLook, inheritLook, lookFromSeed, visibleLevel, stageOf, maxHealthOf, degenOf, degenAt, degenRate, aggroAt, aggroOf, isFeral, burnRate, mateEvery, mateCost, RABBIT_BIAS, rabbitSensitivity, rabbitSnap, encodeSnap, defaultSnap, decodeSnap, NAMES, createColony, findRabbit, PEN_MAX, penCount, livingOf, penHasRoom, livingRabbits, bodies, focusRabbit, pickName, makeRabbit, addBoughtRabbit, addWildRabbit, recordDose, related, STAGE_ERR, MARK_DECAY, rabbitResponse, colonyTick, purgeRabbit, cullRabbit, colonyDay, retireRabbit, trimMemorial, remainsSource, causeWord, rabbitCondition, normalizeRabbit, normalizeColony, installRabbitAlias };
 })();
 // src/rendering/punch.js
-const __m75 = (() => {
+const __m76 = (() => {
 const CONTRAST = 1.4, SATURATE = 1.3;
 const INK = [20, 12, 16, 235], HALO = [255, 244, 220, 70];
 function punchSprite(d, w, h, o = {}) {
@@ -10464,14 +10564,14 @@ for (const i of halo) d.set(HALO, i * 4);
 return { punchSprite };
 })();
 // src/rendering/rabbit.js
-const __m70 = (() => {
-const { directLook, directAnatomy, creatureClock } = __m71;
+const __m71 = (() => {
+const { directLook, directAnatomy, creatureClock } = __m72;
 const { artRevision } = __m10;
 const { Rng, hashString } = __m15;
-const { PAL, makeCanvas } = __m72;
-const { RABBIT_MARKS } = __m73;
-const { KINDS } = __m74;
-const { punchSprite } = __m75;
+const { PAL, makeCanvas } = __m73;
+const { RABBIT_MARKS } = __m74;
+const { KINDS } = __m75;
+const { punchSprite } = __m76;
 const RABBIT_W = 48;
 const RABBIT_H = 40;
 const BAYER4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
@@ -11945,7 +12045,7 @@ ctx.fillRect(fx, fy, RABBIT_W, RABBIT_H);
 return { RABBIT_W, RABBIT_H, rabbitLevels, rabbitPose, rabbitPace, rabbitAnchors, rabbitSpriteKey, drawRabbitSprite, clearRabbitSprites, drawRabbit };
 })();
 // src/simulation/constants.js
-const __m77 = (() => {
+const __m78 = (() => {
 const PHASE = Object.freeze({ LIQUID: 0, POWDER: 1, PASTE: 2, SOLID: 3, GAS: 4 });
 const PHASE_NAMES = ['liquid', 'powder', 'paste', 'solid', 'gas'];
 const SIM = Object.freeze({
@@ -11986,7 +12086,7 @@ return PHASE.LIQUID;
 return { PHASE, PHASE_NAMES, SIM, TUNE, formPhase };
 })();
 // src/alchemy/arcane.js
-const __m80 = (() => {
+const __m81 = (() => {
 const { EFFECT_KEYS } = __m42;
 const ARCANE_SCALE = 0.1;
 const ARCANE_ZERO = 20;
@@ -12086,7 +12186,7 @@ return out;
 return { ARCANE_SCALE, ARCANE_ZERO, AWAKE_SUFFIX, thresholdToCelsius, celsiusToThreshold, isAwakenedId, awakenedId, baseIdOf, isMagical, awakenedDef, withAwakened, blendThreshold, pastThreshold, describeThreshold, awakenParts };
 })();
 // src/materials/shapes.js
-const __m81 = (() => {
+const __m82 = (() => {
 const LOOK = Object.freeze({
 ICE: 0, FIBRE: 1, LEAF: 2, STONE: 3, CRYSTAL: 4, CAP: 5, GLOSSY: 6, BONE: 7, FUR: 8, LUMP: 9,
 BARK: 10, BERRY: 11, GILLS: 12, SEED: 13, SHELL: 14, METAL: 15, GLASS: 16, SPOTS: 17, REED: 18, FLORET: 19,
@@ -12217,12 +12317,12 @@ return hasPieces(def) ? pieceSize(n) : n;
 return { LOOK, shapeOf, solidLook, chunkTemplate, hasPieces, grainSkinOf, skinOf, piece, chunkSize };
 })();
 // src/reactions/species.js
-const __m79 = (() => {
+const __m80 = (() => {
 const { rgbToOklab, srgbToLinear } = __m12;
 const { volatilityOf } = __m41;
 const { NE, effectVector } = __m42;
-const { isMagical, awakenedId } = __m80;
-const { solidLook } = __m81;
+const { isMagical, awakenedId } = __m81;
+const { solidLook } = __m82;
 const MAX_SPECIES = 24;
 const NO_BOIL = 1e6;
 class SpeciesTable {
@@ -12403,9 +12503,9 @@ return [0, 1, 2].map((k) => -Math.log(Math.max(0.003, srgbToLinear(def.color[k])
 return { MAX_SPECIES, NO_BOIL, SpeciesTable, absorbance };
 })();
 // src/simulation/particles.js
-const __m78 = (() => {
-const { MAX_SPECIES } = __m79;
-const { PHASE } = __m77;
+const __m79 = (() => {
+const { MAX_SPECIES } = __m80;
+const { PHASE } = __m78;
 const { NE } = __m42;
 const STATE_FIELDS_F32 = ['x', 'y', 'vx', 'vy', 'temp', 'lat', 'eph', 'restX', 'restY', 'agit', 'burn', 'wet', 'q', 'skinU', 'skinV'];
 const STATE_FIELDS_I32 = ['group'];
@@ -12528,7 +12628,7 @@ return this.phase[i] !== PHASE.GAS;
 return { STATE_FIELDS_F32, STATE_FIELDS_I32, STATE_FIELDS_U8, STATE_FIELDS_U16, STATE_FIELDS_U32, DERIVED_FIELDS, ARC_NONE, Particles };
 })();
 // src/simulation/grid.js
-const __m82 = (() => {
+const __m83 = (() => {
 class NeighborGrid {
 constructor(minX, minY, maxX, maxY, cell, capacity) {
 this.minX = minX;
@@ -12628,8 +12728,8 @@ for (let a = cellStart[c]; a < cellStart[c + 1]; a++) fn(sorted[a]);
 return { NeighborGrid };
 })();
 // src/simulation/cauldron.js
-const __m83 = (() => {
-const { SIM } = __m77;
+const __m84 = (() => {
+const { SIM } = __m78;
 const CAULDRON_SIZES = {
 pot: { key: 'pot', label: 'Iron Pot', mouth: 0.8, belly: 1.0, neck: 0.5, depth: 1.55, capacity: 310 },
 copper: { key: 'copper', label: 'Copper Cauldron', mouth: 0.95, belly: 1.2, neck: 0.6, depth: 1.8, capacity: 440 },
@@ -12865,8 +12965,8 @@ return s / this.lidCells;
 return { CAULDRON_SIZES, COLUMN, Cauldron };
 })();
 // src/reactions/mixture.js
-const __m85 = (() => {
-const { MAX_SPECIES, NO_BOIL } = __m79;
+const __m86 = (() => {
+const { MAX_SPECIES, NO_BOIL } = __m80;
 const { rgbToOklab, linearToSrgb } = __m12;
 function granularFraction(sp, comp, off, T) {
 let liquidPart = 0;
@@ -12964,13 +13064,13 @@ return new Float32Array(n);
 return { granularFraction, suspensionLnMult, mixtureProps, zeroComposition };
 })();
 // src/simulation/derived.js
-const __m84 = (() => {
-const { MAX_SPECIES, NO_BOIL } = __m79;
-const { granularFraction, suspensionLnMult } = __m85;
+const __m85 = (() => {
+const { MAX_SPECIES, NO_BOIL } = __m80;
+const { granularFraction, suspensionLnMult } = __m86;
 const { rgbToOklabInto, linearToSrgb } = __m12;
-const { PHASE } = __m77;
+const { PHASE } = __m78;
 const { compositionEffects, EFFECTS, NE } = __m42;
-const { ARC_NONE } = __m78;
+const { ARC_NONE } = __m79;
 const AURA_W = EFFECTS.map((e) => (e.kind === 'magic' ? 1 : 0.55));
 const AURA_COL = EFFECTS.map((e) => e.color);
 const auraFx = new Float64Array(NE);
@@ -13118,8 +13218,8 @@ p.auraI[i] = I / 100;
 return { STAIN, GAS_MASS, refreshParticle, refreshAura };
 })();
 // src/simulation/rigid.js
-const __m86 = (() => {
-const { PHASE } = __m77;
+const __m87 = (() => {
+const { PHASE } = __m78;
 const MAX_GROUPS = 2048;
 const BOND = 0.135;
 const FRESH = -2;
@@ -13312,8 +13412,8 @@ return this.active.length;
 return { FRESH, RigidBodies };
 })();
 // src/simulation/thermal.js
-const __m87 = (() => {
-const { PHASE, SIM } = __m77;
+const __m88 = (() => {
+const { PHASE, SIM } = __m78;
 const KPP = 34; // particle–particle conductance (game-scaled)
 const KW = 24; // particle–wall conductance
 const KA = 0.35; // free-surface loss to air
@@ -13429,11 +13529,11 @@ for (let k = 0; k < M + L; k++) Tw[k] += flow[k] / Cw[k];
 return { thermalStep, wallStep };
 })();
 // src/simulation/phase.js
-const __m88 = (() => {
-const { PHASE, PHASE_NAMES } = __m77;
-const { MAX_SPECIES, NO_BOIL } = __m79;
-const { refreshParticle } = __m84;
-const { FRESH } = __m86;
+const __m89 = (() => {
+const { PHASE, PHASE_NAMES } = __m78;
+const { MAX_SPECIES, NO_BOIL } = __m80;
+const { refreshParticle } = __m85;
+const { FRESH } = __m87;
 const { LIQUID, POWDER, PASTE, SOLID, GAS } = PHASE;
 const BOIL_VOLATILE = 0.8;
 const DRY_MIN = 0.12;
@@ -13718,9 +13818,9 @@ classifyFluid(sim, j);
 return { classifyFluid, isFrozenGrain, dominantId, phaseStep };
 })();
 // src/reactions/diffusion.js
-const __m89 = (() => {
-const { PHASE } = __m77;
-const { MAX_SPECIES } = __m79;
+const __m90 = (() => {
+const { PHASE } = __m78;
+const { MAX_SPECIES } = __m80;
 const { compatFactor } = __m43;
 const { LIQUID, POWDER, PASTE, SOLID, GAS } = PHASE;
 const RD = 0.16;
@@ -13875,10 +13975,10 @@ return w > 0 ? s / w : 0;
 return { diffusionStep };
 })();
 // src/simulation/arcane.js
-const __m91 = (() => {
-const { MAX_SPECIES } = __m79;
-const { ARCANE_SCALE, ARCANE_ZERO, awakenedId } = __m80;
-const { ARC_NONE } = __m78;
+const __m92 = (() => {
+const { MAX_SPECIES } = __m80;
+const { ARCANE_SCALE, ARCANE_ZERO, awakenedId } = __m81;
+const { ARC_NONE } = __m79;
 const RATE = 0.55;
 const HEAT = 24;
 const TAIL = 0.002;
@@ -13957,11 +14057,11 @@ return a;
 return { arcaneStep, awakeSlot };
 })();
 // src/reactions/reactions.js
-const __m90 = (() => {
-const { MAX_SPECIES } = __m79;
-const { PHASE } = __m77;
-const { awakenedId } = __m80;
-const { awakeSlot } = __m91;
+const __m91 = (() => {
+const { MAX_SPECIES } = __m80;
+const { PHASE } = __m78;
+const { awakenedId } = __m81;
+const { awakeSlot } = __m92;
 const { GAS, SOLID } = PHASE;
 class ReactionSystem {
 constructor(sim, rules) {
@@ -14236,9 +14336,9 @@ return best;
 return { ReactionSystem };
 })();
 // src/simulation/tools.js
-const __m92 = (() => {
-const { PHASE, SIM } = __m77;
-const { MAX_SPECIES } = __m79;
+const __m93 = (() => {
+const { PHASE, SIM } = __m78;
+const { MAX_SPECIES } = __m80;
 const { LIQUID, POWDER, PASTE, SOLID, GAS } = PHASE;
 const TOOL_SPECS = {
 spoon: { core: SIM.SPOON_CORE, reach: SIM.SPOON_RADIUS, entrain: [0.2, 0.09, 0.3, 0.035, 0.12], drag: 0.55 },
@@ -14493,10 +14593,10 @@ if (victims.length) sim.emit({ type: 'skim', count: victims.length, x: t.x, y: t
 return { TOOL_SPECS, ToolState, clampToInterior, toolForces, toolConstraints, LIQUID };
 })();
 // src/simulation/emitter.js
-const __m93 = (() => {
-const { PHASE, SIM, formPhase } = __m77;
-const { COLUMN } = __m83;
-const { chunkTemplate, chunkSize, hasPieces, skinOf, grainSkinOf, piece } = __m81;
+const __m94 = (() => {
+const { PHASE, SIM, formPhase } = __m78;
+const { COLUMN } = __m84;
+const { chunkTemplate, chunkSize, hasPieces, skinOf, grainSkinOf, piece } = __m82;
 const { registerSpecies } = __m39;
 class Emitter {
 constructor(sim) {
@@ -14664,8 +14764,8 @@ return true;
 return { Emitter };
 })();
 // src/simulation/electric.js
-const __m94 = (() => {
-const { PHASE } = __m77;
+const __m95 = (() => {
+const { PHASE } = __m78;
 const KQ = 26; // conduction rate (game scaled)
 const RE = 0.16; // contact distance
 const JOULE = 140; // heat per unit of charge moved per unit of potential difference
@@ -14712,22 +14812,22 @@ return s;
 return { electricStep, totalCharge };
 })();
 // src/simulation/world.js
-const __m76 = (() => {
-const { PHASE, SIM, TUNE, formPhase } = __m77;
-const { Particles } = __m78;
-const { NeighborGrid } = __m82;
-const { Cauldron, COLUMN } = __m83;
-const { SpeciesTable, MAX_SPECIES } = __m79;
-const { refreshParticle } = __m84;
-const { RigidBodies } = __m86;
-const { thermalStep } = __m87;
-const { phaseStep, classifyFluid } = __m88;
-const { diffusionStep } = __m89;
-const { ReactionSystem } = __m90;
-const { ToolState, toolForces, toolConstraints } = __m92;
-const { Emitter } = __m93;
-const { electricStep } = __m94;
-const { arcaneStep } = __m91;
+const __m77 = (() => {
+const { PHASE, SIM, TUNE, formPhase } = __m78;
+const { Particles } = __m79;
+const { NeighborGrid } = __m83;
+const { Cauldron, COLUMN } = __m84;
+const { SpeciesTable, MAX_SPECIES } = __m80;
+const { refreshParticle } = __m85;
+const { RigidBodies } = __m87;
+const { thermalStep } = __m88;
+const { phaseStep, classifyFluid } = __m89;
+const { diffusionStep } = __m90;
+const { ReactionSystem } = __m91;
+const { ToolState, toolForces, toolConstraints } = __m93;
+const { Emitter } = __m94;
+const { electricStep } = __m95;
+const { arcaneStep } = __m92;
 const { LIQUID, POWDER, PASTE, SOLID, GAS } = PHASE;
 const MODE = Object.freeze({ PBF: 0, GRAN: 1, COH: 2, RIGID: 3, GAS: 4 });
 const M_PBF = 0, M_GRAN = 1, M_COH = 2, M_RIGID = 3, M_GAS = 4;
@@ -15547,10 +15647,10 @@ if (p.sleep[i] >= SLEEP_STEPS) p.sleep[i] = 0;
 return { MODE, SLEEP_STEPS, Simulation, formPhase };
 })();
 // src/studio/material-runtime.js
-const __m97 = (() => {
+const __m98 = (() => {
 const { artDomain, artRevision } = __m10;
 const { hex } = __m11;
-const { PHASE } = __m77;
+const { PHASE } = __m78;
 let revision = -1, styles = {};
 const NAMES = { [PHASE.LIQUID]: 'liquid', [PHASE.POWDER]: 'powder', [PHASE.PASTE]: 'paste', [PHASE.SOLID]: 'solid', [PHASE.GAS]: 'gas' };
 function materialStyles() {
@@ -15574,7 +15674,7 @@ data[o + 3] *= c.opacity;
 return { materialStyles, directMaterialImage };
 })();
 // src/rendering/potion-fx.js
-const __m98 = (() => {
+const __m99 = (() => {
 const { artDomain } = __m10;
 const { hex } = __m11;
 const { EFFECTS, NE } = __m42;
@@ -16002,12 +16102,12 @@ break;
 return { PotionParticles };
 })();
 // src/rendering/brew-palette.js
-const __m99 = (() => {
-const { MAX_SPECIES } = __m79;
+const __m100 = (() => {
+const { MAX_SPECIES } = __m80;
 const { srgbToLinear, linearToSrgb } = __m12;
 const { PIECE_ART, piecePalette, registerSpecies, onPiecesChanged } = __m39;
-const { grainSkinOf } = __m81;
-const { STAIN } = __m84;
+const { grainSkinOf } = __m82;
+const { STAIN } = __m85;
 const bySpecies = new WeakMap();
 const bySkin = new Map();
 onPiecesChanged(() => bySkin.clear());
@@ -16126,15 +16226,15 @@ return true;
 return { dominantColour, preparePalettes, pc, paletteColour };
 })();
 // src/rendering/fluid.js
-const __m96 = (() => {
-const { directMaterialImage } = __m97;
-const { PHASE, SIM } = __m77;
-const { LOOK, piece } = __m81;
+const __m97 = (() => {
+const { directMaterialImage } = __m98;
+const { PHASE, SIM } = __m78;
+const { LOOK, piece } = __m82;
 const { PIECE_ART, PIECE_CELL, piecePalette, pieceSprite } = __m39;
 const { NE } = __m42;
-const { MAX_SPECIES } = __m79;
-const { PotionParticles } = __m98;
-const { preparePalettes, paletteColour, pc: palCol } = __m99;
+const { MAX_SPECIES } = __m80;
+const { PotionParticles } = __m99;
+const { preparePalettes, paletteColour, pc: palCol } = __m100;
 const { LIQUID, POWDER, PASTE, SOLID, GAS } = PHASE;
 const LS = 9;
 const LC = 6;
@@ -17111,8 +17211,8 @@ return v < 0 ? 0 : v > 255 ? 255 : v | 0;
 return { dropletCell, drawnGlow, drawnGlowTable, FluidRenderer };
 })();
 // src/rendering/effects.js
-const __m100 = (() => {
-const { PAL, hex2rgb } = __m72;
+const __m101 = (() => {
+const { PAL, hex2rgb } = __m73;
 const MAX = 900;
 const FIRE_RAMP = [PAL.fire5, PAL.fire4, PAL.fire3, PAL.fire2, PAL.fire1, PAL.fire0].map(hex2rgb);
 class Effects {
@@ -17225,12 +17325,12 @@ ctx.globalAlpha = 1;
 return { Effects };
 })();
 // src/rendering/renderer.js
-const __m95 = (() => {
-const { PAL, paintBackground, renderCauldron, renderLid, renderLidAside, paintHearth, makeCanvas, rgbStr, hex2rgb, drawJar, rect } = __m72;
-const { FluidRenderer, drawnGlow, drawnGlowTable } = __m96;
-const { Effects } = __m100;
-const { COLUMN } = __m83;
-const { PHASE } = __m77;
+const __m96 = (() => {
+const { PAL, paintBackground, renderCauldron, renderLid, renderLidAside, paintHearth, makeCanvas, rgbStr, hex2rgb, drawJar, rect } = __m73;
+const { FluidRenderer, drawnGlow, drawnGlowTable } = __m97;
+const { Effects } = __m101;
+const { COLUMN } = __m84;
+const { PHASE } = __m78;
 const { compositionEffects, dominantEffect, EFFECTS, NE } = __m42;
 const auraScratch = new Float64Array(NE);
 const VIEW_TOP = -1.25;
@@ -17673,7 +17773,7 @@ if (W >= 9) px(gx + 1, g0 + 1, GLASS_HI);
 return { Renderer, drawBottle, PHASE };
 })();
 // src/materials/reference.js
-const __m101 = (() => {
+const __m102 = (() => {
 const { completeMaterial } = __m41;
 const REF = {};
 const add = (d) => (REF[d.id] = completeMaterial(d));
@@ -17723,15 +17823,15 @@ const { growthParams } = __m46;
 const { plantFrame, iconFrame, pieceArt } = __m45;
 const { FAMILIES } = __m26;
 const { sceneOf } = __m47;
-const { animateRegion } = __m67;
-const { drawRabbit } = __m70;
-const { kindLook } = __m74;
-const { rollLook } = __m73;
+const { animateRegion } = __m68;
+const { drawRabbit } = __m71;
+const { kindLook } = __m75;
+const { rollLook } = __m74;
 const { Rng, hashString } = __m15;
-const { Simulation } = __m76;
-const { Renderer } = __m95;
-const { REF, refLookup } = __m101;
-const { PHASE } = __m77;
+const { Simulation } = __m77;
+const { Renderer } = __m96;
+const { REF, refLookup } = __m102;
+const { PHASE } = __m78;
 const { NE } = __m42;
 const { ICON_NAMES, iconUrl } = __m8;
 const { interfaceDecoration } = __m9;
@@ -18131,7 +18231,7 @@ destroy() { this.destroyed = true; this.sceneDrag = null; this.worker?.terminate
 return { DomainWorkspace };
 })();
 // src/studio/storage.js
-const __m102 = (() => {
+const __m103 = (() => {
 const { validateProject, clone, upgradeProject } = __m2;
 const DB = 'potion-art-studio';
 async function open() {
@@ -18177,7 +18277,7 @@ const { newProject, newAsset, newComponent, newNode, newLayer, clone, uid, valid
 const { componentPixels, generate } = __m14;
 const { Pixels } = __m18;
 const { colorWord, wordColor, line, region, inPolygon, transformed, validatePNGHeader } = __m21;
-const { saveProject, loadProject, listProjects, deleteProject, getSetting, putSetting } = __m102;
+const { saveProject, loadProject, listProjects, deleteProject, getSetting, putSetting } = __m103;
 const { artDirection, setArtDirection, artRevision } = __m10;
 const { archetypeIdentity } = __m39;
 const { describe } = __m23;
@@ -18838,7 +18938,7 @@ this.bitmapCanvas = null; this.componentKey = ''; this.el.remove();
 return { StudioScreen };
 })();
 // src/materials/names.js
-const __m105 = (() => {
+const __m106 = (() => {
 const { hueOf } = __m12;
 const HUE_PREFIXES = [
 [25, ['Bloodroot', 'Crimson', 'Wyrmblood', 'Rosehip', 'Cardinal']],
@@ -18925,15 +19025,15 @@ return n;
 return { NOUNS, makeName, PRODUCT_WORDS, makeProductName };
 })();
 // src/materials/generator.js
-const __m104 = (() => {
+const __m105 = (() => {
 const { attachVisuals } = __m25;
 const { Rng } = __m15;
 const { hslToRgb } = __m12;
 const { completeMaterial } = __m41;
-const { makeName, makeProductName } = __m105;
+const { makeName, makeProductName } = __m106;
 const { applyProfile } = __m44;
 const { generateWild, generateLaws, WILD_FX_VERSION, WILD_BY_KEY } = __m40;
-const { withAwakened } = __m80;
+const { withAwakened } = __m81;
 const r2 = (v) => Math.round(v * 100) / 100;
 function generateWorld(seed) {
 const seedStr = String(seed);
@@ -19298,11 +19398,11 @@ return map.get(id);
 return { generateWorld, addAlchemy, SOLVENT_ROLES, LAB_ROLES, sandboxIngredients, makeLookup };
 })();
 // src/game/predict.js
-const __m107 = (() => {
-const { SpeciesTable, MAX_SPECIES } = __m79;
-const { mixtureProps } = __m85;
+const __m108 = (() => {
+const { SpeciesTable, MAX_SPECIES } = __m80;
+const { mixtureProps } = __m86;
 const { compositionEffects, extractedEffects, NE } = __m42;
-const { isMagical, awakenedId, thresholdToCelsius } = __m80;
+const { isMagical, awakenedId, thresholdToCelsius } = __m81;
 const ACTIVATION_MARGIN = 6;
 const tables = new WeakMap();
 function predictPlan(world, lookup, plan) {
@@ -19446,7 +19546,7 @@ return c;
 return { ACTIVATION_MARGIN, predictPlan, reduceTemp, arcaneRegime, activationMargin, planCost };
 })();
 // src/game/customers.js
-const __m108 = (() => {
+const __m109 = (() => {
 const { Rng } = __m15;
 const ARCHETYPES = [
 {
@@ -19575,7 +19675,7 @@ return ARCHETYPES.find((a) => a.key === key) || ARCHETYPES[0];
 return { ARCHETYPES, shortName, makeCustomer, archetypeOf, Rng };
 })();
 // src/game/evaluate.js
-const __m109 = (() => {
+const __m110 = (() => {
 const { EFFECTS, EFFECT_INDEX, EFFECT_KEYS, NE } = __m42;
 const PROPERTY_LABELS = {
 temperature: 'Temperature', quantity: 'Quantity', purity: 'Purity', ...Object.fromEntries(EFFECTS.map((e) => [e.key, e.label])),
@@ -19667,7 +19767,7 @@ return { rows, quality, stars, perfect, payment, repDelta };
 return { PROPERTY_LABELS, strongestUnwanted, isEffectKey, scoreRequirement, describeValue, evaluatePotion };
 })();
 // src/game/requests.js
-const __m110 = (() => {
+const __m111 = (() => {
 const REQUESTS = [
 { id: 'healing', title: 'Healing Draught', fx: [{ key: 'vitality' }], who: ['healer', 'farmer', 'innkeeper', 'knight', 'hunter'], minTier: 0,
 story: ['My patients are wasting with fever. I need something that truly heals — and nothing else in it.', 'The goats are poorly and so is my back. A healing draught, plain and honest.', 'A traveller collapsed in my common room. Something to bring the colour back to his face.'] },
@@ -19718,17 +19818,17 @@ return REQUESTS.find((r) => r.id === id);
 return { REQUESTS, TIER_TARGET, PURITY_LIMIT, requestById };
 })();
 // src/game/commissions.js
-const __m106 = (() => {
+const __m107 = (() => {
 const { Rng } = __m15;
 const { describeColor } = __m12;
-const { predictPlan, planCost, arcaneRegime, ACTIVATION_MARGIN } = __m107;
-const { ARCHETYPES, makeCustomer, archetypeOf } = __m108;
-const { evaluatePotion } = __m109;
-const { SIM } = __m77;
+const { predictPlan, planCost, arcaneRegime, ACTIVATION_MARGIN } = __m108;
+const { ARCHETYPES, makeCustomer, archetypeOf } = __m109;
+const { evaluatePotion } = __m110;
+const { SIM } = __m78;
 const { EFFECT_INDEX, EFFECT_BY_KEY, EFFECT_KEYS, NE, interact } = __m42;
-const { thresholdToCelsius, isMagical } = __m80;
+const { thresholdToCelsius, isMagical } = __m81;
 const { compatFactor } = __m43;
-const { REQUESTS, TIER_TARGET, PURITY_LIMIT, requestById } = __m110;
+const { REQUESTS, TIER_TARGET, PURITY_LIMIT, requestById } = __m111;
 function effectRequirement(key, sign, min) {
 if (sign < 0) {
 const max = -Math.max(3, Math.round(min));
@@ -20331,7 +20431,7 @@ return /^[aeiou]/i.test(w) ? 'an' : 'a';
 return { purityRequirement, coldFloor, TEST_MARGIN, checkSupply, TECHNIQUES, techniqueById, migrateTechniques, generateCommission, TUTORIAL_HERBS, tutorialCommission, unwantedMax };
 })();
 // src/game/equipment.js
-const __m111 = (() => {
+const __m112 = (() => {
 const EQUIPMENT = [
 { id: 'hearth', name: 'Stone Hearth', category: 'heat', price: 0, rank: 0, icon: 'fire', mechanics: ['steeping', 'concentration', 'awakening'], desc: 'A wood fire under the cauldron. It brings a pot to the boil in seconds and takes lamp oil past 200°C — every steep, boil and heat-awakening in the guild’s books.', effect: { maxFlame: 340, heatPower: 3.5 } },
 { id: 'basin', name: 'Cold-Water Basin', category: 'cold', price: 0, rank: 0, icon: 'basin', mechanics: ['cold-extraction'], desc: 'Cool well water under the cauldron: chills a brew to about 9°C — cold enough for most ice-cold steeps, never colder.', effect: { minCool: 4, coolPower: 4 } },
@@ -20414,11 +20514,11 @@ return cap;
 return { EQUIPMENT, STARTING_EQUIPMENT, BASE_STORAGE, BASE_BOTTLES, BASE_HUTCH, RETIRED_EQUIPMENT, equipmentById, RANKS, rankIndex, capabilities };
 })();
 // src/game/experiments.js
-const __m112 = (() => {
+const __m113 = (() => {
 const { EFFECTS, EFFECT_KEYS, EFFECT_INDEX, NE, potencyWord } = __m42;
 const { Rng, hashString } = __m15;
-const { createColony, normalizeColony, installRabbitAlias, rabbitResponse, findRabbit, focusRabbit, recordDose, rabbitSnap, encodeSnap, stageOf, addBoughtRabbit, STAGE_ERR, rabbitSensitivity, RABBIT_BIAS, maxHealthOf } = __m73;
-const { biasSpread, noiseFactor, kindOf } = __m74;
+const { createColony, normalizeColony, installRabbitAlias, rabbitResponse, findRabbit, focusRabbit, recordDose, rabbitSnap, encodeSnap, stageOf, addBoughtRabbit, STAGE_ERR, rabbitSensitivity, RABBIT_BIAS, maxHealthOf } = __m74;
+const { biasSpread, noiseFactor, kindOf } = __m75;
 function readingSteadiness(rabbit, day) {
 const stage = STAGE_ERR[stageOf(rabbit, day)] || 1;
 const max = Math.max(1, maxHealthOf(rabbit, day ?? 1));
@@ -20684,7 +20784,7 @@ return `${e.label} ${Math.round(v)} (${potencyWord(v, key)})`;
 return { readingSteadiness, SUBJECTS, SUBJECT_BY_ID, RECORD_LIMIT, DOSES, DOSE_NOISE, READ_NOISE, driftTolerance, createTrials, normalizeTrials, rabbitReading, doseErr, EVIDENCE_LEVELS, EVIDENCE_TEXT, evidenceRank, summarize, effectEvidence, requirementEvidence, EVIDENCE_STATE_TEXT, addSamples, runTrial, resetSubject, certification, requiredEffects, missingEffects, suggestSubjects, knownLaws, describeReading };
 })();
 // src/game/gathering.js
-const __m113 = (() => {
+const __m114 = (() => {
 const { Rng, hashString } = __m15;
 const { isBotanical, familyOf, habitatOf } = __m24;
 const REGIONS = [
@@ -21052,9 +21152,9 @@ return `${Math.floor(m / 60)} h ${m % 60} min`;
 return { REGIONS, REGION_BY_ID, STAGES, SPROUT_SHARE, generateDeposits, thirstOf, createGathering, GATHER_VERSION, normalizeGathering, GROW_FLOOR, GROW_MAX, WATER_DOSE, moistureEnv, growthOf, matureIn, checkpoint, standOf, plantStage, depositStatus, water, setSky, migrateGathering, SCAR_SLOWDOWN, METHODS, methodOf, dayPart, DAY_PART_NAME, DAY_PART_HINT, WEATHERS, weatherOn, gatherPlan, harvestable, weatherRegrowth, harvest, newDayRegrowth, SANDBOX_PACE, sandboxWilds, formatWait };
 })();
 // src/game/measure.js
-const __m115 = (() => {
-const { MAX_SPECIES } = __m79;
-const { PHASE, SIM } = __m77;
+const __m116 = (() => {
+const { MAX_SPECIES } = __m80;
+const { PHASE, SIM } = __m78;
 const { compatFactor } = __m43;
 const { oklabToRgb } = __m12;
 const { sampleEffects } = __m42;
@@ -21179,12 +21279,12 @@ return stability >= 90 ? 'evenly mixed' : stability >= 70 ? 'a little uneven' : 
 return { measureParticles, tapSelection, probeSelection, viscosityClass, densityWord, evennessWord };
 })();
 // src/game/vial.js
-const __m114 = (() => {
-const { Simulation } = __m76;
-const { PHASE, SIM } = __m77;
-const { MAX_SPECIES } = __m79;
-const { measureParticles } = __m115;
-const { refreshParticle } = __m84;
+const __m115 = (() => {
+const { Simulation } = __m77;
+const { PHASE, SIM } = __m78;
+const { MAX_SPECIES } = __m80;
+const { measureParticles } = __m116;
+const { refreshParticle } = __m85;
 const ROOM = SIM.AMBIENT;
 const COOL_TAU = 480;
 function makeVial(sim, indices, meta) {
@@ -21361,12 +21461,12 @@ return { ...v, species, particles, ml: n * SIM.ML_PER_PARTICLE, bottledMl: v.bot
 return { makeVial, appendParticles, measureVial, updateVial, takeDose, pourBack, pourBackParts, relaxVial, vialInventory, migrateVial };
 })();
 // src/game/commerce.js
-const __m116 = (() => {
+const __m117 = (() => {
 const { Rng, hashString } = __m15;
 const { EFFECT_KEYS, EFFECT_INDEX, NE, EFFECT_BY_KEY } = __m42;
-const { evaluatePotion, strongestUnwanted, PROPERTY_LABELS } = __m109;
-const { PURITY_LIMIT } = __m110;
-const { summarize, evidenceRank, EVIDENCE_TEXT } = __m112;
+const { evaluatePotion, strongestUnwanted, PROPERTY_LABELS } = __m110;
+const { PURITY_LIMIT } = __m111;
+const { summarize, evidenceRank, EVIDENCE_TEXT } = __m113;
 function draftLabel(vial, theory, day) {
 const claims = {};
 const cert = vial.cert || {}, recs = vial.certRecords || {};
@@ -21684,7 +21784,7 @@ return (Math.round(v * 10) / 10).toLocaleString('en-US', { maximumFractionDigits
 return { draftLabel, applyTrials, evidenceOf, STAR_STEPS, MAX_STARS, accuracyStars, claimSigma, claimStars, labelStars, trialClaim, sameClaim, editClaim, claimedEffects, relevantEffects, EVIDENCE_WEIGHT, trustReport, labelTrust, unprovenWanted, proofGaps, claimedMeasurement, openNegotiation, proposePrice, acceptOffer, recordSale, resolveFollowUp, EVIDENCE_TEXT };
 })();
 // src/materials/remains.js
-const __m117 = (() => {
+const __m118 = (() => {
 const { completeMaterial } = __m41;
 const { arcaneProfile, jitter } = __m44;
 function remainsId(rabbitId, part) {
@@ -21783,7 +21883,7 @@ return m;
 return { remainsId, isRemains, remainsPlan, remainsMaterials };
 })();
 // src/game/patrons.js
-const __m118 = (() => {
+const __m119 = (() => {
 const RETURN_CHANCE = 0.3;
 const BANNED_TRUST = -0.75;
 const clamp1 = (v) => Math.max(-1, Math.min(1, v));
@@ -21851,7 +21951,7 @@ return Math.round(v * 100) / 100;
 return { RETURN_CHANCE, BANNED_TRUST, notePatron, patronVerdict, returningPatron, welcomePatron, recentStyles, noveltyFactor };
 })();
 // src/game/recipes.js
-const __m119 = (() => {
+const __m120 = (() => {
 const TRACE_DT = 1;
 const TRACE_MAX = 1200;
 const HOLD_MIN = 6, HOLD_BAND = 4, ROOM = 20;
@@ -22084,25 +22184,25 @@ return Math.round(v * 10) / 10;
 return { TRACE_DT, TRACE_MAX, SAME, traceSample, buildProcedure, procedureLimits, approximateSteps, migrateRecipe, holds, procedureShape, compareRecipe, matchRecipe, recipeConfidence, CONFIDENCE_TEXT, checkReproduction, describeStep };
 })();
 // src/game/state.js
-const __m103 = (() => {
+const __m104 = (() => {
 const { Rng, hashString } = __m15;
-const { generateWorld, makeLookup, addAlchemy, LAB_ROLES } = __m104;
+const { generateWorld, makeLookup, addAlchemy, LAB_ROLES } = __m105;
 const { serializeMaterial, deserializeMaterial } = __m41;
-const { generateCommission, tutorialCommission } = __m106;
-const { EQUIPMENT, STARTING_EQUIPMENT, RANKS, rankIndex, capabilities, equipmentById, RETIRED_EQUIPMENT } = __m111;
-const { SIM } = __m77;
-const { createTrials, normalizeTrials, runTrial, SUBJECT_BY_ID, knownLaws, certification, summarize } = __m112;
-const { createGathering, normalizeGathering, generateDeposits, harvest, gatherPlan, weatherOn, weatherRegrowth, newDayRegrowth, depositStatus, migrateGathering, setSky, water } = __m113;
-const { predictPlan } = __m107;
+const { generateCommission, tutorialCommission } = __m107;
+const { EQUIPMENT, STARTING_EQUIPMENT, RANKS, rankIndex, capabilities, equipmentById, RETIRED_EQUIPMENT } = __m112;
+const { SIM } = __m78;
+const { createTrials, normalizeTrials, runTrial, SUBJECT_BY_ID, knownLaws, certification, summarize } = __m113;
+const { createGathering, normalizeGathering, generateDeposits, harvest, gatherPlan, weatherOn, weatherRegrowth, newDayRegrowth, depositStatus, migrateGathering, setSky, water } = __m114;
+const { predictPlan } = __m108;
 const { EFFECT_INDEX, EFFECT_KEYS } = __m42;
-const { migrateVial } = __m114;
-const { recordSale, resolveFollowUp, applyTrials, evidenceOf } = __m116;
-const { colonyDay, colonyTick, livingRabbits, livingOf, findRabbit, addBoughtRabbit, addWildRabbit, penHasRoom, PEN_MAX, retireRabbit, remainsSource, purgeRabbit, cullRabbit, maxHealthOf, FOUNDER_BORN } = __m73;
-const { kindOf } = __m74;
-const { remainsMaterials, remainsPlan, isRemains } = __m117;
-const { returningPatron, welcomePatron, recentStyles, notePatron, patronVerdict, noveltyFactor } = __m118;
-const { techniqueById, migrateTechniques } = __m106;
-const { migrateRecipe } = __m119;
+const { migrateVial } = __m115;
+const { recordSale, resolveFollowUp, applyTrials, evidenceOf } = __m117;
+const { colonyDay, colonyTick, livingRabbits, livingOf, findRabbit, addBoughtRabbit, addWildRabbit, penHasRoom, PEN_MAX, retireRabbit, remainsSource, purgeRabbit, cullRabbit, maxHealthOf, FOUNDER_BORN } = __m74;
+const { kindOf } = __m75;
+const { remainsMaterials, remainsPlan, isRemains } = __m118;
+const { returningPatron, welcomePatron, recentStyles, notePatron, patronVerdict, noveltyFactor } = __m119;
+const { techniqueById, migrateTechniques } = __m107;
+const { migrateRecipe } = __m120;
 const SAVE_VERSION = 6;
 const PURGE_PRICE = 8;
 const PURGE_BREW_COST = 1;
@@ -23113,8 +23213,8 @@ return Math.round(v * 10) / 10;
 return { SAVE_VERSION, PURGE_PRICE, PURGE_BREW_COST, PURGE_BREW_TIME, WORLD_GEN_VERSION, STARTER_HERBS, MARKET_EVENTS, ACHIEVEMENTS, GameState, migrateCommission, migrate, retireEquipment, retireRequirements, EQUIPMENT, SIM };
 })();
 // src/game/persistence.js
-const __m120 = (() => {
-const { GameState } = __m103;
+const __m121 = (() => {
+const { GameState } = __m104;
 const KEYS = {
 save: 'alchemist-shop.save',
 backup: 'alchemist-shop.save.backup',
@@ -23237,11 +23337,11 @@ if (s) s.removeItem(key);
 return { KEYS, storageAvailable, saveGame, loadGame, hasSave, deleteSave, exportSave, parseImport, loadJSON, saveJSON, removeKey };
 })();
 // src/simulation/snapshot.js
-const __m122 = (() => {
-const { MAX_SPECIES } = __m79;
-const { refreshParticle } = __m84;
-const { Simulation } = __m76;
-const { CAULDRON_SIZES } = __m83;
+const __m123 = (() => {
+const { MAX_SPECIES } = __m80;
+const { refreshParticle } = __m85;
+const { Simulation } = __m77;
+const { CAULDRON_SIZES } = __m84;
 const F32_FIELDS_V1 = ['x', 'y', 'vx', 'vy', 'temp', 'lat', 'eph', 'restX', 'restY', 'agit', 'burn', 'wet'];
 const F32_FIELDS = [...F32_FIELDS_V1, 'q'];
 const SNAPSHOT_VERSION = 2;
@@ -23372,7 +23472,7 @@ for (let i = 0; i < n; i++) if (p.group[i] >= 0) sim.rigid.used[p.group[i]] = 1;
 return { SNAPSHOT_VERSION, toBase64, fromBase64, snapshotSim, restoreSim, applySnapshot };
 })();
 // src/rendering/portraits.js
-const __m123 = (() => {
+const __m124 = (() => {
 const { Rng } = __m15;
 const S = 32;
 const shade = (c, f) => `rgb(${Math.round(Math.min(255, c[0] * 255 * f))},${Math.round(Math.min(255, c[1] * 255 * f))},${Math.round(Math.min(255, c[2] * 255 * f))})`;
@@ -23490,7 +23590,7 @@ if (rng.chance(0.5)) P(hx - 1, 8, 2, 10, hc);
 return { drawPortrait };
 })();
 // src/game/journal.js
-const __m124 = (() => {
+const __m125 = (() => {
 function processEvent(state, e) {
 const entries = [];
 const achievements = [];
@@ -23603,9 +23703,9 @@ return { entries, achievements };
 return { processEvent };
 })();
 // src/game/autobrew.js
-const __m125 = (() => {
-const { PHASE, SIM } = __m77;
-const { MAX_SPECIES } = __m79;
+const __m126 = (() => {
+const { PHASE, SIM } = __m78;
+const { MAX_SPECIES } = __m80;
 function condensedCount(sim) {
 const p = sim.p;
 let n = 0;
@@ -23887,7 +23987,7 @@ return t / Math.max(1, sim.p.count);
 return { condensedCount, stageGoal, AutoBrewer, runPlanHeadless, speciesFraction };
 })();
 // src/game/mechanics.js
-const __m127 = (() => {
+const __m128 = (() => {
 const MECHANICS = [
 { id: 'formulation', name: 'Formulation and neutralisation', role: 'core', stage: 'formulation', rank: 0,
 decision: 'Which natural ingredients, in what proportions, to carry the wanted effects and cancel their side effects.',
@@ -23973,26 +24073,26 @@ const SANDBOX_CONTROLS = ['skimmer', 'alembic', 'heatmap', 'readouts'];
 return { MECHANICS, MECHANIC_BY_ID, IMMERSION, SANDBOX_CONTROLS };
 })();
 // src/ui/panels.js
-const __m126 = (() => {
-const { recipeConfidence, CONFIDENCE_TEXT, describeStep } = __m119;
-const { MECHANIC_BY_ID } = __m127;
-const { evidenceRank } = __m112;
+const __m127 = (() => {
+const { recipeConfidence, CONFIDENCE_TEXT, describeStep } = __m120;
+const { MECHANIC_BY_ID } = __m128;
+const { evidenceRank } = __m113;
 const { h, btn, modal, toast, coins, starsText, confirmDialog, clear, keepScroll } = __m7;
 const { icon } = __m8;
-const { drawPortrait } = __m123;
-const { drawJar } = __m72;
-const { EQUIPMENT, RANKS } = __m111;
-const { ACHIEVEMENTS } = __m103;
-const { viscosityClass, densityWord, evennessWord } = __m115;
+const { drawPortrait } = __m124;
+const { drawJar } = __m73;
+const { EQUIPMENT, RANKS } = __m112;
+const { ACHIEVEMENTS } = __m104;
+const { viscosityClass, densityWord, evennessWord } = __m116;
 const { EFFECTS, EFFECT_BY_KEY, EFFECT_KEYS, dominantEffect } = __m42;
-const { ingredientSprite } = __m68;
+const { ingredientSprite } = __m69;
 const { compatFactor } = __m43;
 const { describeColor, rgbToHex } = __m12;
-const { SIM } = __m77;
-const { exportSave, parseImport, saveGame } = __m120;
+const { SIM } = __m78;
+const { exportSave, parseImport, saveGame } = __m121;
 const { audio } = __m22;
-const { isMagical } = __m80;
-const { causeWord } = __m73;
+const { isMagical } = __m81;
+const { causeWord } = __m74;
 const CAT_LABEL = { heat: 'Fire', cold: 'Cooling', vessel: 'Cauldrons', tool: 'Tools', instrument: 'Instruments', trials: 'Trials room', gathering: 'Foraging', storage: 'Potion storage', guild: 'Guild' };
 function jarCanvas(m, w = 22, hh = 30) {
 if ((m.wild || m.remains) && m.form === 'solid') {
@@ -24564,15 +24664,15 @@ h('div', { class: 'small muted credits', text: 'The Alchemist’s Shop — all a
 return { jarCanvas, fxChips, openShop, openIngredient, openHint, openBottleSize, showDaySummary, showAnalysis, openRecipes, renderRecipes, openJournal, renderJournal, openPause, openReceiver, openHelp, openSettings };
 })();
 // src/ui/trade.js
-const __m128 = (() => {
+const __m129 = (() => {
 const { h, btn, modal, toast, coins, clear, starsText } = __m7;
 const { icon } = __m8;
-const { drawPortrait } = __m123;
+const { drawPortrait } = __m124;
 const { audio } = __m22;
 const { EFFECTS, EFFECT_BY_KEY } = __m42;
-const { draftLabel, openNegotiation: beginNegotiation, proposePrice, acceptOffer, relevantEffects, trustReport, editClaim, proofGaps, claimSigma, claimStars, labelStars, MAX_STARS } = __m116;
-const { PURITY_LIMIT } = __m110;
-const { shortName } = __m108;
+const { draftLabel, openNegotiation: beginNegotiation, proposePrice, acceptOffer, relevantEffects, trustReport, editClaim, proofGaps, claimSigma, claimStars, labelStars, MAX_STARS } = __m117;
+const { PURITY_LIMIT } = __m111;
+const { shortName } = __m109;
 function openIdentify(lab, vial, onDone) {
 const st = lab.state;
 const draft = vial.label ? JSON.parse(JSON.stringify(vial.label)) : draftLabel(vial, lab.vialTheory(vial), st.day);
@@ -24786,11 +24886,11 @@ return `${n === null ? '' : starsText(n, MAX_STARS) + ' '}${claimSummary(label.c
 return { openIdentify, openNegotiation, showDeal, followUpCard, claimSummary, accuracyTitle, labelLine, EFFECT_BY_KEY };
 })();
 // src/ui/tutorial.js
-const __m129 = (() => {
+const __m130 = (() => {
 const { h, btn, placeToasts } = __m7;
-const { PHASE } = __m77;
-const { TUTORIAL_HERBS } = __m106;
-const { shortName } = __m108;
+const { PHASE } = __m78;
+const { TUTORIAL_HERBS } = __m107;
+const { shortName } = __m109;
 class Tutorial {
 constructor(lab) {
 this.lab = lab;
@@ -24933,22 +25033,22 @@ if (t && t !== this.target) { if (this.target) this.target.classList.remove('hig
 return { Tutorial };
 })();
 // src/ui/views/counter.js
-const __m130 = (() => {
+const __m131 = (() => {
 const { h, btn, clear, coins, confirmDialog, starsText } = __m7;
 const { icon } = __m8;
-const { drawPortrait } = __m123;
-const { drawBottle } = __m95;
-const { PROPERTY_LABELS, scoreRequirement } = __m109;
-const { techniqueById } = __m106;
+const { drawPortrait } = __m124;
+const { drawBottle } = __m96;
+const { PROPERTY_LABELS, scoreRequirement } = __m110;
+const { techniqueById } = __m107;
 const { EFFECT_INDEX, NE } = __m42;
 const { EFFECT_BY_KEY } = __m42;
-const { missingEffects, summarize, requirementEvidence } = __m112;
-const { labelStars, MAX_STARS } = __m116;
-const trade = __m128;
+const { missingEffects, summarize, requirementEvidence } = __m113;
+const { labelStars, MAX_STARS } = __m117;
+const trade = __m129;
 const { describeColor, rgbToHex } = __m12;
-const { viscosityClass } = __m115;
-const panels = __m126;
-const { shortName } = __m108;
+const { viscosityClass } = __m116;
+const panels = __m127;
+const { shortName } = __m109;
 class CounterView {
 constructor(lab) {
 this.lab = lab;
@@ -25141,7 +25241,7 @@ unseen ? h('span', { class: 'muted', text: ` ${seen.length ? '· ' : ''}${unseen
 return { CounterView };
 })();
 // src/rendering/crisp.js
-const __m132 = (() => {
+const __m133 = (() => {
 const RESOLUTIONS = /** @type {const} */ ([1, 2, 3, 4]);
 const VERT = `#version 300 es
 in vec2 p;
@@ -25327,7 +25427,7 @@ this.src.style.opacity = '0';
 return { RESOLUTIONS, UpscaledCanvas };
 })();
 // src/rendering/ragdoll.js
-const __m133 = (() => {
+const __m134 = (() => {
 const GRAVITY = 640;
 const STEP = 1 / 120;
 const FRICTION = 380;
@@ -25581,10 +25681,10 @@ ctx.imageSmoothingEnabled = smooth;
 return { GRAVITY, STEP, FRICTION, Ragdoll };
 })();
 // src/game/wild-rabbits.js
-const __m134 = (() => {
+const __m135 = (() => {
 const { Rng, hashString } = __m15;
-const { rollLook } = __m73;
-const { pickKind, kindLook } = __m74;
+const { rollLook } = __m74;
+const { pickKind, kindLook } = __m75;
 const HOP_GRAVITY = 300, BLOOD_GRAVITY = 260;
 const WILD_HP = 3;
 const BLEED_OUT = 4;
@@ -26040,24 +26140,24 @@ return out;
 return { HOP_GRAVITY, WILD_HP, BLEED_OUT, NEAR_MISS, WARREN_SIZE, RESPAWN, BLOOD, wildLook, GAITS, WildRabbit, Warren, warrenSpots };
 })();
 // src/ui/views/wilds.js
-const __m131 = (() => {
-const { UpscaledCanvas } = __m132;
+const __m132 = (() => {
+const { UpscaledCanvas } = __m133;
 const { h, btn, clear, toast, keepScroll } = __m7;
 const { icon } = __m8;
 const { audio } = __m22;
-const { REGIONS, depositStatus, formatWait, gatherPlan, harvestable, dayPart, weatherOn, moistureEnv, DAY_PART_NAME } = __m113;
-const { equipmentById } = __m111;
-const { RANKS } = __m111;
-const { sceneCanvas, sceneFrame, animateRegion, PlantGround, hitPlant, windAt, sceneTouch, crosses, SCENE_W, SCENE_H } = __m67;
-const { Ragdoll } = __m133;
+const { REGIONS, depositStatus, formatWait, gatherPlan, harvestable, dayPart, weatherOn, moistureEnv, DAY_PART_NAME } = __m114;
+const { equipmentById } = __m112;
+const { RANKS } = __m112;
+const { sceneCanvas, sceneFrame, animateRegion, PlantGround, hitPlant, windAt, sceneTouch, crosses, SCENE_W, SCENE_H } = __m68;
+const { Ragdoll } = __m134;
 const { sceneOf } = __m47;
-const { plantCanvas, plantFrameOf, plantGlow, emitColour, silhouetteOf, ingredientSprite, speciesOf, mountsOf, variantOf, MIN_HIT } = __m68;
+const { plantCanvas, plantFrameOf, plantGlow, emitColour, silhouetteOf, ingredientSprite, speciesOf, mountsOf, variantOf, MIN_HIT } = __m69;
 const { EFFECT_BY_KEY } = __m42;
 const { hashString } = __m15;
-const { Warren, warrenSpots, BLOOD, WILD_HP } = __m134;
-const { drawRabbit, rabbitSpriteKey, RABBIT_W, RABBIT_H } = __m70;
-const { defaultSnap, penHasRoom, PEN_MAX } = __m73;
-const { KINDS } = __m74;
+const { Warren, warrenSpots, BLOOD, WILD_HP } = __m135;
+const { drawRabbit, rabbitSpriteKey, RABBIT_W, RABBIT_H } = __m71;
+const { defaultSnap, penHasRoom, PEN_MAX } = __m74;
+const { KINDS } = __m75;
 const SHADOW = { forest: 'rgba(8,16,10,0.32)', netherwood: 'rgba(6,4,16,0.4)', meadow: 'rgba(24,30,10,0.26)', river: 'rgba(4,14,16,0.34)', quarry: 'rgba(26,18,10,0.3)', moonfen: 'rgba(2,6,18,0.42)', crags: 'rgba(30,6,4,0.4)' };
 function litSprite(d, light) {
 const dark = light.length >= 6 ? [light[3] * 255, light[4] * 255, light[5] * 255] : null;
@@ -27229,11 +27329,11 @@ this.grow();
 return { WildsView };
 })();
 // src/visual/env/pens.js
-const __m138 = (() => {
+const __m139 = (() => {
 const { Canvas } = __m49;
 const { col, silhouette, treeShape } = __m51;
 const { finish } = __m50;
-const { grade } = __m55;
+const { grade } = __m56;
 const { cobble } = __m52;
 const { fbm1, fbm2, hash2, noise2 } = __m19;
 const { mixPacked } = __m11;
@@ -28456,7 +28556,7 @@ return p;
 return { PEN_W, PEN_H, BACK, GROUND_Y0, PENS_VERSION, PEN_KINDS, penTitle, penOf };
 })();
 // src/rendering/pen-anim.js
-const __m139 = (() => {
+const __m140 = (() => {
 function hash(a, b = 0) {
 let n = Math.imul(a | 0, 0x27d4eb2d) ^ Math.imul(b | 0, 0x165667b1);
 n = Math.imul(n ^ (n >>> 15), 0x2c1b3c6d);
@@ -28579,13 +28679,13 @@ if (f) f(ctx, a, t);
 return { drawPenAnim };
 })();
 // src/rendering/hutch-scene.js
-const __m137 = (() => {
+const __m138 = (() => {
 const { Rng, hashString } = __m15;
-const { PAL, makeCanvas } = __m72;
-const { drawRabbit, rabbitAnchors, rabbitLevels, rabbitPace, RABBIT_W } = __m70;
-const { kindOf } = __m74;
-const { penOf } = __m138;
-const { drawPenAnim } = __m139;
+const { PAL, makeCanvas } = __m73;
+const { drawRabbit, rabbitAnchors, rabbitLevels, rabbitPace, RABBIT_W } = __m71;
+const { kindOf } = __m75;
+const { penOf } = __m139;
+const { drawPenAnim } = __m140;
 const WALKERS = { cat: 12, salamander: 5, deer: 10, badger: 8, dove: 8, fox: 14, snail: 1.5, rat: 16 };
 const HUTCH_W = 224;
 const HUTCH_H = 92;
@@ -29015,19 +29115,19 @@ ctx.drawImage(this.bg, 0, 0);
 return { HUTCH_W, HUTCH_H, HUTCH_BODIES, penFor, paintHutch, paintHutchFront, onGround, HutchScene };
 })();
 // src/ui/views/hutch.js
-const __m136 = (() => {
-const { readingSteadiness } = __m112;
-const { kindDef, kindOf, KINDS, KIND_IDS } = __m74;
+const __m137 = (() => {
+const { readingSteadiness } = __m113;
+const { kindDef, kindOf, KINDS, KIND_IDS } = __m75;
 const { h, btn, clear, toast, modal, confirmDialog, keepScroll } = __m7;
 const { icon } = __m8;
 const { audio } = __m22;
-const { drawRabbit, RABBIT_W, RABBIT_H } = __m70;
-const { HutchScene, HUTCH_W, HUTCH_H } = __m137;
-const { penTitle } = __m138;
-const { UpscaledCanvas } = __m132;
+const { drawRabbit, RABBIT_W, RABBIT_H } = __m71;
+const { HutchScene, HUTCH_W, HUTCH_H } = __m138;
+const { penTitle } = __m139;
+const { UpscaledCanvas } = __m133;
 const { EFFECT_BY_KEY } = __m42;
-const { livingRabbits, bodies, rabbitSnap, rabbitCondition, stageOf, findRabbit, colonyDay, maxHealthOf, degenOf, isFeral, RABBIT_MARKS, LETHAL, TRAIT_WORDS, LOVE_MATE, BURNS, PEN_MAX, penHasRoom, livingOf } = __m73;
-const { PURGE_BREW_TIME } = __m103;
+const { livingRabbits, bodies, rabbitSnap, rabbitCondition, stageOf, findRabbit, colonyDay, maxHealthOf, degenOf, isFeral, RABBIT_MARKS, LETHAL, TRAIT_WORDS, LOVE_MATE, BURNS, PEN_MAX, penHasRoom, livingOf } = __m74;
+const { PURGE_BREW_TIME } = __m104;
 const STAGE_WORD = { kit: 'kit', young: 'youngster', adult: 'adult', elder: 'elder' };
 const CHANNELS = RABBIT_MARKS.map((k) => {
 const e = EFFECT_BY_KEY[k === 'acid' || k === 'alkali' ? 'acidity' : k];
@@ -29398,21 +29498,21 @@ if (this._live >= 0.25) { this._live = 0; this.live(); }
 return { CHANNELS, HutchPanel };
 })();
 // src/ui/views/trials.js
-const __m135 = (() => {
+const __m136 = (() => {
 const { h, btn, clear, toast } = __m7;
 const { icon } = __m8;
 const { audio } = __m22;
-const { SUBJECT_BY_ID, DOSES, missingEffects } = __m112;
+const { SUBJECT_BY_ID, DOSES, missingEffects } = __m113;
 const { EFFECTS, EFFECT_BY_KEY, EFFECT_INDEX, EFFECT_KEYS, potencyWord } = __m42;
-const { SIM } = __m77;
-const { applyTrials } = __m116;
-const { summarize, addSamples, EVIDENCE_TEXT, evidenceRank, requirementEvidence } = __m112;
-const { evidenceOf } = __m116;
-const { shortName } = __m108;
+const { SIM } = __m78;
+const { applyTrials } = __m117;
+const { summarize, addSamples, EVIDENCE_TEXT, evidenceRank, requirementEvidence } = __m113;
+const { evidenceOf } = __m117;
+const { shortName } = __m109;
 const LEVEL_SHORT = { preliminary: '1 reading', repeated: 'repeated', corroborated: 'corroborated', certified: 'certified' };
-const { drawRabbit } = __m70;
-const { focusRabbit, findRabbit, rabbitSnap, decodeSnap, lookFromSeed, RABBIT_MARKS } = __m73;
-const { HutchPanel } = __m136;
+const { drawRabbit } = __m71;
+const { focusRabbit, findRabbit, rabbitSnap, decodeSnap, lookFromSeed, RABBIT_MARKS } = __m74;
+const { HutchPanel } = __m137;
 const REPLAY_T = 3.2;
 class TrialsView {
 constructor(lab) {
@@ -29789,13 +29889,13 @@ return `rgb(${Math.round(c[0] * 255)},${Math.round(c[1] * 255)},${Math.round(c[2
 return { TrialsView, EFFECTS, EFFECT_INDEX };
 })();
 // src/ui/views/book.js
-const __m140 = (() => {
-const { KINDS } = __m74;
+const __m141 = (() => {
+const { KINDS } = __m75;
 const { h, btn, clear } = __m7;
 const { icon } = __m8;
 const { audio } = __m22;
-const panels = __m126;
-const { SUBJECT_BY_ID } = __m112;
+const panels = __m127;
+const { SUBJECT_BY_ID } = __m113;
 const { EFFECTS, EFFECT_BY_KEY, EFFECT_KEYS } = __m42;
 const { rgbToHex } = __m12;
 const TABS = [
@@ -29894,43 +29994,43 @@ body.appendChild(list);
 return { BookView };
 })();
 // src/ui/lab.js
-const __m121 = (() => {
-const { Simulation } = __m76;
-const { PHASE, SIM } = __m77;
-const { snapshotSim, applySnapshot } = __m122;
-const { clampToInterior } = __m92;
-const { MAX_SPECIES } = __m79;
+const __m122 = (() => {
+const { Simulation } = __m77;
+const { PHASE, SIM } = __m78;
+const { snapshotSim, applySnapshot } = __m123;
+const { clampToInterior } = __m93;
+const { MAX_SPECIES } = __m80;
 const { compatFactor } = __m43;
-const { Renderer } = __m95;
-const { drawPortrait } = __m123;
-const { drawJar } = __m72;
-const { ingredientSprite } = __m68;
-const { measureParticles, tapSelection, probeSelection, viscosityClass, densityWord } = __m115;
-const { scoreRequirement, PROPERTY_LABELS } = __m109;
-const { processEvent } = __m124;
-const { saveGame, saveJSON, KEYS } = __m120;
-const { AutoBrewer, condensedCount } = __m125;
-const { traceSample, buildProcedure, procedureLimits, matchRecipe, compareRecipe, checkReproduction, TRACE_DT } = __m119;
-const { proofGaps, draftLabel, applyTrials, evidenceOf } = __m116;
-const { RANKS } = __m111;
-const { certification, missingEffects, requirementEvidence } = __m112;
-const { sandboxIngredients } = __m104;
-const { makeVial, appendParticles, updateVial, takeDose, pourBack, pourBackParts, relaxVial } = __m114;
+const { Renderer } = __m96;
+const { drawPortrait } = __m124;
+const { drawJar } = __m73;
+const { ingredientSprite } = __m69;
+const { measureParticles, tapSelection, probeSelection, viscosityClass, densityWord } = __m116;
+const { scoreRequirement, PROPERTY_LABELS } = __m110;
+const { processEvent } = __m125;
+const { saveGame, saveJSON, KEYS } = __m121;
+const { AutoBrewer, condensedCount } = __m126;
+const { traceSample, buildProcedure, procedureLimits, matchRecipe, compareRecipe, checkReproduction, TRACE_DT } = __m120;
+const { proofGaps, draftLabel, applyTrials, evidenceOf } = __m117;
+const { RANKS } = __m112;
+const { certification, missingEffects, requirementEvidence } = __m113;
+const { sandboxIngredients } = __m105;
+const { makeVial, appendParticles, updateVial, takeDose, pourBack, pourBackParts, relaxVial } = __m115;
 const { theoryOf, EFFECTS, EFFECT_BY_KEY, EFFECT_INDEX, dominantEffect, NE } = __m42;
-const { awakenParts, describeThreshold } = __m80;
-const { ARC_NONE } = __m78;
+const { awakenParts, describeThreshold } = __m81;
+const { ARC_NONE } = __m79;
 const { describeColor, rgbToHex } = __m12;
 const { h, btn, clear, keepScroll, toast, coins, confirmDialog, modal, setNoteDock, recentNotes } = __m7;
 const { icon } = __m8;
 const { audio } = __m22;
-const panels = __m126;
-const trade = __m128;
-const { Tutorial } = __m129;
-const { CounterView } = __m130;
-const { WildsView } = __m131;
-const { TrialsView } = __m135;
-const { BookView } = __m140;
-const { shortName } = __m108;
+const panels = __m127;
+const trade = __m129;
+const { Tutorial } = __m130;
+const { CounterView } = __m131;
+const { WildsView } = __m132;
+const { TrialsView } = __m136;
+const { BookView } = __m141;
+const { shortName } = __m109;
 const REQ_ICON = { temperature: 'thermo', quantity: 'flask', purity: 'pure' };
 const TOOL_DEFS = [
 { id: 'spoon', label: 'Stir', icon: 'spoon', key: '2', title: 'Spoon: drag in the brew to stir' },
@@ -31691,12 +31791,12 @@ void dominantEffect;
 return { VIEWS, LabScreen };
 })();
 // src/ui/menu.js
-const __m141 = (() => {
+const __m142 = (() => {
 const { h, btn } = __m7;
-const { Renderer } = __m95;
-const { Simulation } = __m76;
-const { REF, refLookup } = __m101;
-const { hasSave, loadGame } = __m120;
+const { Renderer } = __m96;
+const { Simulation } = __m77;
+const { REF, refLookup } = __m102;
+const { hasSave, loadGame } = __m121;
 const { audio } = __m22;
 class MenuScreen {
 constructor(app) {
@@ -31779,21 +31879,21 @@ return { MenuScreen };
 const __m1 = (() => {
 const { compileProfile } = __m2;
 const { StudioScreen } = __m4;
-const { getSetting } = __m102;
+const { getSetting } = __m103;
 const { artDirection, setArtDirection } = __m10;
 const { h, btn, modal, toast, setOverlayRoot, setToastRoot, confirmDialog, clear } = __m7;
 const { icon } = __m8;
 const { audio } = __m22;
-const { GameState } = __m103;
-const { sandboxIngredients } = __m104;
-const { EQUIPMENT } = __m111;
-const { loadGame, saveGame, hasSave, deleteSave, loadJSON, saveJSON, KEYS, storageAvailable } = __m120;
-const { LabScreen } = __m121;
-const { MenuScreen } = __m141;
-const { openSettings, openHelp } = __m126;
+const { GameState } = __m104;
+const { sandboxIngredients } = __m105;
+const { EQUIPMENT } = __m112;
+const { loadGame, saveGame, hasSave, deleteSave, loadJSON, saveJSON, KEYS, storageAvailable } = __m121;
+const { LabScreen } = __m122;
+const { MenuScreen } = __m142;
+const { openSettings, openHelp } = __m127;
 const { Rng } = __m15;
-const { normalizeTrials } = __m112;
-const { sandboxWilds } = __m113;
+const { normalizeTrials } = __m113;
+const { sandboxWilds } = __m114;
 const DEFAULT_SETTINGS = { master: 0.8, sfx: 0.8, music: 0.35, musicOn: true, muted: false, quality: 'auto', showFps: false, resolution: 3 };
 const SEED_WORDS = ['amber', 'ashen', 'brine', 'copper', 'dusk', 'elder', 'fen', 'gloam', 'hollow', 'iron', 'juniper', 'kelp', 'lantern', 'moon', 'nettle', 'oak', 'pewter', 'quill', 'raven', 'sage', 'thorn', 'umber', 'vale', 'willow', 'wyrm', 'yarrow'];
 class App {
@@ -31920,7 +32020,7 @@ openHelp();
 return { App, icon };
 })();
 // src/ui/textures.js
-const __m142 = (() => {
+const __m143 = (() => {
 const { Rng } = __m15;
 function texture(w, h, paint) {
 const cv = document.createElement('canvas');
@@ -31964,7 +32064,7 @@ return { installTextures };
 // src/main.js
 const __m0 = (() => {
 const { App } = __m1;
-const { installTextures } = __m142;
+const { installTextures } = __m143;
 installTextures();
 const root = document.getElementById('app');
 const app = new App(root);

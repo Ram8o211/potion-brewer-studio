@@ -593,7 +593,9 @@ function halo(ctx, x, y, r, c, a) {
   ctx.globalCompositeOperation = 'lighter';
   ctx.fillStyle = c;
   for (let k = 3; k >= 1; k--) {
-    ctx.globalAlpha = a * (4 - k) / 3;
+    // The cached material lighting carries the illumination; this is only
+    // its small breathing variation, so it cannot erase painted facets.
+    ctx.globalAlpha = a * (4 - k) / 6;
     ctx.beginPath(); ctx.arc(Math.round(x), Math.round(y), Math.max(1, Math.round(r * k / 3)), 0, Math.PI * 2); ctx.fill();
   }
   ctx.globalAlpha = 1;
