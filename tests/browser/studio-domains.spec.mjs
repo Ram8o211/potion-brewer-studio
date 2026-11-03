@@ -128,8 +128,8 @@ test('Wilds props and lights expose draggable position and size handles', async 
     return { x: b.left + x * b.width / 384, y: b.top + y * b.height / 216 };
   }, [x, y]);
   await page.locator('[data-act=domain-tool-light]').click();
-  const drop = await at(95, 70);
   await preview.scrollIntoViewIfNeeded();
+  const drop = await at(95, 70);
   await page.mouse.click(drop.x, drop.y);
   await expect.poll(() => page.evaluate(() => window.__alchemist.screen.project.domains.environments.forest.lights.length)).toBe(1);
   await expect(page.locator('[data-act=domain-tool-select]')).toHaveAttribute('aria-pressed', 'true');
