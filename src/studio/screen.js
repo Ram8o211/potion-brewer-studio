@@ -135,7 +135,7 @@ export class StudioScreen {
     const guides = {
       components: ['Choose a plant or component in the library.', 'Use Shape to drag generated geometry or its corner handle to resize; use Pencil or Eraser for pixel corrections.', 'Watch the assembled result on the right; adjust growth and attachments in the tabs below.'],
       ingredients: ['Choose an ingredient species in Domain target.', 'Select its growth stage and see the icon, plant and fragments together.', 'Bind a reusable component graph, or open the native morphology details for precise adjustments.'],
-      environments: ['Choose a biome in Domain target.', 'Pick Rock, Soil, Erase, Water, Lava, Place prop or Add light above the preview.', 'Drag on the canvas to paint, or tap to place. Fine-tune colors and atmosphere in Properties.'],
+      environments: ['Choose a biome in Domain target.', 'Pick Rock, Soil, Erase, Water, Lava, Place prop or Add light above the preview.', 'After placement, drag a prop or light center to move it; drag the square handle to resize. Sliders adjust the rest.'],
       creatures: ['Choose a creature.', 'Adjust its anatomy and pose while watching the live animation.', 'Preview mutations and magical effects before applying the art profile.'],
       materials: ['Choose a material type.', 'Change color, opacity and texture while watching the live simulation.', 'Use the sample buttons to test its appearance in different conditions.'],
       effects: ['Choose a magical effect.', 'Edit particle size, density, shape and color.', 'Preview the effect against simulated material.'],
