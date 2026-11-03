@@ -17,11 +17,13 @@ import { hash2 } from '../noise.js';
 export function compose(cv, seed) {
   const W = cv.W, H = cv.H, s = (p) => streamOf(seed, 'forest', p);
   // some worlds' woods are in their autumn
-  const autumn = s('season').next() < 0.3;
+  const autumn = s('season').next() < 0.8;
   const pal = vary(palette({
-    leaf: [autumn ? '#9a6424' : '#3a7c30', { spread: 0.6 }], leaf2: [autumn ? '#a85422' : '#2a6c40', { spread: 0.55 }], bark: ['#4a3422', { spread: 0.5 }], logbark: ['#6e4c2e', { spread: 0.5 }], wood: '#a87a48', rock: '#5e625c',
+    leaf: [autumn ? '#b66a26' : '#438532', { spread: 0.5, cool: 0.1, warm: 0.45 }], leaf2: [autumn ? '#9e4c20' : '#2e7740', { spread: 0.48, cool: 0.1, warm: 0.45 }], bark: ['#684326', { spread: 0.5 }], logbark: ['#6e4c2e', { spread: 0.5 }], wood: '#a87a48', rock: '#5e625c',
     moss: ['#4e7a30', { spread: 0.5 }], fern: [autumn ? '#8a6a26' : '#4e8a34', { spread: 0.55 }],
   }), s('pal'), 1);
+  // The distant wood stays cool green behind the copper foreground crowns.
+  const backPal = vary(palette({ leaf: ['#497456', { spread: 0.38 }], leaf2: ['#638568', { spread: 0.38 }], bark: '#53634c', moss: '#49794a' }), s('back-pal'), 0.4);
   const back = '#9ab8a0';
   sky(cv, 0, H, ['#c8dcc0', '#b0ccb0', '#90b49c', '#78a088']);
   // the ground line the trees stand on
@@ -29,12 +31,12 @@ export function compose(cv, seed) {
   // the background wood: rows of alike trees, the far row smaller and paler
   const rows = s('rows'), far = top.map((v) => v - 14), mid = top.map((v) => v - 6);
   const look = { mats: ['leaf', 'leaf2'], hang: { mat: 'moss', rate: 0.6, len: /** @type {[number, number]} */ ([4, 16]) } };
-  treeRow(cv, rows, pal, { line: far, gap: [20, 26], h: [50, 58], haze: back, fade: 0.68, shape: 'tall', look });
+  treeRow(cv, rows, backPal, { line: far, gap: [20, 26], h: [50, 58], haze: back, fade: 0.68, shape: 'tall', look });
   fog(cv, '#b8d0b8', 60, 190, 0.3, rows.int(0, 1e9));
-  treeRow(cv, rows, pal, { line: mid, gap: [26, 34], h: [64, 74], haze: back, fade: 0.45, shape: 'tall', look });
+  treeRow(cv, rows, backPal, { line: mid, gap: [26, 34], h: [64, 74], haze: back, fade: 0.45, shape: 'tall', look });
   fog(cv, '#b8d0b8', 80, 200, 0.2, rows.int(0, 1e9));
   // the canopy closing over the top
-  hanging(cv, { base: 14, amp: 10, freq: 0.03, seed: s('canopy').int(0, 1e9), fill: autumn ? '#5a3e1a' : '#1e3e22', rim: autumn ? '#7a5422' : '#2a5230', rough: 4 });
+  hanging(cv, { base: 14, amp: 10, freq: 0.03, seed: s('canopy').int(0, 1e9), fill: '#183c22', rim: '#2a5230', rough: 4 });
   // the forest floor: a low rise, mossy pillars and a hollow under the roots
   const kx = ts.int(60, W - 140);
   raise(top, kx, kx + ts.int(30, 60), Math.min(...top) - ts.int(8, 14), 3);
@@ -45,15 +47,15 @@ export function compose(cv, seed) {
   const ss = ts.int(0, 1e9);
   paintTerrain(cv, {
     a: '#3e2a1c', b: '#4c3422', grain: '#6e5034', dark: '#1a120c', deep: '#0a0806', cave: '#070605',
-    crust: [autumn ? '#c88a2a' : '#6aa83a', autumn ? '#9a6a22' : '#4a8a2c', '#2e5a22', '#22401a'], crustH: 4, seed: ss,
+    crust: ['#8cc23c', '#5b982f', '#367127', '#244c20'], crustH: 4, seed: ss,
     cobble: { stones: ['#57524a', '#4c4840', '#625c52', '#46443c', '#5a5850', '#504a42'], mortar: '#0a0908', s: 10, moss: ['#2e6024', '#5a9a34'] },
-    grass: { cols: autumn ? ['#b07a24', '#8a5a1e'] : ['#4e9a34', '#6ab83e', '#3a7a2a'], tall: 3, rate: 0.5, flowers: ['#f08ab0', '#e85a8a', '#f0e0a0'] },
+    grass: { cols: ['#69a82f', '#93c843', '#4b8c2a'], tall: 3, rate: 0.5, flowers: ['#f08ab0', '#e85a8a', '#f0e0a0'] },
     // under the moss a thin dark humus, then the stones, roots reaching down through them
     layers: [
       { kind: 'dirt', cols: ['#3a2618', '#442c1c', '#5e4028', '#6e4a2a', '#a49480', '#4e4034'], h: [4, 7] },
     ],
   });
-  moss(cv, { cols: autumn ? ['#c88a2a', '#9a6a22', '#6a4a1a', '#3e2e14'] : ['#6aa83a', '#4a8a2c', '#30601e', '#1e3e16'], seed: ss + 1, drape: 12, rate: 0.32, len: 16 });
+  moss(cv, { cols: ['#8cc23c', '#5b982f', '#367127', '#244c20'], seed: ss + 1, drape: 12, rate: 0.32, len: 16 });
   roots(cv, s('roots'), '#4a3020', '#6a4630');
   markOpen(cv);
   // the wood's own trees, growing on the ground and the ledges where they fit
@@ -71,7 +73,7 @@ export function compose(cv, seed) {
   cv.meta.shaft = sx0;
   cv.meta.glows = glowShrooms(cv, { n: 5, cap: '#e8642a', lit: '#ffc070', stem: '#e0d0b0', rgb: [1, 0.5, 0.18], seed: s('shrooms').int(0, 1e9) });
   cv.meta.trickles = drips(cv, ss, 4);
-  cv.meta.vignette = 0.35;
+  cv.meta.vignette = 0.18;
   cv.meta.wind = 0.9;
   cv.meta.horizon = 120;
 }

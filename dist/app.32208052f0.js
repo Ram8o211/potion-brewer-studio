@@ -5323,17 +5323,28 @@ const TONES = new Map();
 function tones(c) {
 let t = TONES.get(c);
 if (!t) {
-t = [mixPacked(c, 0xffffffff, 0.42), mixPacked(c, 0xffffffff, 0.2), mixPacked(c, 0xffffffff, 0.04), mixPacked(c, 0xff000000, 0.24), mixPacked(c, 0xff000000, 0.48)];
+t = [mixPacked(c, 0xffffffff, 0.34), mixPacked(c, 0xffffffff, 0.16), c, mixPacked(c, 0xff000000, 0.2), mixPacked(c, 0xff000000, 0.4)];
 TONES.set(c, t);
 }
 return t;
 }
 function pebble(x, y, o) {
 const s = o.s, fl = o.flat ?? 1.3;
-const big = o.s >= 6 ? stoneAt(x, y, s * 2.1, fl, o.seed + 77, 0.62, 0.12) : null;
-const st = big || stoneAt(x, y, s, fl, o.seed, 0.5, 1);
-if (!st) return o.mortar;
-const { bx, by, r, id, e } = st;
+const gx = Math.floor(x / s), gy = Math.floor(y * fl / s);
+let d1 = Infinity, d2 = Infinity, d3 = Infinity, bx = 0, by = 0, id = 0;
+for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) {
+const cx = gx + i, cy = gy + j;
+const px = (cx + (cy & 1) * 0.45 + 0.18 + hash2(cx, cy, o.seed) * 0.64) * s;
+const py = (cy + 0.18 + hash2(cx, cy, o.seed + 1) * 0.64) * s / fl;
+const dx = x + 0.5 - px, dy = (y + 0.5 - py) * fl;
+const d = dx * dx + dy * dy;
+if (d < d1) { d3 = d2; d2 = d1; d1 = d; bx = dx; by = dy; id = cx * 7919 + cy * 104729; }
+else if (d < d2) { d3 = d2; d2 = d; }
+else if (d < d3) d3 = d;
+}
+const edge = Math.sqrt(d2) - Math.sqrt(d1);
+if (edge < 0.75 || Math.sqrt(d3) - Math.sqrt(d1) < 1.7) return o.mortar;
+const r = s * 0.56, e = Math.sqrt(d1) / r;
 const T = tones(o.stones[Math.floor(hash2(id, 3, o.seed) * o.stones.length)]);
 const u = bx / r, v = by / r, lit = -(u * 0.55 + v * 0.85);
 if (o.moss && v < -0.22 && e > 0.3 && hash2(id, 11, o.seed) < 0.12) {
@@ -5341,37 +5352,19 @@ const m = Math.abs(u - (hash2(id, 12, o.seed) - 0.5) * 0.8);
 if (m < 0.6 - (e - 0.3) * 0.25) return v < -0.55 || m < 0.2 ? o.moss[1] : o.moss[0];
 }
 let t;
-if (v > 0.38 && e > 0.74) t = 4;
-else if (lit > 0.42 && e < 0.8) t = 0;
-else if (lit > 0.02) t = 1;
-else if (lit > -0.4) t = 2;
-else t = lit > -0.72 ? 3 : 4;
-if (t >= 1 && t <= 3) {
-const n = noise2(x * 0.33, y * 0.4, o.seed + 31);
-if (n > 0.74) t--; else if (n < 0.2) t++;
-}
-if (hash2(id, 13, o.seed) < 0.1 && e < 0.85) {
+if (edge < 1.35 && v > -0.3) t = 4;
+else if (lit > 0.6 && edge < 2.7) t = 0;
+else if (lit > 0.25) t = 1;
+else if (lit > -0.35) t = 2;
+else t = lit > -0.7 ? 3 : 4;
+const n = noise2((x + id % 7) * 0.2, y * 0.24, o.seed + 31);
+if (t === 2 && n > 0.68) t = 1;
+else if (t === 2 && n < 0.23) t = 3;
+if (hash2(id, 13, o.seed) < 0.08 && e < 0.7) {
 const ca = hash2(id, 14, o.seed) * Math.PI, d = Math.abs(u * Math.sin(ca) - v * Math.cos(ca) + (hash2(id, 15, o.seed) - 0.5) * 0.4);
 if (d < 0.07 + 0.04 * Math.abs(Math.sin(u * 9))) return T[4];
 }
 return T[t];
-}
-function stoneAt(x, y, s, fl, seed, rk, p) {
-const gx = Math.floor(x / s), gy = Math.floor((y * fl) / s);
-let d1 = 1e9, d2 = 1e9, bx = 0, by = 0, id = 0, r = 0, has = false;
-for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) {
-const cx = gx + i, cy = gy + j;
-if (p < 1 && hash2(cx, cy, seed + 9) > p) continue;
-const ox = (cy & 1) * 0.5;
-const px = (cx + ox + 0.25 + hash2(cx, cy, seed) * 0.5) * s, py = (cy + 0.25 + hash2(cx, cy, seed + 1) * 0.5) * s / fl;
-const dx = x + 0.5 - px, dy = (y + 0.5 - py) * fl, d = dx * dx + dy * dy;
-if (d < d1) { d2 = d1; d1 = d; bx = dx; by = dy; id = cx * 7919 + cy * 104729 + seed; r = s * rk * (0.82 + hash2(cx, cy, seed + 2) * 0.36); has = true; }
-else if (d < d2) d2 = d;
-}
-if (!has) return null;
-if (p >= 1 && Math.sqrt(d2) - Math.sqrt(d1) < 1.25) return null;
-const e = Math.sqrt(d1) / r;
-return e > 0.98 ? null : { bx, by, r, id, e };
 }
 return { cobble, pebble };
 })();
@@ -5624,7 +5617,27 @@ if (xx >= 0 && yy >= 0 && xx < cv.W && cv.liquid[yy * cv.W + xx]) near = Math.mi
 }
 if (near < 3) cv.paint(k, bed[Math.min(bed.length - 1, near + (hash2(x, y, 77) > 0.8 ? 1 : 0))]);
 }
+for (let y = level + 1; y < cv.H; y += 3) for (let x = Math.max(1, x0); x < Math.min(cv.W - 1, x1); x += 5) {
+if (hash2(x, y, cv.seed + 83) > 0.45) continue;
+const len = 1 + Math.floor(hash2(x, y, cv.seed + 84) * 4);
+for (let i = 0; i < len; i++) {
+const k = y * cv.W + x + i;
+if (x + i <= x1 && cv.liquid[k]) cv.paint(k, mixPacked(cv.pix.px[k], y < level + 5 ? surf : body[0], y < level + 5 ? 0.7 : 0.35));
+}
+}
 return { x0, x1, level };
+}
+function sunbeams(cv, sx, sy, strength = 0.12) {
+cv.light([1, 0.94, 0.7], (x, y) => {
+if (y < sy) return 0;
+const d = y - sy, u = x - sx + d * 0.65;
+let a = 0;
+for (const off of [-15, 0, 19]) {
+const q = Math.abs(u - off) / (3 + d * 0.08);
+if (q < 1) a = Math.max(a, (1 - q) * strength * Math.max(0, 1 - d / cv.H));
+}
+return a;
+}, sy, cv.H);
 }
 function markOpen(cv, minY = 30) {
 const W = cv.W, S = cv.solid, L = cv.liquid;
@@ -5832,7 +5845,7 @@ if (fall > 6) out.push([x, y + 1, fall - 1]);
 }
 return out.filter((_, i) => i % Math.max(1, Math.floor(out.length / n)) === 0).slice(0, n);
 }
-return { col, far, heights, dip, raise, fillSolid, blob, paintTerrain, STRATA, hanging, pool, markOpen, ledges, surfaceAt, silhouette, mountains, rockFace, treeShape, glow, drips };
+return { col, far, heights, dip, raise, fillSolid, blob, paintTerrain, STRATA, hanging, pool, sunbeams, markOpen, ledges, surfaceAt, silhouette, mountains, rockFace, treeShape, glow, drips };
 })();
 // src/visual/env/cave.js
 const __m50 = (() => {
@@ -6364,7 +6377,7 @@ creep: { cols: ['#2a4a1e', '#3e6a2a', '#5a8a34'], leaf: '#6aa83a', berry: '#c03a
 },
 netherwood: {
 kinds: [['tuft', 3], ['glowcap', 1.6], ['spike', 1.6], ['daisy', 1.2], ['fern', 1.2]], rate: 0.2,
-cols: { blade: ['#14302a', '#1e4a3e', '#3e7a6a', '#5aa08a'], petal: ['#e8e0ff', '#c8f0ff'], eye: ['#a080ff'], spike: ['#4a2a7a', '#7a4ac0', '#b088ff'], cap: ['#5a2a8a', '#a060f0', '#e0c0ff'] },
+cols: { blade: ['#16473f', '#226f62', '#3aa993', '#72dbc0'], petal: ['#e8e0ff', '#c8f0ff'], eye: ['#a080ff'], spike: ['#65449b', '#a26ae0', '#d3a7ff'], cap: ['#6f36b0', '#b46aff', '#f1d5ff'] },
 creep: { cols: ['#4a1414', '#7a1e1a', '#a83020'], leaf: '#3e7a6a', berry: '#ff5a6a', rate: 0.55 },
 glow: [0.7, 0.4, 1],
 },
@@ -6427,6 +6440,7 @@ EXTRAS[region]?.(cv, seed + 11, swaying);
 }
 const EXTRAS = {
 quarry: (cv, seed) => ore(cv, seed),
+river: (cv, seed, sw) => bells(cv, seed, sw, { cols: [['#28a4bb', '#6ae5f1', '#ddffff']], stem: ['#448a30', '#6aaf3e'], rgb: [[0.3, 0.85, 1]], n: 4 }),
 netherwood: (cv, seed, sw) => bells(cv, seed, sw, { cols: [['#c03a6a', '#ff7aa8', '#ffd0e0'], ['#c8862a', '#ffc860', '#fff0c0']], stem: ['#2e5a3a', '#4a2e22'], rgb: [[1, 0.45, 0.65], [1, 0.75, 0.35]], n: 6 }),
 moonfen: (cv, seed, sw) => bells(cv, seed, sw, { cols: [['#6a3ac0', '#a878ff', '#e8d0ff'], ['#2a7ab0', '#6ad0ff', '#d8f8ff']], stem: ['#1e4a3c', '#2e6a52'], rgb: [[0.7, 0.45, 1], [0.4, 0.85, 1]], n: 5 }),
 };
@@ -6631,9 +6645,9 @@ return { flourish };
 // src/visual/env/grade.js
 const __m55 = (() => {
 const GRADE = {
-meadow: [0.42, 1.32, 0.5], forest: [0.4, 1.28, 0.5], netherwood: [0.34, 1.3, 0.46], river: [0.42, 1.3, 0.5],
-quarry: [0.38, 1.26, 0.48], moonfen: [0.34, 1.3, 0.44], crags: [0.36, 1.25, 0.48],
-pen: [0.4, 1.28, 0],
+meadow: [0.25, 1.18, 0.42], forest: [0.24, 1.16, 0.42], netherwood: [0.18, 1.18, 0.4], river: [0.24, 1.18, 0.42],
+quarry: [0.23, 1.12, 0.42], moonfen: [0.18, 1.18, 0.4], crags: [0.2, 1.14, 0.42],
+pen: [0.25, 1.18, 0],
 };
 function curve(k) {
 const t = new Uint8Array(256);
@@ -6745,7 +6759,7 @@ const rnd = () => rng.next(), mats = o.mats || ['leaf'], tone = o.tone ?? 0, sw 
 const st = (/** @type {number} */ v) => Math.max(0, Math.min(1, v + tone * 1.5));
 const leafy = { shade: /** @type {'flat'} */ ('flat'), noOutline: true, ...sw };
 m.poly(oval(x + rx * 0.04, y + ry * 0.12, rx * 0.9, ry * (o.flat ? 0.68 : 0.84), rnd), mats[0], { ...leafy, step: st(0.2) });
-const pr = Math.max(2.2, Math.min(4.2, Math.min(rx, ry) * 0.45)), n = Math.max(3, Math.round(((rx * ry) / (pr * pr)) * 1.05 * (o.dense ?? 1)));
+const pr = Math.max(2.2, Math.min(3.6, Math.min(rx, ry) * 0.46)), n = Math.max(4, Math.round(((rx * ry) / (pr * pr)) * 1.25 * (o.dense ?? 1)));
 const at = [];
 for (let i = 0; i < n; i++) {
 const a = rnd() * Math.PI * 2, q = Math.sqrt(rnd()) * 0.86;
@@ -6755,14 +6769,19 @@ at.push([x + Math.cos(a) * (rx - pr * 0.5) * q, py, pr * (0.8 + rnd() * 0.4)]);
 }
 at.sort((p, q) => q[1] - p[1]);
 for (const [px, py, r] of at) {
-const up = (y - py) / ry, left = (x - px) / rx, mat = pick(rnd, mats), b = 0.36 + up * 0.14 + left * 0.06 + (rnd() - 0.5) * 0.06;
-m.poly(puff(px + r * 0.12, py + r * 0.18, r + 0.8, rnd, 0.82), mat, { ...leafy, step: st(b - 0.34) });
+const up = (y - py) / ry, left = (x - px) / rx, mat = pick(rnd, mats), b = 0.46 + up * 0.12 + left * 0.06 + (rnd() - 0.5) * 0.08;
+m.poly(puff(px + r * 0.14, py + r * 0.18, r + 0.4, rnd, 0.82), mat, { ...leafy, step: st(b - 0.14) });
 m.poly(puff(px, py, r, rnd), mat, { ...leafy, step: st(b) });
-m.poly(puff(px - r * 0.22, py - r * 0.26, r * 0.66, rnd, 0.8), mat, { ...leafy, step: st(b + 0.2) });
-m.poly(puff(px - r * 0.36, py - r * 0.42, Math.max(0.9, r * 0.3), rnd, 0.6), mat, { ...leafy, step: st(b + 0.42) });
+m.poly([
+[px - r, py - r * 0.18], [px - r * 0.5, py - r * 0.78],
+[px + r * 0.05, py - r * 0.82], [px + r * 0.6, py - r * 0.38],
+[px + r * 0.18, py + r * 0.05], [px - r * 0.35, py - r * 0.06],
+[px - r * 0.55, py + r * 0.25],
+], mat, { ...leafy, step: st(b + 0.17) });
+m.poly(leaf(rnd, px - r * 0.48, py - r * 0.55, Math.max(0.8, r * 0.42)), mat, { ...leafy, step: st(b + 0.3) });
 for (let j = 0; j < Math.max(1, Math.round(r * 0.35)); j++) {
 const a = Math.PI * (1.15 + rnd() * 0.6);
-m.poly(leaf(rnd, px + Math.cos(a) * r * 0.95, py + Math.sin(a) * r * 0.9, 0.7 + rnd() * 0.4), mat, { ...leafy, step: st(b + 0.3) });
+m.poly(leaf(rnd, px + Math.cos(a) * r * 0.95, py + Math.sin(a) * r * 0.9, 0.8 + rnd() * 0.6), mat, { ...leafy, step: st(b + 0.24) });
 }
 }
 const tufts = Math.round((rx + ry) * 0.6);
@@ -7290,25 +7309,25 @@ return { treeRow, terrainTrees };
 const __m56 = (() => {
 const { sky } = __m49;
 const { palette, vary, streamOf } = __m57;
-const { heights, dip, raise, fillSolid, blob, paintTerrain, pool, markOpen, silhouette, mountains, treeShape, glow, drips, ledges } = __m51;
+const { heights, dip, raise, fillSolid, blob, paintTerrain, pool, markOpen, silhouette, mountains, treeShape, glow, drips, ledges, sunbeams } = __m51;
 const { caveFrame, fog, vines, moss, veins, WATER_VEINS } = __m50;
-const { cloud, fence, skep, boulder } = __m58;
+const { cloud, fence, skep, boulder, spire } = __m58;
 const { terrainTrees } = __m60;
 const { Model, lumpy } = __m16;
 const { pack } = __m11;
 function compose(cv, seed) {
 const W = cv.W, H = cv.H, s = (p) => streamOf(seed, 'meadow', p);
 const pal = vary(palette({
-leaf: ['#5aa62a', { spread: 0.85, warm: 0.6 }], leaf2: ['#7ab42c', { spread: 0.8, warm: 0.6 }], bloom: ['#f0d040', { spread: 0.4 }], bark: '#4e3420', rock: '#7a7a72', cloud: ['#c8d4e4', { spread: 0.3, cool: 0.5 }],
+leaf: ['#559c24', { spread: 0.58, warm: 0.5, cool: 0.12 }], leaf2: ['#79ac26', { spread: 0.55, warm: 0.5, cool: 0.12 }], bloom: ['#f0d040', { spread: 0.4 }], bark: '#684022', rock: '#7a7a72', cloud: ['#dce7f4', { spread: 0.25, cool: 0.5 }], gem: ['#aa60e0', { spread: 0.5, n: 5 }],
 timber: '#6a4a2e', straw: ['#c8a050', { spread: 0.45 }], moss: '#5a8a34',
 }), s('pal'), 1);
-sky(cv, 0, 160, ['#2a5aa0', '#4a82c4', '#86b4dc', '#cfe2e8'], 10);
+sky(cv, 0, 160, ['#126bd0', '#368ce2', '#86c1ed', '#c6e4ee'], 10);
 const sx = 230 + s('sun').int(-50, 50), sy = 34;
 for (let y = sy - 10; y <= sy + 10; y++) for (let x = sx - 10; x <= sx + 10; x++) if (Math.hypot(x - sx, y - sy) <= 9.5) cv.set(x, y, Math.hypot(x - sx, y - sy) < 7.5 ? pack([1, 0.98, 0.86]) : pack([1, 0.92, 0.66]));
 glow(cv, sx, sy, 70, [1, 0.92, 0.7], 0.35);
 const cr = s('clouds');
 for (let i = 0; i < 4 + cr.int(0, 2); i++) cv.stamp(cloud(cr, cr.int(30, 70), cr.int(8, 14)), pal, cr.int(40, W - 40), cr.int(26, 70), { outline: false, texture: 0 });
-mountains(cv, { base: 118, amp: 44, n: 7, seed: s('h1').int(0, 1e9), fill: '#4e6c98', lit: '#6a88b4', dark: '#3e5882' });
+mountains(cv, { base: 118, amp: 42, n: 7, seed: s('h1').int(0, 1e9), fill: '#6796bd', lit: '#88b1d1', dark: '#537da6', snow: '#d4e6f2', snowAt: 82 });
 fog(cv, '#9ab8d0', 96, 140, 0.25, s('haze').int(0, 1e9));
 const wood = silhouette(cv, { base: 124, amp: 8, freq: 0.014, seed: s('h2').int(0, 1e9), fill: '#1e3e30', rim: '#2a5038' });
 const tr = s('far');
@@ -7317,7 +7336,8 @@ fog(cv, '#9ab8b0', 118, 150, 0.18, s('haze2').int(0, 1e9));
 const hills = silhouette(cv, { base: 140, amp: 6, freq: 0.02, seed: s('h3').int(0, 1e9), fill: '#2e5a32', rim: '#3e7238' });
 const nr = s('near');
 for (let x = nr.int(0, 10); x < W; x += nr.int(14, 30)) treeShape(cv, x, hills[x] + 3, nr.int(20, 34), nr.next() < 0.25 ? 'pine' : 'oak', nr.next() < 0.5 ? '#2e5e30' : '#346a36', nr.int(0, 1e9));
-const fs = s('frame'), cave = fs.next() < 0.25;
+sunbeams(cv, sx, sy, 0.15);
+const fs = s('frame'), cave = fs.next() < 0.08;
 if (cave) {
 const o0 = fs.int(40, 80), o1 = W - fs.int(30, 70);
 const frame = caveFrame(cv, {
@@ -7346,12 +7366,12 @@ crust: ['#8ccf4a', '#5ea83a', '#3f7e2c', '#2e5a22'], crustH: 4, seed: ss,
 cobble: { stones: ['#5f564d', '#574d46', '#4d433e', '#6c5e59', '#5a5048', '#635a52'], mortar: '#0a0909', s: 10, moss: ['#3e7a26', '#6ab83a'] },
 grass: { cols: ['#6ab83e', '#8ccf4a', '#4e9a34'], tall: 4, rate: 0.7, flowers: ['#fff4c0', '#ffe066', '#ff9fc7', '#c9b0ff', '#ffffff', '#ff7a6a'] },
 layers: [
-{ kind: 'dirt', cols: ['#6a3a1e', '#76421f', '#9a5428', '#c06e32', '#c4a684', '#6a4e38'], h: [12, 18] },
+{ kind: 'dirt', cols: ['#89502b', '#995c31', '#b87339', '#c88340', '#c4a684', '#6a4e38'], h: [12, 18] },
 ],
 });
 moss(cv, { cols: ['#8ccf4a', '#5ea83a', '#3f7e2c', '#2e5a22'], seed: ss + 1, drape: 12, rate: 0.32, len: 14 });
 if (pond) {
-cv.meta.pond = pool(cv, pond.x - pond.hw, pond.x + pond.hw, pond.level, { surface: '#cfe8ff', body: ['#3a6a98', '#2e5a86', '#244a72', '#1a3a5e'], see: 0.2, bed: ['#3a2e20', '#4a3a28', '#2a2018'] });
+cv.meta.pond = pool(cv, pond.x - pond.hw, pond.x + pond.hw, pond.level, { surface: '#d5f6ff', body: ['#268fc7', '#1674ad', '#12598c', '#10446d'], see: 0.15, bed: ['#3a2e20', '#4a3a28', '#2a2018'] });
 veins(cv, cv.meta.pond, WATER_VEINS(ss + 4, ['#7aa8d8', '#3a6a98', '#2e5a86', '#244a72']));
 }
 markOpen(cv);
@@ -7382,9 +7402,11 @@ look: { mats: ['leaf', 'leaf2'], bloom: { mat: 'bloom', rate: 0.05 } },
 });
 const rr = s('rocks');
 for (let i = 0; i < 2; i++) cv.place(boulder(rr, rr.int(5, 9), rr.int(3, 5), { moss: 'moss' }), pal, rr.int(10, W - 10), { sink: 2, foot: [8, 2] });
+const gems = s('gems');
+for (let i = 0; i < 2; i++) cv.place(spire(gems, gems.int(10, 16)), pal, gems.int(16, W - 16), { foot: [5, 2], range: 36 });
 cv.meta.sun = [sx, sy];
 cv.meta.trickles = drips(cv, ss, 3);
-cv.meta.vignette = cave ? 0.45 : 0.3;
+cv.meta.vignette = cave ? 0.3 : 0.12;
 cv.meta.wind = cave ? 0.8 : 1;
 cv.meta.horizon = 120;
 }
@@ -7401,21 +7423,22 @@ const { treeRow, terrainTrees } = __m60;
 const { hash2 } = __m19;
 function compose(cv, seed) {
 const W = cv.W, H = cv.H, s = (p) => streamOf(seed, 'forest', p);
-const autumn = s('season').next() < 0.3;
+const autumn = s('season').next() < 0.8;
 const pal = vary(palette({
-leaf: [autumn ? '#9a6424' : '#3a7c30', { spread: 0.6 }], leaf2: [autumn ? '#a85422' : '#2a6c40', { spread: 0.55 }], bark: ['#4a3422', { spread: 0.5 }], logbark: ['#6e4c2e', { spread: 0.5 }], wood: '#a87a48', rock: '#5e625c',
+leaf: [autumn ? '#b66a26' : '#438532', { spread: 0.5, cool: 0.1, warm: 0.45 }], leaf2: [autumn ? '#9e4c20' : '#2e7740', { spread: 0.48, cool: 0.1, warm: 0.45 }], bark: ['#684326', { spread: 0.5 }], logbark: ['#6e4c2e', { spread: 0.5 }], wood: '#a87a48', rock: '#5e625c',
 moss: ['#4e7a30', { spread: 0.5 }], fern: [autumn ? '#8a6a26' : '#4e8a34', { spread: 0.55 }],
 }), s('pal'), 1);
+const backPal = vary(palette({ leaf: ['#497456', { spread: 0.38 }], leaf2: ['#638568', { spread: 0.38 }], bark: '#53634c', moss: '#49794a' }), s('back-pal'), 0.4);
 const back = '#9ab8a0';
 sky(cv, 0, H, ['#c8dcc0', '#b0ccb0', '#90b49c', '#78a088']);
 const ts = s('terrain'), top = heights(W, ts.int(0, 1e9), { base: 172, amp: 8, freq: 0.012 });
 const rows = s('rows'), far = top.map((v) => v - 14), mid = top.map((v) => v - 6);
 const look = { mats: ['leaf', 'leaf2'], hang: { mat: 'moss', rate: 0.6, len: /** @type {[number, number]} */ ([4, 16]) } };
-treeRow(cv, rows, pal, { line: far, gap: [20, 26], h: [50, 58], haze: back, fade: 0.68, shape: 'tall', look });
+treeRow(cv, rows, backPal, { line: far, gap: [20, 26], h: [50, 58], haze: back, fade: 0.68, shape: 'tall', look });
 fog(cv, '#b8d0b8', 60, 190, 0.3, rows.int(0, 1e9));
-treeRow(cv, rows, pal, { line: mid, gap: [26, 34], h: [64, 74], haze: back, fade: 0.45, shape: 'tall', look });
+treeRow(cv, rows, backPal, { line: mid, gap: [26, 34], h: [64, 74], haze: back, fade: 0.45, shape: 'tall', look });
 fog(cv, '#b8d0b8', 80, 200, 0.2, rows.int(0, 1e9));
-hanging(cv, { base: 14, amp: 10, freq: 0.03, seed: s('canopy').int(0, 1e9), fill: autumn ? '#5a3e1a' : '#1e3e22', rim: autumn ? '#7a5422' : '#2a5230', rough: 4 });
+hanging(cv, { base: 14, amp: 10, freq: 0.03, seed: s('canopy').int(0, 1e9), fill: '#183c22', rim: '#2a5230', rough: 4 });
 const kx = ts.int(60, W - 140);
 raise(top, kx, kx + ts.int(30, 60), Math.min(...top) - ts.int(8, 14), 3);
 fillSolid(cv, top);
@@ -7425,14 +7448,14 @@ blob(cv, hx, top[hx] + 20, ts.int(14, 22), 8, ts.int(0, 1e9), 0);
 const ss = ts.int(0, 1e9);
 paintTerrain(cv, {
 a: '#3e2a1c', b: '#4c3422', grain: '#6e5034', dark: '#1a120c', deep: '#0a0806', cave: '#070605',
-crust: [autumn ? '#c88a2a' : '#6aa83a', autumn ? '#9a6a22' : '#4a8a2c', '#2e5a22', '#22401a'], crustH: 4, seed: ss,
+crust: ['#8cc23c', '#5b982f', '#367127', '#244c20'], crustH: 4, seed: ss,
 cobble: { stones: ['#57524a', '#4c4840', '#625c52', '#46443c', '#5a5850', '#504a42'], mortar: '#0a0908', s: 10, moss: ['#2e6024', '#5a9a34'] },
-grass: { cols: autumn ? ['#b07a24', '#8a5a1e'] : ['#4e9a34', '#6ab83e', '#3a7a2a'], tall: 3, rate: 0.5, flowers: ['#f08ab0', '#e85a8a', '#f0e0a0'] },
+grass: { cols: ['#69a82f', '#93c843', '#4b8c2a'], tall: 3, rate: 0.5, flowers: ['#f08ab0', '#e85a8a', '#f0e0a0'] },
 layers: [
 { kind: 'dirt', cols: ['#3a2618', '#442c1c', '#5e4028', '#6e4a2a', '#a49480', '#4e4034'], h: [4, 7] },
 ],
 });
-moss(cv, { cols: autumn ? ['#c88a2a', '#9a6a22', '#6a4a1a', '#3e2e14'] : ['#6aa83a', '#4a8a2c', '#30601e', '#1e3e16'], seed: ss + 1, drape: 12, rate: 0.32, len: 16 });
+moss(cv, { cols: ['#8cc23c', '#5b982f', '#367127', '#244c20'], seed: ss + 1, drape: 12, rate: 0.32, len: 16 });
 roots(cv, s('roots'), '#4a3020', '#6a4630');
 markOpen(cv);
 litter(cv, s, pal);
@@ -7448,7 +7471,7 @@ return t * 0.16 * (1 - y / H);
 cv.meta.shaft = sx0;
 cv.meta.glows = glowShrooms(cv, { n: 5, cap: '#e8642a', lit: '#ffc070', stem: '#e0d0b0', rgb: [1, 0.5, 0.18], seed: s('shrooms').int(0, 1e9) });
 cv.meta.trickles = drips(cv, ss, 4);
-cv.meta.vignette = 0.35;
+cv.meta.vignette = 0.18;
 cv.meta.wind = 0.9;
 cv.meta.horizon = 120;
 }
@@ -7487,10 +7510,10 @@ const { Model } = __m16;
 function compose(cv, seed) {
 const W = cv.W, H = cv.H, s = (p) => streamOf(seed, 'river', p);
 const pal = vary(palette({
-leaf: ['#4a7a2a', { spread: 0.55 }], leaf2: ['#5e7a46', { spread: 0.5 }], bark: ['#4a3a2a', { spread: 0.5 }], reed: ['#4e7a2e', { spread: 0.5 }],
+leaf: ['#5d9c29', { spread: 0.5, cool: 0.12 }], leaf2: ['#85aa32', { spread: 0.48, cool: 0.12 }], bark: ['#684528', { spread: 0.5 }], reed: ['#4e7a2e', { spread: 0.5 }],
 cattail: '#7a3a22', timber: '#6a4a2e', cloud: ['#eef2f4', { spread: 0.3 }],
 }), s('pal'), 1);
-const fs = s('frame'), cave = fs.next() < 0.35;
+const fs = s('frame'), cave = fs.next() < 0.75;
 if (cave) {
 sky(cv, 0, H, ['#05090c', '#08121a', '#0c1c20', '#102624']);
 farPillars(cv, { n: 8, fill: '#0f1e1e', rim: '#162a28', seed: s('far1').int(0, 1e9), w: [10, 20], floor: 180, caps: true });
@@ -7498,10 +7521,10 @@ fog(cv, '#1e4040', 90, 200, 0.35, s('fog1').int(0, 1e9));
 farPillars(cv, { n: 5, fill: '#142824', rim: '#1e3a32', seed: s('far2').int(0, 1e9), w: [16, 28], floor: 185, caps: true });
 fog(cv, '#24504a', 120, 210, 0.25, s('fog2').int(0, 1e9));
 const frame = caveFrame(cv, {
-seed: fs.int(0, 1e9), stones: ['#3e443c', '#4a4c40', '#343a34'], mortar: '#101412', dark: 0.42, roof: [10, 30], walls: [8, 12],
+seed: fs.int(0, 1e9), stones: ['#494c44', '#5a5b4e', '#41463e'], mortar: '#0b100d', dark: 0.2, roof: [10, 28], walls: [8, 9],
 stal: { n: 18, len: [8, 36], w: [3, 7] }, lip: ['#4e8a2e', '#2e5a22'],
 });
-vines(cv, frame.roof, { cols: ['#4e8a2a', '#34621e', '#22401a'], leaf: '#5e9a32', seed: fs.int(0, 1e9), rate: 0.22, len: [4, 50] });
+vines(cv, frame.roof, { cols: ['#78af28', '#4f8a23', '#2c541a'], leaf: '#a3cd38', seed: fs.int(0, 1e9), rate: 0.24, len: [8, 58] });
 } else {
 sky(cv, 0, 170, ['#3a6eb4', '#6a9ad0', '#a8c8e0', '#d8e6e4']);
 const cr = s('clouds');
@@ -7532,10 +7555,10 @@ layers: [
 });
 moss(cv, { cols: ['#7ac04a', '#4e8a34', '#3a6e2a', '#2a5020'], seed: ss + 1, drape: 12, rate: 0.3, len: 15 });
 const level = Math.round(Math.max(top[rx - hw], top[rx + hw])) + 5;
-cv.meta.river = pool(cv, rx - hw, rx + hw, level, { surface: '#8ae0d8', body: ['#2a6a68', '#1e5654', '#164442', '#0e3232', '#0a2424'], see: 0.3, bed: ['#2a3a2e', '#34463a', '#1e2a22'] });
+cv.meta.river = pool(cv, rx - hw, rx + hw, level, { surface: '#b3ffff', body: ['#139eac', '#087d90', '#086375', '#064c60', '#063b4e'], see: 0.15, bed: ['#2a3a2e', '#34463a', '#1e2a22'] });
 veins(cv, cv.meta.river, WATER_VEINS(ss + 4, ['#5a9a98', '#2a6a68', '#1e5654', '#164442']));
 markOpen(cv);
-if (s('bridge').next() < 0.5) {
+if (s('bridge').next() < 0.8) {
 const y = level - 4, m = new Model(), x0 = rx - hw - 4, x1 = rx + hw + 4;
 beam(m, [x0, y], [x1, y], 3);
 for (let x = x0 + 8; x < x1; x += 16) beam(m, [x, y - 8], [x, y + 1], 1.6);
@@ -7555,7 +7578,7 @@ const look = { mats: ['leaf', 'leaf2'] };
 terrainTrees(cv, wr, pal, { n: 1, kinds: ['willow'], h: [70, 126], dark: 0.15, ledges: true, x: rx < W / 2 ? [rx + hw + 20, W - 10] : [10, rx - hw - 20], look });
 terrainTrees(cv, wr, pal, { n: 3, kinds: ['oak', 'gnarl'], shapes: ['spread', 'lean', 'tall'], h: [36, 80], gap: 40, ledges: true, look });
 cv.meta.glows = glowShrooms(cv, { n: cave ? 9 : 4, cap: '#2ab8d8', lit: '#b0f4ff', stem: '#c8dcd4', rgb: [0.25, 0.75, 0.95], seed: s('shrooms').int(0, 1e9) });
-cv.meta.vignette = cave ? 0.6 : 0.3;
+cv.meta.vignette = cave ? 0.3 : 0.14;
 cv.meta.wind = cave ? 0.35 : 1;
 cv.meta.horizon = 116;
 }
@@ -7565,9 +7588,9 @@ return { compose };
 const __m63 = (() => {
 const { sky } = __m49;
 const { palette, vary, streamOf } = __m57;
-const { fillSolid, blob, ledges, paintTerrain, markOpen, glow, drips, silhouette, mountains } = __m51;
+const { fillSolid, blob, ledges, paintTerrain, markOpen, glow, drips, silhouette, mountains, sunbeams } = __m51;
 const { caveFrame, farPillars, fog, moss, torch, ledgeTops } = __m50;
-const { crane, ladder, cart, crate, beam, boulder, scaffold, wheel, cloud } = __m58;
+const { crane, ladder, cart, crate, beam, boulder, scaffold, wheel, cloud, spire } = __m58;
 const { terrainTrees } = __m60;
 const { Model } = __m16;
 const { Rng } = __m15;
@@ -7575,9 +7598,9 @@ function compose(cv, seed) {
 const W = cv.W, H = cv.H, s = (p) => streamOf(seed, 'quarry', p);
 const pal = vary(palette({
 rock: ['#5a5048', { spread: 0.55 }], timber: ['#6a4428', { spread: 0.5 }], rope: '#4a3a2a', ore: ['#5a4a46', { spread: 0.5 }], metal: '#5a5a62',
-seamC: ['#e8c040', { spread: 0.4, n: 4 }], leaf: ['#56603e', { spread: 0.5 }], leaf2: ['#6e6a4c', { spread: 0.45 }], bark: ['#4a3e34', { spread: 0.45 }], cloud: ['#eef0f0', { spread: 0.3 }],
+seamC: ['#e8c040', { spread: 0.4, n: 4 }], leaf: ['#647e35', { spread: 0.45 }], leaf2: ['#85873e', { spread: 0.45 }], bark: ['#4a3e34', { spread: 0.45 }], cloud: ['#eef0f0', { spread: 0.3 }], gem: ['#f05e48', { spread: 0.5, n: 5, cool: 0.12 }],
 }), s('pal'), 0.8);
-const fs = s('frame'), cave = fs.next() < 0.5;
+const fs = s('frame'), cave = fs.next() < 0.2;
 if (cave) {
 sky(cv, 0, H, ['#070504', '#0e0a08', '#16100c', '#1c140e']);
 farPillars(cv, { n: 7, fill: '#1a130e', rim: '#241a12', seed: s('far1').int(0, 1e9), w: [12, 24], floor: 180 });
@@ -7594,6 +7617,7 @@ for (let i = 0; i < 3; i++) cv.stamp(cloud(cr, cr.int(26, 50), cr.int(6, 10)), p
 mountains(cv, { base: 104, amp: 44, n: 8, seed: s('far').int(0, 1e9), fill: '#b0a498', lit: '#c8beb0', dark: '#9a8e82' });
 fog(cv, '#e0d8cc', 70, 120, 0.25, s('haze').int(0, 1e9));
 silhouette(cv, { base: 100, amp: 8, freq: 0.02, seed: s('far2').int(0, 1e9), fill: '#8a7e72', rim: '#a09486', rough: 3 });
+sunbeams(cv, 32, 52, 0.2);
 }
 const ts = s('terrain'), top = new Float32Array(W), right = ts.next() < 0.5;
 const steps = [ts.int(108, 118), ts.int(128, 138), ts.int(148, 156), ts.int(166, 176)];
@@ -7660,6 +7684,8 @@ for (let i = 0; i < 2; i++) cv.place(crate(tm.int(8, 11)), pal, tm.int(30, W - 3
 terrainTrees(cv, s('trees'), pal, { n: cave ? 1 : 3, kinds: ['sparse', 'sparse', 'gnarl'], h: [30, 64], gap: 50, ledges: true, dark: cave ? 0.3 : 0, look: { mats: ['leaf', 'leaf2'] } });
 const br = s('rubble');
 for (let i = 0; i < 4; i++) cv.place(boulder(br, br.int(3, 6), br.int(2, 4)), pal, br.int(10, W - 10), { foot: [5, 1], range: 30 });
+const gems = s('gems');
+for (let i = 0; i < 2; i++) cv.place(spire(gems, gems.int(12, 19)), pal, gems.int(18, W - 18), { foot: [6, 2], range: 45 });
 const lp = new Model();
 beam(lp, [0, 0], [0, -26], 2.4); beam(lp, [0, -26], [6, -26], 1.6);
 lp.poly([[4, -24], [8, -24], [8, -18], [4, -18]], 'seamC', { shade: 'flat', tone: 0.3 });
@@ -7676,7 +7702,7 @@ if (!cv.clear(x0 - 1, y0 - h - 4, x0 + 2, y0 - 1)) continue;
 torch(cv, x0, y0, h); cv.block(x0 - 3, y0 - 14, x0 + 4, y0 + 1);
 }
 cv.meta.trickles = drips(cv, ss, 5);
-cv.meta.vignette = cave ? 0.6 : 0.3;
+cv.meta.vignette = cave ? 0.32 : 0.14;
 cv.meta.wind = cave ? 0.3 : 0.8;
 cv.meta.horizon = 100;
 }
@@ -7695,14 +7721,14 @@ const { pack } = __m11;
 function compose(cv, seed) {
 const W = cv.W, H = cv.H, s = (p) => streamOf(seed, 'moonfen', p);
 const pal = vary(palette({
-leaf: ['#24483c', { spread: 0.5 }], leaf2: ['#224658', { spread: 0.5 }], bloom: ['#c860a8', { spread: 0.5 }], moss: ['#2e5a46', { spread: 0.5 }], bark: ['#2a2420', { spread: 0.4 }], wood: '#5a4a3a', rock: ['#3e4250', { spread: 0.45 }],
+leaf: ['#278679', { spread: 0.45, cool: 0.15 }], leaf2: ['#307d96', { spread: 0.45, cool: 0.15 }], bloom: ['#c860a8', { spread: 0.5 }], moss: ['#3c9270', { spread: 0.45 }], bark: ['#49404b', { spread: 0.4 }], wood: '#5a4a3a', rock: ['#61677e', { spread: 0.45 }],
 reed: ['#2e4a34', { spread: 0.45 }], cattail: '#3a2a1e', gem: ['#6ac8f0', { spread: 0.6 }],
 }), s('pal'), 0.8);
 sky(cv, 0, H, ['#04050e', '#0a0f2a', '#121a40', '#1a2250']);
 const st = s('stars');
 for (let i = 0; i < 140; i++) { const x = st.int(0, W - 1), y = st.int(0, 110), b = st.next(); cv.set(x, y, pack(b > 0.8 ? [0.95, 0.95, 1] : b > 0.4 ? [0.7, 0.72, 0.95] : [0.45, 0.48, 0.75])); }
 for (let i = 0; i < 5; i++) { const x = st.int(4, W - 4), y = st.int(4, 70), c = pack([0.85, 0.9, 1]); for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [0, 0]]) cv.set(x + dx, y + dy, c); }
-const fs = s('frame'), cave = fs.next() < 0.4, o0 = fs.int(70, 150), o1 = o0 + fs.int(140, 200);
+const fs = s('frame'), cave = fs.next() < 0.12, o0 = fs.int(70, 150), o1 = o0 + fs.int(140, 200);
 const mx = Math.round((o0 + o1) / 2) + s('moon').int(-30, 30), my = s('moon2').int(30, 44), mr = 12;
 glow(cv, mx, my, 80, [0.45, 0.5, 0.8], 0.4);
 const ms = s('craters').int(0, 1e9), crescent = s('phase').next() < 0.5;
@@ -7743,7 +7769,7 @@ ledges(cv, top, ts, 8, { keep: pools.map((p) => [p.x - p.hw - 4, p.x + p.hw + 4]
 const ss = ts.int(0, 1e9);
 paintTerrain(cv, {
 a: '#1e1a18', b: '#2a2420', grain: '#4a4038', dark: '#0a0a10', deep: '#050508', cave: '#030305',
-crust: ['#3e8a6a', '#2e6a52', '#1e4a3c', '#16382e'], crustH: 4, seed: ss,
+crust: ['#7ae3be', '#40b59a', '#287a6c', '#205449'], crustH: 4, seed: ss,
 cobble: { stones: ['#283247', '#323850', '#3b425b', '#454f68', '#2e3a4c', '#3a4658'], mortar: '#020308', s: 10, moss: ['#1e4a3c', '#3e8a6a'] },
 grass: { cols: ['#2e6a52', '#3e8a6a', '#1e4a3c'], tall: 4, rate: 0.55, flowers: ['#8ff0ff', '#d8ff8a'] },
 layers: [
@@ -7757,8 +7783,8 @@ cv.meta.pools.forEach((p, i) => veins(cv, p, { ...WATER_VEINS(ss + 4 + i, ['#5a7
 markOpen(cv);
 const wr = s('willows');
 const look = { mats: ['leaf', 'leaf2'], bloom: { mat: 'bloom', rate: 0.05 }, hang: { mat: 'moss', rate: 0.4, len: /** @type {[number, number]} */ ([4, 12]) } };
-terrainTrees(cv, wr, pal, { n: 2, kinds: ['wisteria', 'willow'], h: [64, 116], dark: 0.25, gap: 120, look });
-terrainTrees(cv, wr, pal, { n: 2, kinds: ['dead', 'wisteria', 'gnarl'], shapes: ['lean', 'tall'], h: [36, 70], dark: 0.2, gap: 40, ledges: true, look });
+terrainTrees(cv, wr, pal, { n: 2, kinds: ['gnarl', 'tiers'], h: [54, 96], dark: 0.06, gap: 120, look });
+terrainTrees(cv, wr, pal, { n: 2, kinds: ['dead', 'wisteria', 'gnarl'], shapes: ['lean', 'tall'], h: [36, 70], dark: 0.08, gap: 40, ledges: true, look });
 const rr = s('reeds');
 for (const p of pools) for (const side of [-1, 1]) {
 let x = p.x + side * p.hw;
@@ -7769,7 +7795,7 @@ const sr = s('stones');
 cv.place(cairn(sr, 6), pal, bx + sr.int(5, 25), { foot: [6, 2], range: 30 });
 const glows = [];
 for (let i = 0; i < 3; i++) {
-const at = cv.place(spire(sr, sr.int(8, 14)), pal, sr.int(16, W - 16), { foot: [4, 2], range: 30 });
+const at = cv.place(spire(sr, sr.int(12, 20)), pal, sr.int(16, W - 16), { foot: [5, 2], range: 40 });
 if (!at) continue;
 glow(cv, at.fx, at.fy - 7, 30, [0.3, 0.6, 0.95], 0.4);
 glows.push([at.fx, at.fy - 7]);
@@ -7782,7 +7808,7 @@ return band * (fbm2(x * 0.02, y * 0.05, fm, 3) > 0.5 ? 1 : 0.5);
 }, 100, H);
 cv.meta.glows = glows;
 cv.meta.moon = [mx, my];
-cv.meta.vignette = 0.6;
+cv.meta.vignette = 0.3;
 cv.meta.wind = cave ? 0.4 : 0.7;
 cv.meta.horizon = 124;
 }
@@ -7804,9 +7830,9 @@ function compose(cv, seed) {
 const W = cv.W, H = cv.H, s = (p) => streamOf(seed, 'crags', p);
 const pal = vary(palette({
 rock: ['#3a2e34', { spread: 0.5 }], lava: ['#e05a18', { spread: 0.7, n: 7, warm: 0.6 }], bark: ['#2a1e1a', { spread: 0.35 }],
-gem: ['#ff8a3a', { spread: 0.55 }], leaf: ['#4e4c1c', { spread: 0.5 }], leaf2: ['#6e6420', { spread: 0.5 }], bloom: ['#f08a2a', { spread: 0.4 }], wood: '#3a2a20', cloud: ['#4a3a3e', { spread: 0.4 }],
+gem: ['#f65b4e', { spread: 0.55, cool: 0.15 }], leaf: ['#7f831d', { spread: 0.5 }], leaf2: ['#9a9728', { spread: 0.48 }], bloom: ['#f08a2a', { spread: 0.4 }], wood: '#3a2a20', cloud: ['#4a3a3e', { spread: 0.4 }],
 }), s('pal'), 0.6);
-const fs = s('frame'), cave = fs.next() < 0.5;
+const fs = s('frame'), cave = fs.next() < 0.85;
 let frame = null;
 if (cave) {
 sky(cv, 0, H, ['#080303', '#120505', '#1c0807', '#260c08']);
@@ -7815,7 +7841,7 @@ fog(cv, '#5a180c', 80, 210, 0.35, s('fog1').int(0, 1e9));
 farPillars(cv, { n: 5, fill: '#24100c', rim: '#381610', seed: s('far2').int(0, 1e9), w: [18, 30], floor: 185, caps: true });
 fog(cv, '#6a2210', 130, 216, 0.25, s('fog2').int(0, 1e9));
 frame = caveFrame(cv, {
-seed: fs.int(0, 1e9), stones: ['#2e2220', '#3a2a26', '#24191a'], mortar: '#080404', dark: 0.35, roof: [10, 32], walls: [10, 12],
+seed: fs.int(0, 1e9), stones: ['#4d3932', '#5b4038', '#392a27'], mortar: '#080404', dark: 0.2, roof: [10, 30], walls: [8, 9],
 stal: { n: 18, len: [6, 34], w: [3, 7], tip: '#ff6a20' }, lip: ['#5a2a1a', '#3a1a12'],
 });
 for (const [x, y] of cv.meta.tips) glow(cv, x, y, 10, [1, 0.4, 0.12], 0.4);
@@ -7843,7 +7869,7 @@ blob(cv, kx + 20, Math.round(top[kx + 20]) + 22, ts.int(16, 24), 7, ts.int(0, 1e
 const ss = ts.int(0, 1e9);
 paintTerrain(cv, {
 a: '#2a2228', b: '#352a30', grain: '#5a3a36', dark: '#100a0a', deep: '#060304', cave: '#040203',
-crust: ['#6a6a2e', '#4e4e24', '#3a3a1e', '#2a2418'], crustH: 4, seed: ss,
+crust: ['#a4aa35', '#7d852c', '#555922', '#35351b'], crustH: 4, seed: ss,
 cobble: { stones: ['#45312d', '#3a231e', '#5e3a30', '#4a2a22', '#6c4436', '#3e2a26'], mortar: '#050202', s: 10 },
 grass: { cols: ['#5a5a26', '#6a6a2e', '#4a4420'], tall: 3, rate: 0.45, flowers: ['#ff5a2a', '#ff8a3a', '#e0302a'] },
 layers: [
@@ -7859,7 +7885,7 @@ glow(cv, px, level, hw + 50, [1, 0.42, 0.12], 0.6);
 markOpen(cv);
 const lf = s('falls');
 const fx = px + lf.int(-hw + 8, hw - 8);
-if (frame) fall(cv, fx, Math.max(0, frame.roof[fx]) + 1, { w: 2, cols: LAVA, rgb: [1, 0.45, 0.12], seed: lf.int(0, 1e9) });
+if (frame) fall(cv, fx, Math.max(0, frame.roof[fx]) + 1, { w: 3, cols: LAVA, rgb: [1, 0.45, 0.12], seed: lf.int(0, 1e9) });
 const br = s('basalt');
 for (let g = 0; g < 2; g++) {
 let x = br.int(20, W - 40);
@@ -7887,7 +7913,7 @@ vents.push({ x: at.fx, y: at.fy - 10, r: 4 });
 }
 cv.meta.vents = vents;
 cv.meta.trickles = drips(cv, ss, 4);
-cv.meta.vignette = cave ? 0.55 : 0.35;
+cv.meta.vignette = cave ? 0.32 : 0.2;
 cv.meta.wind = cave ? 0.3 : 0.6;
 cv.meta.horizon = 120;
 }
@@ -7966,12 +7992,12 @@ const { roots, litter, ferns } = __m61;
 function compose(cv, seed) {
 const W = cv.W, H = cv.H, s = (p) => streamOf(seed, 'netherwood', p);
 const pal = vary(palette({
-leaf: ['#1e4a46', { spread: 0.55 }], leaf2: ['#24405a', { spread: 0.5 }], bloom: ['#b080f0', { spread: 0.4 }], bark: ['#2e2630', { spread: 0.45 }], logbark: ['#4e4048', { spread: 0.45 }], wood: '#7a6a5a', rock: '#4a4a56',
+leaf: ['#218577', { spread: 0.44, cool: 0.18 }], leaf2: ['#26748a', { spread: 0.44, cool: 0.18 }], bloom: ['#b080f0', { spread: 0.4 }], bark: ['#4a3444', { spread: 0.4 }], logbark: ['#71504a', { spread: 0.45 }], wood: '#a07756', rock: '#4a4a56',
 moss: ['#2e6a5a', { spread: 0.5 }], fern: ['#2a6a5e', { spread: 0.5 }],
 stem: ['#d8d0ec', { spread: 0.4 }], cap: ['#9a5ae0', { spread: 0.6 }], spot: '#f4e8ff',
 }), s('pal'), 1);
 const back = '#0e1820';
-sky(cv, 0, H, ['#030408', '#060a10', '#0a1018', '#0e1620']);
+sky(cv, 0, H, ['#03080e', '#06121d', '#092536', '#123649']);
 farPillars(cv, { n: 8, fill: '#0c141c', rim: '#121c26', seed: s('far1').int(0, 1e9), w: [10, 22], floor: 180, caps: true });
 fog(cv, '#1c2c40', 80, 200, 0.3, s('fog1').int(0, 1e9));
 const ts = s('terrain'), top = heights(W, ts.int(0, 1e9), { base: 172, amp: 8, freq: 0.012 });
@@ -7983,7 +8009,7 @@ treeRow(cv, rows, pal, { line: mid, gap: [28, 38], h: [60, 72], haze: back, fade
 fog(cv, '#24344a', 80, 200, 0.15, rows.int(0, 1e9));
 const fs = s('frame');
 const frame = caveFrame(cv, {
-seed: fs.int(0, 1e9), stones: ['#2e2a30', '#26222a', '#34343a'], mortar: '#08080a', dark: 0.42, roof: [12, 34], walls: [10, 12],
+seed: fs.int(0, 1e9), stones: ['#47424b', '#38343e', '#4d4c55'], mortar: '#08080d', dark: 0.2, roof: [12, 30], walls: [8, 9],
 stal: { n: 12, len: [8, 28], w: [3, 6] }, lip: ['#3e7a6a', '#24504a'],
 });
 vines(cv, frame.roof, { cols: ['#5a4232', '#46321f', '#2e2016'], leaf: '#6a4e3a', flower: '#c8a0ff', seed: fs.int(0, 1e9), rate: 0.22, len: [6, 48] });
@@ -8002,7 +8028,7 @@ if (!still || Math.abs(hx - still.x) > still.hw + 30) blob(cv, hx, top[hx] + 20,
 const ss = ts.int(0, 1e9);
 paintTerrain(cv, {
 a: '#2a2228', b: '#342a30', grain: '#54465a', dark: '#100c10', deep: '#060408', cave: '#040305',
-crust: ['#5aa08a', '#3e7a6a', '#2a5a4e', '#1e4038'], crustH: 4, seed: ss,
+crust: ['#67d7aa', '#39a788', '#247d70', '#1c5555'], crustH: 4, seed: ss,
 cobble: { stones: ['#3a3444', '#443c4e', '#4e4658', '#36303e', '#48405a', '#3e3848'], mortar: '#050408', s: 10, moss: ['#2a5a4e', '#4e8a7a'] },
 grass: { cols: ['#3e7a6a', '#5aa08a', '#2a5a4e'], tall: 3, rate: 0.45, flowers: ['#c8a0ff', '#8ff0ff', '#f0c8ff'] },
 layers: [
@@ -8017,7 +8043,7 @@ veins(cv, cv.meta.pool, { ...WATER_VEINS(ss + 4, ['#6a5ab0', '#2e2a5a', '#1e1e3a
 }
 markOpen(cv);
 litter(cv, s, pal);
-terrainTrees(cv, s('trees'), pal, { n: 5, kinds: ['oak', 'gnarl', 'willow'], shapes: ['tall', 'lean'], h: [44, 100], gap: 30, ledges: true, dark: 0.15, look });
+terrainTrees(cv, s('trees'), pal, { n: 5, kinds: ['gnarl', 'tiers', 'gnarl'], shapes: ['spread', 'lean'], h: [44, 96], gap: 36, ledges: true, dark: 0.05, look });
 const mr = s('mushrooms'), glows = [];
 for (let i = 0, n = 0; i < 10 && n < 3; i++) {
 const h = mr.int(18, 34), r = Math.round(h * mr.range(0.4, 0.55));
@@ -8033,7 +8059,7 @@ ferns(cv, s, pal);
 glows.push(...glowShrooms(cv, { n: 9, cap: '#9a5ae8', lit: '#f0c8ff', stem: '#c8c0d0', rgb: [0.62, 0.38, 1], seed: s('shrooms').int(0, 1e9) }));
 cv.meta.glows = glows;
 cv.meta.trickles = drips(cv, ss, 4);
-cv.meta.vignette = 0.6;
+cv.meta.vignette = 0.32;
 cv.meta.wind = 0.3;
 cv.meta.horizon = 120;
 }
@@ -8056,7 +8082,7 @@ const quarry = __m63;
 const moonfen = __m64;
 const crags = __m65;
 const netherwood = __m66;
-const ENV_VERSION = 12;
+const ENV_VERSION = 13;
 const COMPOSERS = { meadow, forest, netherwood, river, quarry, moonfen, crags };
 const cache = new Map();
 function composeScene(region, seed) {
@@ -17686,7 +17712,7 @@ return { REF, refLookup };
 })();
 // src/studio/workspaces.js
 const __m6 = (() => {
-const { h, btn, clear } = __m7;
+const { h, btn, clear, confirmDialog } = __m7;
 const { compileProfile, newComponent, newNode, clone, newLayer } = __m2;
 const { REGIONS, MATERIALS, EFFECT_NAMES, CREATURES, visualStyle, creatureStyle, environmentStyle } = __m3;
 const { withArtProfile } = __m10;
@@ -17713,12 +17739,22 @@ const { wordColor } = __m21;
 let nextToken = -1;
 const POSES = ['idle', 'hop', 'rear', 'eat', 'loaf', 'hurt', 'sick', 'flop', 'collapse', 'dead'];
 const TRAITS = ['', 'horns', 'antlers', 'unihorn', 'wings', 'scales', 'eye3', 'spines', 'tail-lizard', 'giant', 'tiny'];
+const WILDS_TOOLS = [
+['select', 'Select / Move', 'Tap an existing prop or light, then drag its handle.'],
+['rock', 'Rock', 'Paint solid stone into the scene.'],
+['soil', 'Soil', 'Paint soft ground for vegetation.'],
+['erase', 'Erase', 'Clear painted terrain.'],
+['water', 'Water', 'Paint pools and streams.'],
+['lava', 'Lava', 'Paint hot liquid terrain.'],
+['place', 'Place prop', 'Click a free surface to place the selected asset.'],
+['light', 'Add light', 'Click the scene to place a light.']
+];
 class DomainWorkspace {
 constructor(studio) {
 this.destroyed = false; this.studio = studio; this.kind = studio.workspace; this.target = this.targets()[0];
 this.seed = 1;
 this.stage = 2; this.pose = 'idle'; this.trait = ''; this.level = 0; this.effect = 'vitality'; this.hp = 0; this.play = this.kind !== 'ingredients' && this.kind !== 'interface';
-this.terrainTool = 'rock'; this.terrainColor = '#5e665f'; this.radius = 8; this.mask = false; this.time = 0; this.last = 0;
+this.groupState = new Map(); this.terrainTool = 'rock'; this.sceneSelection = null; this.sceneDrag = null; this.terrainColor = '#5e665f'; this.radius = 8; this.mask = false; this.time = 0; this.last = 0;
 this.render(); this.frame = requestAnimationFrame((t) => this.loop(t));
 }
 targets() { return this.kind === 'ingredients' ? WILD_SPECS.map((s) => s.key) : this.kind === 'environments' ? REGIONS : this.kind === 'creatures' ? CREATURES : this.kind === 'materials' ? MATERIALS : this.kind === 'effects' ? EFFECT_NAMES : ICON_NAMES; }
@@ -17736,18 +17772,36 @@ return withArtProfile(this.profile, this.token, fn);
 change(label, fn) { this.studio.edit(label, fn); }
 field(label, obj, key, min, max, step = 0.1) { return this.studio.field(label, obj[key], (v) => this.change(label, () => { obj[key] = v; }), 'number', { min, max, step }); }
 color(label, obj, key) { return this.studio.field(label, obj[key], (v) => this.change(label, () => { obj[key] = v; }), 'color'); }
+sliderField(label, obj, key, min, max, step = 0.1) {
+const number = this.field(label, obj, key, min, max, step);
+const range = h('input', { type: 'range', min, max, step, value: obj[key],
+'aria-label': label + ' slider', oninput: () => {
+const input = number.querySelector('input');
+if (input) input.value = range.value;
+}, onchange: () => this.change(label, () => { obj[key] = Number(range.value); }) });
+return h('div', { class: 'art-slider-field' }, number, range);
+}
 select(label, value, choices, fn) { return this.studio.select(label, value, choices.map((v) => Array.isArray(v) ? v : [v, v]), fn); }
+group(id, title, description, initiallyOpen = false) {
+const expanded = this.groupState.has(id) ? this.groupState.get(id) : initiallyOpen;
+const el = h('details', { class: 'art-settings-group', 'data-editor-group': id, open: expanded ? true : null },
+h('summary', {}, h('strong', { text: title }), description ? h('span', { class: 'art-group-description', text: description }) : null));
+el.addEventListener('toggle', () => { if (this.studio.inspector.contains(el)) this.groupState.set(id, el.open); });
+return el;
+}
 render() {
 const s = this.studio; if (!s.mounted) return;
+const inspectorScroll = s.inspector.scrollTop;
 this.profileKey = null;
 clear(s.center); clear(s.inspector); clear(s.bottom);
 this.el = h('div', { class: 'art-domain', 'data-domain': this.kind });
 this.canvas = h('canvas', { width: 384, height: 216, class: 'art-domain-canvas', 'aria-label': this.kind + ' live preview' });
 const cfg = this.config(), toolbar = h('div', { class: 'art-domain-toolbar' },
-this.select('Domain target', this.target, this.targets(), (v) => { this.target = v; this.sim = null; this.render(); }),
+this.select('Domain target', this.target, this.targets(), (v) => { this.target = v; this.sim = null; s.inspector.scrollTop = 0; this.render(); }),
 this.kind === 'interface' ? null : this.kind === 'environments' ? s.field('World seed', this.seed, (v) => { this.seed = v; this.render(); }) : s.field('Preview seed', this.seed, (v) => { this.seed = Math.max(0, Math.floor(v)) >>> 0; this.sim = null; this.render(); }, 'number', { min: 0, max: 4294967295 }),
 this.kind === 'interface' ? null : btn(this.play ? 'Pause animation' : 'Play animation', () => { this.play = !this.play; this.render(); }, { act: 'domain-play' }),
-this.kind === 'interface' ? null : btn('Regenerate unlocked', () => { this.seed = typeof this.seed === 'string' ? this.seed + '-next' : (this.seed + 1) >>> 0; this.sim = null; this.render(); }, { act: 'domain-regenerate' }));
+this.kind === 'interface' ? null : btn('Regenerate unlocked', () => { this.seed = typeof this.seed === 'string' ? this.seed + '-next' : (this.seed + 1) >>> 0; this.sim = null; this.render(); }, { act: 'domain-regenerate' }),
+btn('Undo', () => s.undo(), { act: 'domain-undo' }), btn('Redo', () => s.redo(), { act: 'domain-redo' }));
 this.el.append(toolbar, this.canvas); s.center.append(this.el);
 s.inspector.append(h('h2', { text: this.kind + ' properties' }));
 this.messages = h('div', { class: 'art-domain-messages', role: 'status' }); s.bottom.append(this.messages);
@@ -17756,6 +17810,7 @@ if (this.kind === 'environments') this.environments(cfg);
 if (this.kind === 'creatures') this.creatures(cfg);
 if (this.kind === 'materials' || this.kind === 'effects') this.materials(cfg);
 if (this.kind === 'interface') this.interface(cfg);
+s.inspector.scrollTop = inspectorScroll;
 this.draw();
 }
 ingredients(cfg) {
@@ -17768,7 +17823,7 @@ btn('Use current component graph for this species', () => this.change('Bind grap
 btn('Use current graph for this native family', () => this.change('Bind procedural family', () => { for (const spec of WILD_SPECS) if (describe(archetypeIdentity(spec.key)).family === d.family) s.project.domains.ingredients[spec.key] = { ...(s.project.domains.ingredients[spec.key] || { morph: {}, growth: {} }), asset: s.asset.id }; }), { act: 'domain-bind-family' }),
 h('p', { text: `Native family: ${d.family}. Its geometry, growth, icons and shards use the same identity. Parameter edits change the native generator; graph binding replaces the shared construction.` }));
 for (const [name, source, target] of [['Morphology', d.m, cfg.morph], ['Growth grammar', growth, cfg.growth]]) {
-const details = h('details', { open: true }, h('summary', { text: name }));
+const details = this.group('ingredient-' + name, name, name === 'Morphology' ? 'Fine-tune the native shape and proportions' : 'Fine-tune how the ingredient grows');
 for (const [key, value] of Object.entries(source)) {
 if (typeof value === 'number') details.append(s.field(name + ': ' + key, target[key] ?? value, (v) => this.change('Native ' + key, () => { target[key] = v; }), 'number', { min: 0, max: 120, step: 0.1 }));
 else if (typeof value === 'boolean') details.append(s.check(name + ': ' + key, target[key] ?? value, (v) => this.change('Native ' + key, () => { target[key] = v; })));
@@ -17792,30 +17847,159 @@ this.change('Extract native reusable geometry', () => { this.studio.asset.compon
 this.studio.workspace = 'components'; this.destroy(); this.studio.domainEditor = null; this.studio.refresh();
 }
 environments(cfg) {
-const s = this.studio, i = s.inspector; cfg.lights ??= [];
-i.append(this.select('Terrain tool', this.terrainTool, ['rock', 'soil', 'erase', 'water', 'lava', 'place', 'light'], (v) => { this.terrainTool = v; this.render(); }),
-s.field('Terrain brush radius', this.radius, (v) => { this.radius = v; }, 'number', { min: 1, max: 32 }),
-s.field('Terrain material color', this.terrainColor, (v) => { this.terrainColor = v; }, 'color'),
-s.check('Show structural masks', this.mask, (v) => { this.mask = v; this.draw(); }),
-this.color('Background tint', cfg, 'tint'), this.field('Background tint strength', cfg, 'mix', 0, 1), this.field('Vegetation density', cfg, 'density', 0, 2), this.field('Environment lighting', cfg, 'light', 0.1, 2), this.field('Atmospheric density', cfg, 'atmosphere', 0, 3),
-this.select('Placement asset', this.placeAsset || s.asset.id, s.project.assets.map((a) => [a.id, a.name]), (v) => { this.placeAsset = v; }),
-btn('Clear terrain edits', () => this.change('Clear terrain', () => { cfg.strokes = []; }), { act: 'domain-clear-terrain' }));
-for (const [index, o] of cfg.objects.entries()) {
-i.append(h('h3', { text: `Object ${index + 1}` }), this.field('Object X ' + index, o, 'x', 0, 383, 1), this.field('Object Y ' + index, o, 'y', 0, 215, 1), this.field('Object scale ' + index, o, 'scale', 0.1, 2),
-s.check('Lock object ' + index, o.locked, (v) => this.change('Lock scene object', () => { o.locked = v; })), btn('Remove object ' + index, () => this.change('Remove scene object', () => cfg.objects.splice(index, 1))));
+const s = this.studio, i = s.inspector;
+cfg.lights ??= [];
+this.canvas.dataset.editorTool = this.terrainTool;
+const tool = WILDS_TOOLS.find(([id]) => id === this.terrainTool) || WILDS_TOOLS[0];
+const chooseTool = (id) => { this.terrainTool = id; this.render(); };
+const tools = h('div', { class: 'art-wilds-tools', role: 'toolbar', 'aria-label': 'Wilds painting tools' });
+for (const [id, label, hint] of WILDS_TOOLS) {
+const button = btn(label, () => chooseTool(id), { cls: this.terrainTool === id ? 'active' : '', act: 'domain-tool-' + id, title: hint });
+button.setAttribute('aria-label', label);
+button.setAttribute('aria-pressed', String(this.terrainTool === id));
+tools.append(button);
 }
-for (const [index, l] of cfg.lights.entries()) i.append(h('h3', { text: 'Light ' + (index + 1) }), this.field('Light X ' + index, l, 'x', 0, 383, 1), this.field('Light Y ' + index, l, 'y', 0, 215, 1), this.field('Light radius ' + index, l, 'radius', 2, 120, 1), this.field('Light strength ' + index, l, 'strength', 0, 2), this.color('Light color ' + index, l, 'color'), btn('Remove light ' + index, () => this.change('Remove localized light', () => cfg.lights.splice(index, 1))));
-const point = (e) => { const b = this.canvas.getBoundingClientRect(); return [Math.max(0, Math.min(383, Math.round((e.clientX - b.left) * 384 / b.width))), Math.max(0, Math.min(215, Math.round((e.clientY - b.top) * 216 / b.height)))]; };
+this.el.insertBefore(tools, this.canvas);
+this.el.append(h('p', { class: 'art-workspace-hint', role: 'status', text: tool[2] + (['place', 'light'].includes(this.terrainTool) ? ' Select a spot in the preview.' : ' Click or drag in the preview.') }));
+i.append(h('p', { class: 'art-inspector-intro', text: '1. Pick a tool above the scene. 2. Edit its settings here. 3. Draw or place directly on the preview.' }));
+const brush = h('section', { class: 'art-control-group' }, h('h3', { text: 'Current tool' }),
+this.select('Terrain tool', this.terrainTool, WILDS_TOOLS.map(([id, label]) => [id, label]), chooseTool));
+if (!['select', 'place', 'light'].includes(this.terrainTool)) brush.append(
+s.field('Terrain brush radius', this.radius, (v) => { this.radius = Math.max(1, Math.min(32, v)); }, 'number', { min: 1, max: 32 }));
+if (!['select', 'place', 'light', 'erase'].includes(this.terrainTool)) brush.append(
+s.field('Terrain material color', this.terrainColor, (v) => { this.terrainColor = v; }, 'color'));
+if (this.terrainTool === 'light') brush.append(
+s.field('New light color', this.terrainColor, (v) => { this.terrainColor = v; }, 'color'));
+if (this.terrainTool === 'place') brush.append(
+this.select('Placement asset', this.placeAsset || s.asset.id, s.project.assets.map((a) => [a.id, a.name]), (v) => { this.placeAsset = v; }));
+if (this.terrainTool === 'select') brush.append(h('p', { class: 'muted', text: 'Tap a prop or light marker on the scene. Drag its center to move; drag the square handle to change size.' }));
+i.append(brush);
+const appearance = h('section', { class: 'art-control-group' }, h('h3', { text: 'Scene appearance' }),
+this.sliderField('Vegetation density', cfg, 'density', 0, 2), this.sliderField('Environment lighting', cfg, 'light', 0.1, 2),
+this.color('Background tint', cfg, 'tint'), this.sliderField('Background tint strength', cfg, 'mix', 0, 1),
+this.sliderField('Atmospheric density', cfg, 'atmosphere', 0, 3));
+i.append(appearance);
+const objects = this.group('wilds-objects', 'Placed props', cfg.objects.length + ' objects · select Place prop above to add more', cfg.objects.length > 0);
+for (const [index, o] of cfg.objects.entries()) {
+const item = h('div', { class: 'art-control-item' }, h('h3', { text: 'Prop ' + (index + 1) }),
+btn('Edit prop ' + (index + 1) + ' on canvas', () => {
+this.terrainTool = 'select'; this.sceneSelection = { kind: 'object', index }; this.render();
+}, { act: 'domain-select-object-' + index }),
+this.field('Object X ' + index, o, 'x', 0, 383, 1), this.field('Object Y ' + index, o, 'y', 0, 215, 1),
+this.sliderField('Object scale ' + index, o, 'scale', 0.1, 2),
+s.check('Lock object ' + index, o.locked, (v) => this.change('Lock scene object', () => { o.locked = v; })),
+btn('Remove object ' + index, () => this.change('Remove scene object', () => cfg.objects.splice(index, 1))));
+objects.append(item);
+}
+i.append(objects);
+const lights = this.group('wilds-lights', 'Scene lights', cfg.lights.length + ' lights · select Add light above to add more', cfg.lights.length > 0);
+for (const [index, l] of cfg.lights.entries()) {
+lights.append(h('div', { class: 'art-control-item' }, h('h3', { text: 'Light ' + (index + 1) }),
+btn('Edit light ' + (index + 1) + ' on canvas', () => {
+this.terrainTool = 'select'; this.sceneSelection = { kind: 'light', index }; this.render();
+}, { act: 'domain-select-light-' + index }),
+this.field('Light X ' + index, l, 'x', 0, 383, 1), this.field('Light Y ' + index, l, 'y', 0, 215, 1),
+this.sliderField('Light radius ' + index, l, 'radius', 2, 120, 1),
+this.sliderField('Light strength ' + index, l, 'strength', 0, 2),
+this.color('Light color ' + index, l, 'color'),
+btn('Remove light ' + index, () => this.change('Remove localized light', () => cfg.lights.splice(index, 1)))));
+}
+i.append(lights);
+const advanced = this.group('wilds-advanced', 'Advanced & reset', 'Structural masks and destructive actions');
+advanced.append(s.check('Show structural masks', this.mask, (v) => { this.mask = v; this.draw(); }),
+btn('Clear terrain edits', () => s.run(async () => {
+if (!cfg.strokes.length) { s.message('There are no painted terrain edits to clear.'); return; }
+if (await confirmDialog('Clear painted terrain?', 'This removes every hand-painted terrain stroke in this biome. You can undo the change.', 'Clear terrain', 'danger')) {
+this.change('Clear terrain', () => { cfg.strokes = []; });
+}
+}), { act: 'domain-clear-terrain' }));
+i.append(advanced);
+const point = (e) => {
+const b = this.canvas.getBoundingClientRect();
+return [Math.max(0, Math.min(383, Math.round((e.clientX - b.left) * 384 / b.width))),
+Math.max(0, Math.min(215, Math.round((e.clientY - b.top) * 216 / b.height)))];
+};
+const hitAt = (p) => {
+const selected = this.sceneSelection;
+if (selected) {
+const o = selected.kind === 'object' ? cfg.objects[selected.index] : cfg.lights[selected.index];
+if (o) {
+const hx = o.x + (selected.kind === 'object' ? Math.max(16, 20 * o.scale) : Math.max(24, o.radius));
+const hy = o.y + (selected.kind === 'object' ? -Math.max(16, 20 * o.scale) : 0);
+if (Math.hypot(p[0] - hx, p[1] - hy) <= 16) return { ...selected, action: 'resize' };
+}
+}
+for (const kind of ['object', 'light']) {
+const entries = kind === 'object' ? cfg.objects : cfg.lights;
+for (let index = entries.length - 1; index >= 0; index--) {
+if (Math.hypot(p[0] - entries[index].x, p[1] - entries[index].y) <= 20)
+return { kind, index, action: 'move' };
+}
+}
+return null;
+};
+const finishDrag = (cancel = false) => {
+const d = this.sceneDrag;
+if (!d) return;
+this.sceneDrag = null;
+if (cancel) s.project = d.before;
+else if (JSON.stringify(d.before) !== JSON.stringify(s.project))
+s.commitGesture(d.before, d.action === 'resize' ? 'Resize Wilds ' + d.kind : 'Move Wilds ' + d.kind);
+this.render();
+};
 this.canvas.onpointerdown = (e) => {
-e.preventDefault(); this.canvas.setPointerCapture(e.pointerId); const p = point(e);
-if (this.terrainTool === 'light') { this.change('Place localized light', () => cfg.lights.push({ x: p[0], y: p[1], radius: 35, color: this.terrainColor, strength: 0.8 })); return; }
-if (this.terrainTool === 'place') { this.change('Place scene object', () => cfg.objects.push({ asset: this.placeAsset || s.asset.id, x: p[0], y: p[1], scale: 1, seed: hashString(String(this.seed)), locked: true })); return; }
+if (e.button !== 0 && e.pointerType === 'mouse') return;
+e.preventDefault(); const p = point(e);
+if (this.terrainTool === 'select') {
+const hit = hitAt(p);
+if (!hit) { this.sceneSelection = null; this.draw(); return; }
+this.sceneSelection = { kind: hit.kind, index: hit.index };
+this.groupState.set(hit.kind === 'object' ? 'wilds-objects' : 'wilds-lights', true);
+const o = hit.kind === 'object' ? cfg.objects[hit.index] : cfg.lights[hit.index];
+this.sceneDrag = { ...hit, before: clone(s.project), pointerId: e.pointerId, x: p[0], y: p[1],
+source: { x: o.x, y: o.y, scale: o.scale, radius: o.radius } };
+this.canvas.setPointerCapture(e.pointerId);
+this.draw(); return;
+}
+if (this.terrainTool === 'light') {
+this.change('Place localized light', () => {
+cfg.lights.push({ x: p[0], y: p[1], radius: 35, color: this.terrainColor, strength: 0.8 });
+this.sceneSelection = { kind: 'light', index: cfg.lights.length - 1 }; this.terrainTool = 'select';
+}); return;
+}
+if (this.terrainTool === 'place') {
+this.change('Place scene object', () => {
+cfg.objects.push({ asset: this.placeAsset || s.asset.id, x: p[0], y: p[1], scale: 1, seed: hashString(String(this.seed)), locked: true });
+this.sceneSelection = { kind: 'object', index: cfg.objects.length - 1 }; this.terrainTool = 'select';
+}); return;
+}
+this.canvas.setPointerCapture(e.pointerId);
 this.stroke = { kind: this.terrainTool, color: this.terrainColor, radius: this.radius, points: [p] }; this.draw();
 };
-this.canvas.onpointermove = (e) => { if (this.stroke && this.stroke.points.length < 1024) { this.stroke.points.push(point(e)); this.draw(); } };
-this.canvas.onpointerup = () => { if (!this.stroke) return; const stroke = this.stroke; this.stroke = null; this.change('Sculpt ' + stroke.kind, () => cfg.strokes.push(stroke)); };
-this.canvas.onpointercancel = () => { this.stroke = null; this.draw(); };
-this.messages.textContent = 'Paint changes solid/liquid/rock/open masks. Place snaps to a dry free surface and rejects overlap with terrain or existing props. Locked objects retain their generation seed.';
+this.canvas.onpointermove = (e) => {
+const d = this.sceneDrag;
+if (d && e.pointerId === d.pointerId) {
+const p = point(e), o = d.kind === 'object' ? cfg.objects[d.index] : cfg.lights[d.index];
+if (!o) return;
+if (d.action === 'resize') {
+if (d.kind === 'object') o.scale = Math.max(0.1, Math.min(2, Math.round((d.source.scale + (p[0] - d.x) / 20) * 10) / 10));
+else o.radius = Math.max(2, Math.min(120, Math.round(d.source.radius + p[0] - d.x)));
+} else {
+o.x = Math.max(0, Math.min(383, Math.round(d.source.x + p[0] - d.x)));
+o.y = Math.max(0, Math.min(215, Math.round(d.source.y + p[1] - d.y)));
+}
+this.draw(); return;
+}
+if (this.stroke && this.stroke.points.length < 1024) { this.stroke.points.push(point(e)); this.draw(); }
+};
+this.canvas.onpointerup = () => {
+if (this.sceneDrag) { finishDrag(); return; }
+if (!this.stroke) return;
+const stroke = this.stroke; this.stroke = null; this.change('Sculpt ' + stroke.kind, () => cfg.strokes.push(stroke));
+};
+this.canvas.onpointercancel = () => { if (this.sceneDrag) { finishDrag(true); return; } this.stroke = null; this.draw(); };
+this.canvas.onlostpointercapture = () => { if (this.sceneDrag) finishDrag(); };
+this.messages.textContent = 'Draw with a terrain brush, or use Select / Move to drag existing props and lights. Drag a square handle to resize. Every completed gesture can be undone.';
 }
 creatures(cfg) {
 const s = this.studio, i = s.inspector;
@@ -17903,6 +18087,29 @@ if (!sc || !this.sceneCanvas) return;
 ctx.drawImage(this.sceneCanvas, 0, 0); if (this.play) animateRegion(ctx, this.target, this.time, String(this.seed), sc);
 if (this.mask) { ctx.fillStyle = '#ff606060'; for (let k = 0; k < sc.solid.length; k++) if (sc.solid[k]) ctx.fillRect(k % 384, Math.floor(k / 384), 1, 1); ctx.fillStyle = '#44ffbb'; for (let k = 0; k < sc.open.length; k++) if (sc.open[k]) ctx.fillRect(k % 384, Math.floor(k / 384), 1, 1); }
 if (this.stroke) { ctx.fillStyle = this.stroke.kind === 'erase' ? '#101f2b88' : this.stroke.color; for (const [x, y] of this.stroke.points) { ctx.beginPath(); ctx.arc(x, y, this.stroke.radius, 0, Math.PI * 2); ctx.fill(); } }
+if (this.terrainTool === 'select' || this.sceneSelection) {
+const cfg = this.config();
+for (const kind of ['object', 'light']) {
+const items = kind === 'object' ? cfg.objects : (cfg.lights || []);
+items.forEach((o, index) => {
+const selected = this.sceneSelection?.kind === kind && this.sceneSelection.index === index;
+ctx.save(); ctx.strokeStyle = selected ? '#ffe091' : kind === 'light' ? '#f8d478' : '#8fe8d3';
+ctx.fillStyle = selected ? '#ffe091' : kind === 'light' ? '#f8d478' : '#8fe8d3';
+ctx.lineWidth = selected ? 2 : 1;
+ctx.beginPath(); ctx.arc(o.x, o.y, selected ? 8 : 5, 0, Math.PI * 2); ctx.stroke();
+ctx.beginPath(); ctx.moveTo(o.x - 3, o.y); ctx.lineTo(o.x + 3, o.y);
+ctx.moveTo(o.x, o.y - 3); ctx.lineTo(o.x, o.y + 3); ctx.stroke();
+if (selected) {
+const hx = o.x + (kind === 'object' ? Math.max(16, 20 * o.scale) : Math.max(24, o.radius));
+const hy = o.y + (kind === 'object' ? -Math.max(16, 20 * o.scale) : 0);
+ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(o.x, o.y); ctx.lineTo(hx, hy); ctx.stroke(); ctx.setLineDash([]);
+ctx.fillRect(hx - 4, hy - 4, 8, 8);
+ctx.strokeStyle = '#182833'; ctx.strokeRect(hx - 4, hy - 4, 8, 8);
+}
+ctx.restore();
+});
+}
+}
 if (sc.meta.artWarnings?.length) this.messages.textContent = sc.meta.artWarnings.join(' · ');
 } else if (this.kind === 'creatures') {
 const rng = new Rng(this.seed), look = this.target === 'rabbit' ? rollLook(rng) : kindLook(/** @type {import('../game/kinds.js').AnimalKind} */ (this.target), rng);
@@ -17919,7 +18126,7 @@ if (!this.example.querySelector('img')) { const image = h('img', { width: 24, he
 }
 });
 }
-destroy() { this.destroyed = true; this.worker?.terminate(); this.worker = null; this.nextScene = null; cancelAnimationFrame(this.frame); this.frame = null; this.sim = null; this.renderer = null; }
+destroy() { this.destroyed = true; this.sceneDrag = null; this.worker?.terminate(); this.worker = null; this.nextScene = null; cancelAnimationFrame(this.frame); this.frame = null; this.sim = null; this.renderer = null; }
 }
 return { DomainWorkspace };
 })();
@@ -17977,7 +18184,7 @@ const { describe } = __m23;
 const { plantFrame, iconFrame, pieceArt } = __m45;
 const { WILD_SPECS } = __m40;
 const { FAMILIES } = __m26;
-const TOOLS = ['pencil', 'eraser', 'line', 'rectangle', 'ellipse', 'fill', 'eyedropper', 'select', 'lasso', 'contiguous', 'move', 'anchor', 'tip', 'vertex', 'pan'];
+const TOOLS = ['shape', 'pencil', 'eraser', 'line', 'rectangle', 'ellipse', 'fill', 'eyedropper', 'select', 'lasso', 'contiguous', 'move', 'anchor', 'tip', 'vertex', 'pan'];
 function named(title, initial = '') {
 return new Promise((resolve) => {
 const input = h('input', { value: initial, maxlength: 100, 'aria-label': title }); let accepted = false;
@@ -17993,8 +18200,8 @@ constructor(app) {
 this.workspace = 'components'; this.app = app; this.project = newProject(); this.history = new History(); this.assetId = this.project.assets[0].id;
 this.componentId = this.project.assets[0].components[0].id; this.nodeId = this.project.assets[0].nodes[0].id; this.layerId = '';
 this.tool = 'pencil'; this.color = '#76b98a'; this.brush = 1; this.round = false; this.grid = true; this.guides = true;
-this.zoom = 10; this.pan = [0, 0]; this.stage = 2; this.seed = 1; this.tab = 'rules'; this.mode = 'component';
-this.selection = null; this.clipboard = null; this.dirty = false; this.loaded = false; this.mounted = false; this.background = '#17212b'; this.hiddenPanels = []; this.compare = null; this.renderMs = 0;
+this.geometryIndex = 0; this.newShape = 'leaf'; this.geometryDrag = null; this.zoom = 10; this.pan = [0, 0]; this.stage = 2; this.seed = 1; this.tab = 'rules'; this.mode = 'component';
+this.selection = null; this.clipboard = null; this.dirty = false; this.loaded = false; this.mounted = false; this.background = '#17212b'; this.hiddenPanels = []; this.componentGroups = new Map(); this.compare = null; this.renderMs = 0;
 }
 get asset() { return this.project.assets.find((a) => a.id === this.assetId) || this.project.assets[0]; }
 get component() { return this.asset.components.find((c) => c.id === this.componentId) || this.asset.components[0]; }
@@ -18027,12 +18234,20 @@ this.el = h('section', { class: 'screen art-studio', 'data-screen': 'studio', 'a
 const action = (label, fn, act) => btn(label, () => this.run(fn), { act: 'art-' + act });
 this.status = h('span', { class: 'art-status', role: 'status', 'aria-live': 'polite' });
 this.title = h('strong');
+const projectMenu = h('details', { class: 'art-project-menu' },
+h('summary', { text: 'Project options' }),
+h('div', { class: 'art-project-menu-content' },
+action('Projects', () => this.projects(), 'projects'),
+action('Import Project', () => this.projectFile.click(), 'import'),
+action('Export Project', () => this.exportProject(), 'export'),
+action('Apply Art Profile', () => this.apply(), 'apply'),
+action('Revert', () => this.revert(), 'revert')));
+projectMenu.addEventListener('click', (e) => { if (e.target instanceof Element && e.target.closest('button')) projectMenu.open = false; });
 const header = h('header', { class: 'art-header' }, h('div', {}, h('span', { class: 'art-kicker', text: 'POTION BREWER / AUTHORING' }), this.title),
-this.select('Editor workspace', this.workspace, [['components','Components & rules'],['ingredients','Ingredients & growth'],['environments','Environments & terrain'],['creatures','Creatures & animation'],['materials','Materials & phases'],['effects','Magical effects'],['interface','Interface & icons']], (v) => { this.workspace = v; this.domainEditor?.destroy(); this.domainEditor = null; this.refresh(); }),
-action('Projects', () => this.projects(), 'projects'), action('Save Draft', () => this.save(), 'save'),
-action('Export Project', () => this.exportProject(), 'export'), action('Import Project', () => this.projectFile.click(), 'import'),
-action('Preview in Game', () => this.preview(), 'preview'), action('Apply Art Profile', () => this.apply(), 'apply'), action('Revert', () => this.revert(), 'revert'),
-action('Back to Game', () => this.exit(), 'exit'));
+this.select('Editor workspace', this.workspace, [['components','Draw components'],['ingredients','Ingredients & growth'],['environments','Wilds & terrain'],['creatures','Creatures'],['materials','Materials'],['effects','Magic effects'],['interface','Interface']], (v) => { this.workspace = v; this.inspector.scrollTop = 0; if (v === 'environments' && this.hiddenPanels.includes('inspector')) this.togglePanel('inspector'); this.domainEditor?.destroy(); this.domainEditor = null; this.refresh(); }),
+action('Save Draft', () => this.save(), 'save'),
+action('Preview in Game', () => this.preview(), 'preview'), projectMenu,
+action('How to edit', () => this.showGuide(), 'help'), action('Back to Game', () => this.exit(), 'exit'));
 this.library = h('aside', { class: 'art-library art-panel', 'aria-label': 'Asset library' });
 this.inspector = h('aside', { class: 'art-inspector art-panel', 'aria-label': 'Properties' });
 this.bottom = h('section', { class: 'art-bottom art-panel', 'aria-label': 'Procedural workspace' });
@@ -18058,12 +18273,18 @@ this.previewCanvas.addEventListener('pointercancel', () => { if (this.nodeDrag) 
 this.previewCanvas.addEventListener('dragover', (e) => e.preventDefault());
 this.previewCanvas.addEventListener('drop', (e) => { e.preventDefault(); const id = e.dataTransfer.getData('application/x-potion-component'); if (!this.asset.components.some((c) => c.id === id)) return; const b = this.previewCanvas.getBoundingClientRect(); this.edit('Place procedural component', () => { const n = newNode(id); n.x = Math.round((e.clientX - b.left) * 96 / b.width); n.y = Math.round((e.clientY - b.top) * 96 / b.height); this.asset.nodes.push(n); this.nodeId = n.id; this.componentId = id; }); });
 const tools = h('div', { class: 'art-tools', role: 'toolbar', 'aria-label': 'Pixel tools' });
-for (const t of TOOLS) tools.append(btn(t[0].toUpperCase() + t.slice(1), () => { this.tool = t; this.refreshTools(); }, { act: 'art-tool-' + t }));
+const moreTools = h('details', { class: 'art-tool-more' }, h('summary', { text: 'More tools' }), h('div', { class: 'art-tool-more-content' }));
+for (const t of TOOLS) {
+const item = btn(t[0].toUpperCase() + t.slice(1), () => { this.tool = t; this.refreshTools(); }, { act: 'art-tool-' + t });
+(['shape', 'pencil', 'eraser', 'line', 'rectangle', 'fill', 'select', 'pan'].includes(t) ? tools : moreTools.lastChild).append(item);
+}
+tools.append(moreTools);
 tools.append(action('Undo', () => this.undo(), 'undo'), action('Redo', () => this.redo(), 'redo'), action('Fit', () => { this.pan = [0, 0]; this.zoom = Math.max(2, Math.floor(Math.min(this.canvas.clientWidth, this.canvas.clientHeight) / 40)); this.draw(); }, 'fit'),
 this.check('Pixel grid', this.grid, (v) => { this.grid = v; this.draw(); }), this.check('Guides', this.guides, (v) => { this.guides = v; this.draw(); }));
 this.tools = tools;
-const center = h('main', { class: 'art-center' }, tools,
-h('div', { class: 'art-canvases' }, h('div', { class: 'art-edit-area' }, this.canvas),
+const center = h('main', { class: 'art-center' },
+h('p', { class: 'art-workspace-guide', text: 'Draw a component → see it assembled on the right → adjust its growth and rules below.' }),
+tools, h('div', { class: 'art-canvases' }, h('div', { class: 'art-edit-area' }, this.canvas),
 h('section', { class: 'art-preview-pane' }, h('h2', { text: 'Live construction' }), this.previewCanvas,
 h('p', { class: 'muted small', text: 'Select a part here to edit its component and attachment rules.' }),
 action('Capture comparison', () => { this.compare = this.generated.pix.toCanvas(); this.drawGenerated(); }, 'compare'),
@@ -18081,6 +18302,22 @@ this.observer = new ResizeObserver(() => { this.draw(); clearTimeout(this.layout
 this.observer.observe(this.canvas); this.observer.observe(this.library); this.observer.observe(this.inspector); this.observer.observe(this.bottom);
 this.refresh();
 }
+showGuide() {
+const guides = {
+components: ['Choose a plant or component in the library.', 'Use Shape to drag generated geometry or its corner handle to resize; use Pencil or Eraser for pixel corrections.', 'Watch the assembled result on the right; adjust growth and attachments in the tabs below.'],
+ingredients: ['Choose an ingredient species in Domain target.', 'Select its growth stage and see the icon, plant and fragments together.', 'Bind a reusable component graph, or open the native morphology details for precise adjustments.'],
+environments: ['Choose a biome in Domain target.', 'Pick Rock, Soil, Erase, Water, Lava, Place prop or Add light above the preview.', 'After placement, drag a prop or light center to move it; drag the square handle to resize. Sliders adjust the rest.'],
+creatures: ['Choose a creature.', 'Adjust its anatomy and pose while watching the live animation.', 'Preview mutations and magical effects before applying the art profile.'],
+materials: ['Choose a material type.', 'Change color, opacity and texture while watching the live simulation.', 'Use the sample buttons to test its appearance in different conditions.'],
+effects: ['Choose a magical effect.', 'Edit particle size, density, shape and color.', 'Preview the effect against simulated material.'],
+interface: ['Choose an interface icon or artwork target.', 'Tune the colors and frame artwork.', 'Switch preview widths to check phone and tablet layouts.']
+};
+const body = h('div', { class: 'art-guide-content' },
+h('p', { text: 'A quick workflow for this workspace:' }),
+h('ol', {}, (guides[this.workspace] || guides.components).map((tip) => h('li', { text: tip }))),
+h('p', { text: 'Save Draft stores your project locally. Apply Art Profile makes it active in the game. Export Project creates a portable backup; both are in Project options.' }));
+modal({ title: 'Art Studio guide', body });
+}
 async run(fn) { try { await fn(); } catch (e) { this.message(e.message || String(e), true); } }
 message(text, error = false) { if (!this.mounted) return; this.status.textContent = text; this.status.classList.toggle('error', error); }
 edit(label, fn, refresh = true) {
@@ -18097,6 +18334,7 @@ refresh() {
 if (!this.mounted) return;
 const workspaceControl = this.el.querySelector('[aria-label="Editor workspace"]'); if (workspaceControl) workspaceControl.value = this.workspace;
 this.title.textContent = this.project.name + (this.dirty ? ' •' : '');
+this.el.classList.toggle('art-domain-active', this.workspace !== 'components');
 if (this.workspace !== 'components') {
 this.renderLibrary();
 if (!this.domainEditor) this.domainEditor = new DomainWorkspace(this);
@@ -18105,7 +18343,15 @@ this.domainEditor.render(); return;
 if (this.center.querySelector('.art-domain')) { this.domainEditor?.destroy(); this.domainEditor = null; this.center.replaceChildren(...this.componentChildren); }
 this.renderLibrary(); this.renderInspector(); this.renderBottom(); this.refreshTools(); this.draw();
 }
-refreshTools() { for (const b of this.tools.querySelectorAll('[data-act^="art-tool-"]')) { const on = b.dataset.act === 'art-tool-' + this.tool; b.classList.toggle('active', on); b.setAttribute('aria-pressed', String(on)); } }
+refreshTools() {
+for (const b of this.tools.querySelectorAll('[data-act^="art-tool-"]')) {
+const on = b.dataset.act === 'art-tool-' + this.tool;
+b.classList.toggle('active', on); b.setAttribute('aria-pressed', String(on));
+}
+this.canvas.dataset.editorTool = this.tool;
+const label = this.tools.querySelector('.art-tool-more > summary');
+if (label) label.textContent = ['shape', 'pencil', 'eraser', 'line', 'rectangle', 'fill', 'select', 'pan'].includes(this.tool) ? 'More tools' : 'More: ' + this.tool;
+}
 check(label, checked, change) {
 const input = h('input', { type: 'checkbox', 'aria-label': label, onchange: () => change(input.checked) }); input.checked = checked;
 return h('label', { class: 'art-check' }, input, label);
@@ -18150,7 +18396,11 @@ list.append(details);
 }
 }
 renderInspector() {
-const a = this.asset, c = this.component; clear(this.inspector);
+const inspectorScroll = this.inspector.scrollTop;
+const a = this.asset, c = this.component;
+this.componentGroups ??= new Map();
+for (const group of this.inspector.querySelectorAll('details[data-editor-group]')) this.componentGroups.set(group.dataset.editorGroup, group.open);
+clear(this.inspector);
 const editField = (label, obj, key, type = 'text', attrs = {}) => this.field(label, obj[key], (v) => this.edit(label, () => { obj[key] = v; }), type, attrs);
 this.inspector.append(h('h2', { text: 'Asset & component' }), editField('Asset name', a, 'name'), editField('Category', a, 'category'), editField('Folder', a, 'folder'), editField('Tags', a, 'tags'),
 btn('Duplicate asset', () => this.edit('Duplicate asset', () => { const copy = clone(a); copy.id = uid(); copy.name += ' copy'; this.project.assets.push(copy); this.assetId = copy.id; }), { act: 'art-duplicate-asset' }),
@@ -18158,6 +18408,36 @@ btn('Delete asset', () => this.run(async () => { if (this.project.assets.length 
 editField('Component name', c, 'name'), editField('Component tags', c, 'tags'));
 this.inspector.append(btn('Duplicate component', () => this.edit('Duplicate component', () => { const copy = clone(c); copy.id = uid(); copy.name += ' copy'; this.asset.components.push(copy); this.componentId = copy.id; })),
 btn('Delete unattached component', () => this.run(() => { if (this.asset.components.length < 2 || this.asset.nodes.some((n) => n.component === c.id)) throw new Error('Remove rules referencing this component before deleting it.'); this.edit('Delete component', () => { this.asset.components = this.asset.components.filter((p) => p.id !== c.id); this.componentId = this.asset.components[0].id; }); })));
+this.geometryIndex = Math.max(0, Math.min(this.geometryIndex, c.geometry.length - 1));
+this.inspector.append(h('div', { class: 'art-control-group art-shape-controls' },
+h('h3', { text: 'Edit generated shapes' }),
+h('p', { class: 'muted', text: 'Choose Shape in the toolbar, drag a shape to move it, or drag its corner to resize.' }),
+this.select('Shape to add', this.newShape, ['leaf', 'stem', 'crystal', 'ellipse', 'rectangle', 'polygon'].map((shape) => [shape, shape[0].toUpperCase() + shape.slice(1)]), (v) => { this.newShape = v; }),
+this.select('Selected shape', String(this.geometryIndex), c.geometry.length
+? c.geometry.map((g, idx) => [String(idx), (idx + 1) + '. ' + g.shape])
+: [['', 'No shapes yet']], (value) => {
+this.geometryIndex = Math.max(0, Number(value) || 0);
+this.tool = 'shape'; this.refreshTools(); this.draw();
+}),
+this.select('Selected shape type', c.geometry[this.geometryIndex]?.shape || '', c.geometry.length
+? ['leaf', 'stem', 'crystal', 'ellipse', 'rectangle', 'polygon'].map((shape) => [shape, shape])
+: [['', 'No shape selected']], (value) => this.edit('Change procedural shape', () => {
+const g = c.geometry[this.geometryIndex]; if (!g) return;
+g.shape = value;
+if (value === 'polygon' && !g.points) g.points = [[16, 2], [30, 28], [2, 28]];
+})),
+btn('+ Add shape', () => this.edit('Add procedural shape', () => {
+const shape = this.newShape;
+c.geometry.push({ shape, color: this.color, width: 12, height: 16, x: 16, y: 16,
+...(shape === 'polygon' ? { points: [[16, 2], [30, 28], [2, 28]] } : {}) });
+this.geometryIndex = c.geometry.length - 1; this.tool = 'shape';
+}), { act: 'art-add-shape' }),
+btn('Remove selected shape', () => this.edit('Remove procedural shape', () => {
+if (!c.geometry.length) return;
+c.geometry.splice(this.geometryIndex, 1);
+this.geometryIndex = Math.max(0, Math.min(this.geometryIndex, c.geometry.length - 1));
+}), { act: 'art-remove-shape' })
+));
 this.inspector.append(this.field('Brush size', this.brush, (v) => { this.brush = Math.max(1, Math.min(16, v)); }, 'number', { min: 1, max: 16 }), this.check('Round brush', this.round, (v) => { this.round = v; }),
 this.field('Paint color', this.color, (v) => { this.color = v; }, 'color'), h('div', { class: 'art-palette' }, this.project.palette.map((color) => btn(' ', () => { this.color = color; this.paletteIndex = this.project.palette.indexOf(color); this.renderInspector(); }, { title: color, act: 'art-color-' + color.slice(1) })).map((b, i) => { b.style.background = this.project.palette[i]; return b; })),
 btn('Add paint color to palette', () => this.edit('Palette color', () => { if (!this.project.palette.includes(this.color)) this.project.palette.push(this.color); })),
@@ -18178,14 +18458,43 @@ btn('Delete layer ' + (index + 1), () => this.edit('Delete layer', () => { c.lay
 this.inspector.append(btn('+ Layer', () => this.edit('Add layer', () => { const l = newLayer(); c.layers.push(l); this.layerId = l.id; }), { act: 'art-add-layer' }),
 h('div', { class: 'art-row' }, btn('Copy', () => this.copy()), btn('Paste', () => this.paste()), btn('Flip', () => this.transform(0, 1, true)), btn('Rotate 90°', () => this.transform(90)), btn('Scale 2×', () => this.transform(0, 2)), btn('Scale ½', () => this.transform(0, 0.5))),
 btn('Import PNG', () => this.pngFile.click(), { act: 'art-import-png' }), btn('Export transparent PNG', () => this.exportPNG(), { act: 'art-export-png' }), this.field('Preview background', this.background, (v) => { this.background = v; this.draw(); }, 'color'));
+const fold = (heading, label, id) => {
+const children = [...this.inspector.children];
+const start = children.findIndex((el) => el.tagName === 'H3' && el.textContent === heading);
+if (start < 0) return;
+const next = children.findIndex((el, index) => index > start && el.tagName === 'H3');
+const end = next < 0 ? children.length : next;
+const panel = h('details', { class: 'art-settings-group', 'data-editor-group': id, open: this.componentGroups.get(id) ? true : null },
+h('summary', { text: label }));
+children.slice(start, end).forEach((node) => panel.append(node));
+this.inspector.insertBefore(panel, children[end] || null);
+};
+fold('Source geometry', 'Shapes & procedural details', 'component-shapes');
+fold('Pixel correction layers', 'Layers, transforms & image import/export', 'component-layers');
+const metadata = h('details', { class: 'art-settings-group', 'data-editor-group': 'component-meta', open: this.componentGroups.get('component-meta') ? true : null }, h('summary', { text: 'Asset metadata & management' }));
+for (const label of ['Category', 'Folder', 'Tags', 'Component tags']) {
+const control = [...this.inspector.querySelectorAll('input')].find((input) => input.getAttribute('aria-label') === label);
+if (control?.parentElement?.classList.contains('art-field')) metadata.append(control.parentElement);
+}
+for (const act of ['art-duplicate-asset', 'art-delete-asset']) {
+const button = this.inspector.querySelector('[data-act="' + act + '"]');
+if (button) metadata.append(button);
+}
+for (const name of ['Duplicate component', 'Delete unattached component']) {
+const button = [...this.inspector.querySelectorAll('button')].find((b) => b.textContent === name);
+if (button) metadata.append(button);
+}
+this.inspector.append(metadata);
+this.inspector.insertBefore(h('p', { class: 'art-inspector-intro', text: 'Select a component from the left, then paint its pixels here. Open the sections below for precise geometry, layers and asset details.' }), this.inspector.children[1] || null);
 this.renderDirection();
+this.inspector.scrollTop = inspectorScroll;
 }
 renderDirection() {
 const d = this.project.direction;
 this.directionScope ??= 'global'; this.directionKey ??= 'herb';
 const scope = this.directionScope, key = this.directionKey;
 const style = scope === 'global' ? d.global : d[scope][key] || d.global;
-const section = h('details', {}, h('summary', { text: 'Game art direction — ingredient ramps' }));
+const section = h('details', { class: 'art-settings-group', 'data-editor-group': 'direction', open: this.componentGroups.get('direction') ? true : null }, h('summary', { text: 'Game art direction — ingredient ramps' }));
 const targets = scope === 'biomes' ? ['meadow', 'forest', 'river', 'moonfen', 'quarry', 'crags', 'netherwood'] : scope === 'families' ? Object.keys(FAMILIES) : WILD_SPECS.map((s) => s.key);
 section.append(this.select('Style scope', scope, ['global', 'biomes', 'families', 'species'].map((s) => [s, s]), (v) => { this.directionScope = v; this.directionKey = v === 'biomes' ? 'forest' : v === 'families' ? 'herb' : WILD_SPECS[0].key; this.renderInspector(); }));
 if (scope !== 'global') section.append(this.select('Style target', key, targets.map((s) => [s, s]), (v) => { this.directionKey = v; this.renderInspector(); }));
@@ -18263,7 +18572,50 @@ const markers = [[this.component.anchor, '#ffd38a', 'B'], [this.component.tip, '
 for (const [point, color, label] of markers) { const x = ox + point[0] * this.zoom, y = oy + point[1] * this.zoom; ctx.strokeStyle = color; ctx.beginPath(); ctx.moveTo(x - 8, y); ctx.lineTo(x + 8, y); ctx.moveTo(x, y - 8); ctx.lineTo(x, y + 8); ctx.stroke(); ctx.fillText(label, x + 7, y - 7); }
 }
 if (this.tool === 'vertex') { ctx.fillStyle = '#ffcc66'; for (const g of this.component.geometry) for (const p of g.points || []) ctx.fillRect(ox + (g.x + (p[0] - 16) * g.width / 32) * this.zoom - 3, oy + (g.y + (p[1] - 16) * g.height / 32) * this.zoom - 3, 6, 6); }
+if (this.tool === 'shape') this.drawShapeHandles(ctx, ox, oy);
 this.drawGenerated();
+}
+drawShapeHandles(ctx, ox, oy) {
+for (const [index, g] of this.component.geometry.entries()) {
+const selected = this.geometryIndex === index, k = this.zoom;
+const x = ox + (g.x - g.width / 2) * k, y = oy + (g.y - g.height / 2) * k;
+ctx.save();
+ctx.strokeStyle = selected ? '#ffda80' : '#78c7bf';
+ctx.lineWidth = selected ? 2 : 1;
+ctx.setLineDash(selected ? [5, 3] : [3, 4]);
+ctx.strokeRect(x, y, g.width * k, g.height * k);
+ctx.setLineDash([]);
+if (selected) {
+const hx = ox + (g.x + g.width / 2) * k, hy = oy + (g.y + g.height / 2) * k;
+ctx.fillStyle = '#ffda80'; ctx.fillRect(hx - 8, hy - 8, 16, 16);
+ctx.strokeStyle = '#13252e'; ctx.strokeRect(hx - 8, hy - 8, 16, 16);
+}
+ctx.restore();
+}
+}
+shapeHit(e) {
+const b = this.canvas.getBoundingClientRect();
+const x = (e.clientX - b.left - this.origin[0]) / this.zoom;
+const y = (e.clientY - b.top - this.origin[1]) / this.zoom;
+const tolerance = 12 / this.zoom;
+const selected = this.component.geometry[this.geometryIndex];
+if (selected && Math.hypot(x - selected.x - selected.width / 2, y - selected.y - selected.height / 2) <= tolerance) {
+return { index: this.geometryIndex, action: 'resize', x, y };
+}
+for (let i = this.component.geometry.length - 1; i >= 0; i--) {
+const g = this.component.geometry[i];
+if (Math.abs(x - g.x) <= g.width / 2 + tolerance && Math.abs(y - g.y) <= g.height / 2 + tolerance) {
+return { index: i, action: 'move', x, y };
+}
+}
+return null;
+}
+finishGeometryDrag(cancel = false) {
+const d = this.geometryDrag; if (!d) return;
+this.geometryDrag = null;
+if (cancel) this.project = d.before;
+else if (JSON.stringify(d.before) !== JSON.stringify(this.project)) this.commitGesture(d.before, d.action === 'resize' ? 'Resize procedural shape' : 'Move procedural shape');
+this.refresh();
 }
 drawGenerated() {
 if (!this.generated) return;
@@ -18289,6 +18641,16 @@ cv.focus(); e.preventDefault(); cv.setPointerCapture(e.pointerId);
 if (!this.origin) this.paint();
 const p = this.point(e), tool = this.space || e.button === 1 ? 'pan' : this.tool;
 if (tool !== 'pan' && (p[0] < 0 || p[0] >= 32 || p[1] < 0 || p[1] >= 32)) return;
+if (tool === 'shape') {
+const hit = this.shapeHit(e);
+if (!hit) return;
+this.geometryIndex = hit.index;
+const g = this.component.geometry[hit.index];
+this.geometryDrag = { before: clone(this.project), pointerId: e.pointerId,
+action: hit.action, index: hit.index, x: hit.x, y: hit.y,
+source: { x: g.x, y: g.y, width: g.width, height: g.height } };
+this.draw(); return;
+}
 if (tool === 'eyedropper') { this.color = wordColor(this.bitmap.get(p[0], p[1])); this.renderInspector(); return; }
 if (tool === 'fill' || tool === 'contiguous') {
 const pixels = region(this.bitmap.px, 32, 32, p[0], p[1]);
@@ -18305,6 +18667,22 @@ if (tool === 'anchor' || tool === 'tip') this.component[tool] = p;
 this.draw();
 });
 cv.addEventListener('pointermove', (e) => {
+const d = this.geometryDrag;
+if (d && e.pointerId === d.pointerId) {
+const b = cv.getBoundingClientRect();
+const x = (e.clientX - b.left - this.origin[0]) / this.zoom;
+const y = (e.clientY - b.top - this.origin[1]) / this.zoom;
+const dx = x - d.x, dy = y - d.y, g = this.component.geometry[d.index];
+if (!g) return;
+if (d.action === 'resize') {
+g.width = Math.max(1, Math.min(32, Math.round(d.source.width + dx * 2)));
+g.height = Math.max(1, Math.min(32, Math.round(d.source.height + dy * 2)));
+} else {
+g.x = Math.max(0, Math.min(32, Math.round(d.source.x + dx)));
+g.y = Math.max(0, Math.min(32, Math.round(d.source.y + dy)));
+}
+this.draw(); return;
+}
 const s = this.stroke; if (!s) return;
 const p = this.point(e).map((v) => Math.max(0, Math.min(31, v)));
 if (s.tool === 'pan') { this.pan = [s.pan[0] + e.clientX - s.screen[0], s.pan[1] + e.clientY - s.screen[1]]; this.draw(); return; }
@@ -18320,9 +18698,12 @@ for (const i of indices) { const x = i % 32 + dx, y = Math.floor(i / 32) + dy; i
 } else if (s.tool === 'vertex' && s.vertex) { const g = this.component.geometry[s.vertex.gi]; g.points[s.vertex.vi] = [Math.max(0, Math.min(32, (p[0] - g.x) * 32 / g.width + 16)), Math.max(0, Math.min(32, (p[1] - g.y) * 32 / g.height + 16))]; } else if (s.tool === 'anchor' || s.tool === 'tip') this.component[s.tool] = p;
 s.last = p; this.draw();
 });
-cv.addEventListener('pointerup', () => this.endStroke());
-cv.addEventListener('pointercancel', () => { if (this.stroke) this.project = this.stroke.before; this.stroke = null; this.draw(); });
-cv.addEventListener('lostpointercapture', () => this.endStroke());
+cv.addEventListener('pointerup', () => { if (this.geometryDrag) this.finishGeometryDrag(); else this.endStroke(); });
+cv.addEventListener('pointercancel', () => {
+if (this.geometryDrag) { this.finishGeometryDrag(true); return; }
+if (this.stroke) this.project = this.stroke.before; this.stroke = null; this.draw();
+});
+cv.addEventListener('lostpointercapture', () => { if (this.geometryDrag) this.finishGeometryDrag(); else this.endStroke(); });
 }
 commitGesture(before, label) {
 try { validateProject(this.project); this.history.push(before, label); this.dirty = true; }
@@ -18442,13 +18823,13 @@ this.hiddenPanels = hidden ? [...new Set([...this.hiddenPanels, panel])] : this.
 try { await putSetting('hidden-panels', this.hiddenPanels); } catch { /* Authoring works without persistent layout. */ }
 }
 async saveLayout() {
-if (!this.mounted) return;
+if (!this.mounted || window.innerWidth <= 1000 || window.innerHeight <= 650) return;
 const layout = {}; for (const [key, el] of [['--art-left', this.library], ['--art-right', this.inspector], ['--art-bottom', this.bottom]]) { const n = key === '--art-bottom' ? el.clientHeight : el.clientWidth; if (n > 0) { layout[key] = Math.round(n) + 'px'; this.el.style.setProperty(key, layout[key]); } }
 try { await putSetting('layout', layout); } catch { /* Layout persistence must not interrupt authoring. */ }
 }
 unmount() {
 this.domainEditor?.destroy(); this.domainEditor = null;
-this.mounted = false; this.stroke = null; this.nodeDrag = null; this.space = false; cancelAnimationFrame(this.drawRequest); clearInterval(this.playTimer); this.playTimer = null; clearTimeout(this.layoutTimer);
+this.mounted = false; this.stroke = null; this.geometryDrag = null; this.nodeDrag = null; this.space = false; cancelAnimationFrame(this.drawRequest); clearInterval(this.playTimer); this.playTimer = null; clearTimeout(this.layoutTimer);
 window.removeEventListener('keyup', this.keyUpHandler); window.removeEventListener('blur', this.blurHandler);
 window.removeEventListener('keydown', this.keyHandler); window.removeEventListener('beforeunload', this.unload); this.observer?.disconnect();
 this.bitmapCanvas = null; this.componentKey = ''; this.el.remove();
@@ -26862,9 +27243,9 @@ const PEN_H = 92;
 const BACK = 67;
 const GROUND_Y0 = 69;
 const GROUND_Y1 = 86;
-const PENS_VERSION = 7;
+const PENS_VERSION = 8;
 const P = {
-wood: ['#1e1018', '#40241a', '#68401f', '#8e5c2c', '#b88242', '#e0b070'].map(col),
+wood: ['#241412', '#4a2818', '#784622', '#a36b32', '#d2964b', '#f2c780'].map(col),
 oak: ['#160c14', '#2e1c1a', '#4a3020', '#684828', '#8c6a3c', '#b4945c'].map(col),
 straw: ['#4a2a12', '#82561a', '#b8862a', '#e0ae3a', '#f6d260', '#fff2b0'].map(col),
 thatch: ['#3a2414', '#6e4c22', '#9c7432', '#c49e48', '#e2c46a', '#f8e4a0'].map(col),
@@ -26875,8 +27256,8 @@ beige: ['#5a4434', '#8a7058', '#b49c80', '#cdb898', '#e0d0b2', '#f2e8d0'].map(co
 lime: ['#6e6a66', '#948e84', '#b4ac9e', '#cec6b4', '#e4dccc', '#f8f4e8'].map(col),
 earth: ['#180c0c', '#301c14', '#4c3020', '#6a462a', '#8a6238', '#ae8450'].map(col),
 dirt: ['#2a1a1a', '#4a3226', '#6a4c34', '#8a6644', '#ac8656', '#cca870'].map(col),
-grass: ['#122a1c', '#1e4a24', '#30682a', '#4a8a30', '#6eae3a', '#9ccc52'].map(col),
-leaf: ['#0e2218', '#183a22', '#265630', '#3a7438', '#5a9840', '#88bc56'].map(col),
+grass: ['#18331a', '#285325', '#3e792b', '#629d32', '#95c842', '#c2e267'].map(col),
+leaf: ['#122c1c', '#204b28', '#326d32', '#4c8b36', '#75ae44', '#a2cc5c'].map(col),
 moss: ['#1e3a1a', '#336022', '#4e862a', '#72aa34', '#9ccc44', '#ccec6c'].map(col),
 snow: ['#6a7a98', '#94a4c0', '#bccadc', '#dae2ee', '#eef2f8', '#ffffff'].map(col),
 water: ['#0c1c3a', '#16305c', '#22487e', '#36649e', '#6a9ccc', '#c8e6fa'].map(col),
@@ -26973,10 +27354,10 @@ for (let k = 0; k < N; k++) {
 const c = px[k];
 if (MARK.thing[k]) { px[k] = saturate(c, 1.12); continue; }
 if (MARK.ground[k]) continue;
-let q = saturate(c, 0.8);
-const l = luma(q), t = (mean - l) * 0.12;
+let q = saturate(c, 0.92);
+const l = luma(q), t = (mean - l) * 0.06;
 q = mixPacked(q, t > 0 ? 0xffffffff : 0xff000000, Math.min(0.3, Math.abs(t) / 255));
-px[k] = mixPacked(q, amb, 0.12);
+px[k] = mixPacked(q, amb, 0.05);
 }
 }
 function inkThings(cv) {
@@ -28048,7 +28429,7 @@ out = def.compose({ cv, fg, seed, block });
 recede(cv);
 inkThings(cv);
 } finally { MARK = null; }
-finish(cv, 0.3);
+finish(cv, 0.18);
 fringe(fg, def.fringe || '', seed + 9);
 grade(cv, 'pen');
 grade(fg, 'pen');

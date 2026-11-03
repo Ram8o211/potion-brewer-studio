@@ -18,12 +18,12 @@ import { roots, litter, ferns } from './forest.js';
 export function compose(cv, seed) {
   const W = cv.W, H = cv.H, s = (p) => streamOf(seed, 'netherwood', p);
   const pal = vary(palette({
-    leaf: ['#1e4a46', { spread: 0.55 }], leaf2: ['#24405a', { spread: 0.5 }], bloom: ['#b080f0', { spread: 0.4 }], bark: ['#2e2630', { spread: 0.45 }], logbark: ['#4e4048', { spread: 0.45 }], wood: '#7a6a5a', rock: '#4a4a56',
+    leaf: ['#218577', { spread: 0.44, cool: 0.18 }], leaf2: ['#26748a', { spread: 0.44, cool: 0.18 }], bloom: ['#b080f0', { spread: 0.4 }], bark: ['#4a3444', { spread: 0.4 }], logbark: ['#71504a', { spread: 0.45 }], wood: '#a07756', rock: '#4a4a56',
     moss: ['#2e6a5a', { spread: 0.5 }], fern: ['#2a6a5e', { spread: 0.5 }],
     stem: ['#d8d0ec', { spread: 0.4 }], cap: ['#9a5ae0', { spread: 0.6 }], spot: '#f4e8ff',
   }), s('pal'), 1);
   const back = '#0e1820';
-  sky(cv, 0, H, ['#030408', '#060a10', '#0a1018', '#0e1620']);
+  sky(cv, 0, H, ['#03080e', '#06121d', '#092536', '#123649']);
   farPillars(cv, { n: 8, fill: '#0c141c', rim: '#121c26', seed: s('far1').int(0, 1e9), w: [10, 22], floor: 180, caps: true });
   fog(cv, '#1c2c40', 80, 200, 0.3, s('fog1').int(0, 1e9));
   // the ground line, and the ghostly wood behind
@@ -37,7 +37,7 @@ export function compose(cv, seed) {
   // the roof, the roots of the wood above hanging through it
   const fs = s('frame');
   const frame = caveFrame(cv, {
-    seed: fs.int(0, 1e9), stones: ['#2e2a30', '#26222a', '#34343a'], mortar: '#08080a', dark: 0.42, roof: [12, 34], walls: [10, 12],
+      seed: fs.int(0, 1e9), stones: ['#47424b', '#38343e', '#4d4c55'], mortar: '#08080d', dark: 0.2, roof: [12, 30], walls: [8, 9],
     stal: { n: 12, len: [8, 28], w: [3, 6] }, lip: ['#3e7a6a', '#24504a'],
   });
   vines(cv, frame.roof, { cols: ['#5a4232', '#46321f', '#2e2016'], leaf: '#6a4e3a', flower: '#c8a0ff', seed: fs.int(0, 1e9), rate: 0.22, len: [6, 48] });
@@ -57,7 +57,7 @@ export function compose(cv, seed) {
   const ss = ts.int(0, 1e9);
   paintTerrain(cv, {
     a: '#2a2228', b: '#342a30', grain: '#54465a', dark: '#100c10', deep: '#060408', cave: '#040305',
-    crust: ['#5aa08a', '#3e7a6a', '#2a5a4e', '#1e4038'], crustH: 4, seed: ss,
+    crust: ['#67d7aa', '#39a788', '#247d70', '#1c5555'], crustH: 4, seed: ss,
     cobble: { stones: ['#3a3444', '#443c4e', '#4e4658', '#36303e', '#48405a', '#3e3848'], mortar: '#050408', s: 10, moss: ['#2a5a4e', '#4e8a7a'] },
     grass: { cols: ['#3e7a6a', '#5aa08a', '#2a5a4e'], tall: 3, rate: 0.45, flowers: ['#c8a0ff', '#8ff0ff', '#f0c8ff'] },
     // under the moss a dark violet loam with pale pebbles, then the stones
@@ -74,7 +74,7 @@ export function compose(cv, seed) {
   markOpen(cv);
   // a log and a stump, dark trees where they fit, then giant mushrooms between them, glowing under their caps
   litter(cv, s, pal);
-  terrainTrees(cv, s('trees'), pal, { n: 5, kinds: ['oak', 'gnarl', 'willow'], shapes: ['tall', 'lean'], h: [44, 100], gap: 30, ledges: true, dark: 0.15, look });
+  terrainTrees(cv, s('trees'), pal, { n: 5, kinds: ['gnarl', 'tiers', 'gnarl'], shapes: ['spread', 'lean'], h: [44, 96], gap: 36, ledges: true, dark: 0.05, look });
   const mr = s('mushrooms'), glows = [];
   for (let i = 0, n = 0; i < 10 && n < 3; i++) {
     const h = mr.int(18, 34), r = Math.round(h * mr.range(0.4, 0.55));
@@ -91,7 +91,7 @@ export function compose(cv, seed) {
   glows.push(...glowShrooms(cv, { n: 9, cap: '#9a5ae8', lit: '#f0c8ff', stem: '#c8c0d0', rgb: [0.62, 0.38, 1], seed: s('shrooms').int(0, 1e9) }));
   cv.meta.glows = glows;
   cv.meta.trickles = drips(cv, ss, 4);
-  cv.meta.vignette = 0.6;
+  cv.meta.vignette = 0.32;
   // only the cavern's draughts stir its leaves
   cv.meta.wind = 0.3;
   cv.meta.horizon = 120;

@@ -360,7 +360,32 @@ export function pool(cv, x0, x1, level, o) {
     }
     if (near < 3) cv.paint(k, bed[Math.min(bed.length - 1, near + (hash2(x, y, 77) > 0.8 ? 1 : 0))]);
   }
+  // Short horizontal reflections break up the flat fill. They are part of
+  // the cached painting; the moving glints are still added by wild-scene.
+  // The pool's own palette keeps lava reflections warm and water cool.
+  for (let y = level + 1; y < cv.H; y += 3) for (let x = Math.max(1, x0); x < Math.min(cv.W - 1, x1); x += 5) {
+    if (hash2(x, y, cv.seed + 83) > 0.45) continue;
+    const len = 1 + Math.floor(hash2(x, y, cv.seed + 84) * 4);
+    for (let i = 0; i < len; i++) {
+      const k = y * cv.W + x + i;
+      if (x + i <= x1 && cv.liquid[k]) cv.paint(k, mixPacked(cv.pix.px[k], y < level + 5 ? surf : body[0], y < level + 5 ? 0.7 : 0.35));
+    }
+  }
   return { x0, x1, level };
+}
+
+/** Sunlight behind the terrain, in broad shafts rather than a scene-wide haze. */
+export function sunbeams(cv, sx, sy, strength = 0.12) {
+  cv.light([1, 0.94, 0.7], (x, y) => {
+    if (y < sy) return 0;
+    const d = y - sy, u = x - sx + d * 0.65;
+    let a = 0;
+    for (const off of [-15, 0, 19]) {
+      const q = Math.abs(u - off) / (3 + d * 0.08);
+      if (q < 1) a = Math.max(a, (1 - q) * strength * Math.max(0, 1 - d / cv.H));
+    }
+    return a;
+  }, sy, cv.H);
 }
 
 /**

@@ -34,7 +34,7 @@ const FLORA = {
   },
   netherwood: {
     kinds: [['tuft', 3], ['glowcap', 1.6], ['spike', 1.6], ['daisy', 1.2], ['fern', 1.2]], rate: 0.2,
-    cols: { blade: ['#14302a', '#1e4a3e', '#3e7a6a', '#5aa08a'], petal: ['#e8e0ff', '#c8f0ff'], eye: ['#a080ff'], spike: ['#4a2a7a', '#7a4ac0', '#b088ff'], cap: ['#5a2a8a', '#a060f0', '#e0c0ff'] },
+    cols: { blade: ['#16473f', '#226f62', '#3aa993', '#72dbc0'], petal: ['#e8e0ff', '#c8f0ff'], eye: ['#a080ff'], spike: ['#65449b', '#a26ae0', '#d3a7ff'], cap: ['#6f36b0', '#b46aff', '#f1d5ff'] },
     creep: { cols: ['#4a1414', '#7a1e1a', '#a83020'], leaf: '#3e7a6a', berry: '#ff5a6a', rate: 0.55 },
     glow: [0.7, 0.4, 1],
   },
@@ -109,6 +109,7 @@ export function flourish(cv, region) {
 /** What a region has besides: ore, glowing bells hanging from the roof. @type {Record<string, (cv:any, seed:number, swaying:Uint8Array) => void>} */
 const EXTRAS = {
   quarry: (cv, seed) => ore(cv, seed),
+  river: (cv, seed, sw) => bells(cv, seed, sw, { cols: [['#28a4bb', '#6ae5f1', '#ddffff']], stem: ['#448a30', '#6aaf3e'], rgb: [[0.3, 0.85, 1]], n: 4 }),
   netherwood: (cv, seed, sw) => bells(cv, seed, sw, { cols: [['#c03a6a', '#ff7aa8', '#ffd0e0'], ['#c8862a', '#ffc860', '#fff0c0']], stem: ['#2e5a3a', '#4a2e22'], rgb: [[1, 0.45, 0.65], [1, 0.75, 0.35]], n: 6 }),
   moonfen: (cv, seed, sw) => bells(cv, seed, sw, { cols: [['#6a3ac0', '#a878ff', '#e8d0ff'], ['#2a7ab0', '#6ad0ff', '#d8f8ff']], stem: ['#1e4a3c', '#2e6a52'], rgb: [[0.7, 0.45, 1], [0.4, 0.85, 1]], n: 5 }),
 };

@@ -15,10 +15,10 @@
 
 /** How strong each region's grade is: [contrast, saturation, edge ink]. */
 const GRADE = {
-  meadow: [0.42, 1.32, 0.5], forest: [0.4, 1.28, 0.5], netherwood: [0.34, 1.3, 0.46], river: [0.42, 1.3, 0.5],
-  quarry: [0.38, 1.26, 0.48], moonfen: [0.34, 1.3, 0.44], crags: [0.36, 1.25, 0.48],
+  meadow: [0.25, 1.18, 0.42], forest: [0.24, 1.16, 0.42], netherwood: [0.18, 1.18, 0.4], river: [0.24, 1.18, 0.42],
+  quarry: [0.23, 1.12, 0.42], moonfen: [0.18, 1.18, 0.4], crags: [0.2, 1.14, 0.42],
   // the farm's enclosures (pens.js): the wilds' look, no ground silhouette to ink
-  pen: [0.4, 1.28, 0],
+  pen: [0.25, 1.18, 0],
 };
 
 /** The S-curve, 0..255 → 0..255, as a table. @param {number} k */

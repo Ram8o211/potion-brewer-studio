@@ -32,7 +32,7 @@ export const GROUND_Y0 = 69;
 const GROUND_Y1 = 86;
 
 /** Version of the pens' painting (names caches only). */
-export const PENS_VERSION = 7;
+export const PENS_VERSION = 8;
 
 /**
  * @typedef {Object} Pen
@@ -51,7 +51,7 @@ export const PENS_VERSION = 7;
 
 /** Ramps of the farm's materials, darkest first. */
 const P = {
-  wood: ['#1e1018', '#40241a', '#68401f', '#8e5c2c', '#b88242', '#e0b070'].map(col),
+  wood: ['#241412', '#4a2818', '#784622', '#a36b32', '#d2964b', '#f2c780'].map(col),
   oak: ['#160c14', '#2e1c1a', '#4a3020', '#684828', '#8c6a3c', '#b4945c'].map(col),
   straw: ['#4a2a12', '#82561a', '#b8862a', '#e0ae3a', '#f6d260', '#fff2b0'].map(col),
   thatch: ['#3a2414', '#6e4c22', '#9c7432', '#c49e48', '#e2c46a', '#f8e4a0'].map(col),
@@ -62,8 +62,8 @@ const P = {
   lime: ['#6e6a66', '#948e84', '#b4ac9e', '#cec6b4', '#e4dccc', '#f8f4e8'].map(col),
   earth: ['#180c0c', '#301c14', '#4c3020', '#6a462a', '#8a6238', '#ae8450'].map(col),
   dirt: ['#2a1a1a', '#4a3226', '#6a4c34', '#8a6644', '#ac8656', '#cca870'].map(col),
-  grass: ['#122a1c', '#1e4a24', '#30682a', '#4a8a30', '#6eae3a', '#9ccc52'].map(col),
-  leaf: ['#0e2218', '#183a22', '#265630', '#3a7438', '#5a9840', '#88bc56'].map(col),
+  grass: ['#18331a', '#285325', '#3e792b', '#629d32', '#95c842', '#c2e267'].map(col),
+  leaf: ['#122c1c', '#204b28', '#326d32', '#4c8b36', '#75ae44', '#a2cc5c'].map(col),
   moss: ['#1e3a1a', '#336022', '#4e862a', '#72aa34', '#9ccc44', '#ccec6c'].map(col),
   snow: ['#6a7a98', '#94a4c0', '#bccadc', '#dae2ee', '#eef2f8', '#ffffff'].map(col),
   water: ['#0c1c3a', '#16305c', '#22487e', '#36649e', '#6a9ccc', '#c8e6fa'].map(col),
@@ -215,10 +215,10 @@ function recede(cv) {
     if (MARK.thing[k]) { px[k] = saturate(c, 1.12); continue; }
     if (MARK.ground[k]) continue;
     // less colour, flatter tones round the backdrop's mean, a veil of its ambient
-    let q = saturate(c, 0.8);
-    const l = luma(q), t = (mean - l) * 0.12;
+    let q = saturate(c, 0.92);
+    const l = luma(q), t = (mean - l) * 0.06;
     q = mixPacked(q, t > 0 ? 0xffffffff : 0xff000000, Math.min(0.3, Math.abs(t) / 255));
-    px[k] = mixPacked(q, amb, 0.12);
+    px[k] = mixPacked(q, amb, 0.05);
   }
 }
 
@@ -1541,7 +1541,7 @@ export function penOf(kind) {
     recede(cv);
     inkThings(cv);
   } finally { MARK = null; }
-  finish(cv, 0.3);
+  finish(cv, 0.18);
   fringe(fg, def.fringe || '', seed + 9);
   // the wilds' grade, so a pen looks like the same world as the wilds: deeper shadows, brighter lights, richer colour
   grade(cv, 'pen');

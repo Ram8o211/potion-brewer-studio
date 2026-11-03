@@ -16,11 +16,11 @@ import { Model } from '../geometry.js';
 export function compose(cv, seed) {
   const W = cv.W, H = cv.H, s = (p) => streamOf(seed, 'river', p);
   const pal = vary(palette({
-    leaf: ['#4a7a2a', { spread: 0.55 }], leaf2: ['#5e7a46', { spread: 0.5 }], bark: ['#4a3a2a', { spread: 0.5 }], reed: ['#4e7a2e', { spread: 0.5 }],
+    leaf: ['#5d9c29', { spread: 0.5, cool: 0.12 }], leaf2: ['#85aa32', { spread: 0.48, cool: 0.12 }], bark: ['#684528', { spread: 0.5 }], reed: ['#4e7a2e', { spread: 0.5 }],
     cattail: '#7a3a22', timber: '#6a4a2e', cloud: ['#eef2f4', { spread: 0.3 }],
   }), s('pal'), 1);
-  // some worlds' river runs through a cave, most under the open sky
-  const fs = s('frame'), cave = fs.next() < 0.35;
+  // Usually a cave oasis; some worlds have an open river bank.
+  const fs = s('frame'), cave = fs.next() < 0.75;
   if (cave) {
     sky(cv, 0, H, ['#05090c', '#08121a', '#0c1c20', '#102624']);
     farPillars(cv, { n: 8, fill: '#0f1e1e', rim: '#162a28', seed: s('far1').int(0, 1e9), w: [10, 20], floor: 180, caps: true });
@@ -28,10 +28,10 @@ export function compose(cv, seed) {
     farPillars(cv, { n: 5, fill: '#142824', rim: '#1e3a32', seed: s('far2').int(0, 1e9), w: [16, 28], floor: 185, caps: true });
     fog(cv, '#24504a', 120, 210, 0.25, s('fog2').int(0, 1e9));
     const frame = caveFrame(cv, {
-      seed: fs.int(0, 1e9), stones: ['#3e443c', '#4a4c40', '#343a34'], mortar: '#101412', dark: 0.42, roof: [10, 30], walls: [8, 12],
+      seed: fs.int(0, 1e9), stones: ['#494c44', '#5a5b4e', '#41463e'], mortar: '#0b100d', dark: 0.2, roof: [10, 28], walls: [8, 9],
       stal: { n: 18, len: [8, 36], w: [3, 7] }, lip: ['#4e8a2e', '#2e5a22'],
     });
-    vines(cv, frame.roof, { cols: ['#4e8a2a', '#34621e', '#22401a'], leaf: '#5e9a32', seed: fs.int(0, 1e9), rate: 0.22, len: [4, 50] });
+    vines(cv, frame.roof, { cols: ['#78af28', '#4f8a23', '#2c541a'], leaf: '#a3cd38', seed: fs.int(0, 1e9), rate: 0.24, len: [8, 58] });
   } else {
     sky(cv, 0, 170, ['#3a6eb4', '#6a9ad0', '#a8c8e0', '#d8e6e4']);
     const cr = s('clouds');
@@ -65,10 +65,10 @@ export function compose(cv, seed) {
   });
   moss(cv, { cols: ['#7ac04a', '#4e8a34', '#3a6e2a', '#2a5020'], seed: ss + 1, drape: 12, rate: 0.3, len: 15 });
   const level = Math.round(Math.max(top[rx - hw], top[rx + hw])) + 5;
-  cv.meta.river = pool(cv, rx - hw, rx + hw, level, { surface: '#8ae0d8', body: ['#2a6a68', '#1e5654', '#164442', '#0e3232', '#0a2424'], see: 0.3, bed: ['#2a3a2e', '#34463a', '#1e2a22'] });
+  cv.meta.river = pool(cv, rx - hw, rx + hw, level, { surface: '#b3ffff', body: ['#139eac', '#087d90', '#086375', '#064c60', '#063b4e'], see: 0.15, bed: ['#2a3a2e', '#34463a', '#1e2a22'] });
   veins(cv, cv.meta.river, WATER_VEINS(ss + 4, ['#5a9a98', '#2a6a68', '#1e5654', '#164442']));
   markOpen(cv);
-  if (s('bridge').next() < 0.5) {
+  if (s('bridge').next() < 0.8) {
     // a footbridge from bank to bank
     const y = level - 4, m = new Model(), x0 = rx - hw - 4, x1 = rx + hw + 4;
     beam(m, [x0, y], [x1, y], 3);
@@ -92,7 +92,7 @@ export function compose(cv, seed) {
   terrainTrees(cv, wr, pal, { n: 1, kinds: ['willow'], h: [70, 126], dark: 0.15, ledges: true, x: rx < W / 2 ? [rx + hw + 20, W - 10] : [10, rx - hw - 20], look });
   terrainTrees(cv, wr, pal, { n: 3, kinds: ['oak', 'gnarl'], shapes: ['spread', 'lean', 'tall'], h: [36, 80], gap: 40, ledges: true, look });
   cv.meta.glows = glowShrooms(cv, { n: cave ? 9 : 4, cap: '#2ab8d8', lit: '#b0f4ff', stem: '#c8dcd4', rgb: [0.25, 0.75, 0.95], seed: s('shrooms').int(0, 1e9) });
-  cv.meta.vignette = cave ? 0.6 : 0.3;
+  cv.meta.vignette = cave ? 0.3 : 0.14;
   cv.meta.wind = cave ? 0.35 : 1;
   cv.meta.horizon = 116;
 }
