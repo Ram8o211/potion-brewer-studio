@@ -1520,3 +1520,12 @@ details.steps summary { cursor: pointer; min-height: 24px; }
   .art-studio .art-domain { gap:6px; }
   .art-studio .art-workspace-hint { font-size:10px; }
 }
+
+/* Domain editors need preview space, not the tall component-rules footer. */
+@media (min-width:701px) and (min-height:651px) {
+  .art-studio.art-domain-active {
+    grid-template-rows:auto minmax(240px,1fr) 90px auto;
+  }
+}
+.art-studio .art-guide-content { max-width:520px; }
+.art-studio .art-guide-content li { padding:5px 0; line-height:1.45; }
