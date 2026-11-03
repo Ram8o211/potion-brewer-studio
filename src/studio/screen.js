@@ -199,7 +199,10 @@ export class StudioScreen {
     }
   }
   renderInspector() {
-    const a = this.asset, c = this.component; clear(this.inspector);
+    const a = this.asset, c = this.component;
+    this.componentGroups ??= new Map();
+    for (const group of this.inspector.querySelectorAll('details[data-editor-group]')) this.componentGroups.set(group.dataset.editorGroup, group.open);
+    clear(this.inspector);
     const editField = (label, obj, key, type = 'text', attrs = {}) => this.field(label, obj[key], (v) => this.edit(label, () => { obj[key] = v; }), type, attrs);
     this.inspector.append(h('h2', { text: 'Asset & component' }), editField('Asset name', a, 'name'), editField('Category', a, 'category'), editField('Folder', a, 'folder'), editField('Tags', a, 'tags'),
       btn('Duplicate asset', () => this.edit('Duplicate asset', () => { const copy = clone(a); copy.id = uid(); copy.name += ' copy'; this.project.assets.push(copy); this.assetId = copy.id; }), { act: 'art-duplicate-asset' }),
@@ -235,14 +238,14 @@ export class StudioScreen {
       if (start < 0) return;
       const next = children.findIndex((el, index) => index > start && el.tagName === 'H3');
       const end = next < 0 ? children.length : next;
-      const panel = h('details', { class: 'art-settings-group', 'data-editor-group': id },
+      const panel = h('details', { class: 'art-settings-group', 'data-editor-group': id, open: this.componentGroups.get(id) ? true : null },
         h('summary', { text: label }));
       children.slice(start, end).forEach((node) => panel.append(node));
       this.inspector.insertBefore(panel, children[end] || null);
     };
-    fold('Pixel correction layers', 'Layers, transforms & image import/export', 'component-layers');
     fold('Source geometry', 'Shapes & procedural details', 'component-shapes');
-    const metadata = h('details', { class: 'art-settings-group' }, h('summary', { text: 'Asset metadata & management' }));
+    fold('Pixel correction layers', 'Layers, transforms & image import/export', 'component-layers');
+    const metadata = h('details', { class: 'art-settings-group', 'data-editor-group': 'component-meta', open: this.componentGroups.get('component-meta') ? true : null }, h('summary', { text: 'Asset metadata & management' }));
     for (const label of ['Category', 'Folder', 'Tags', 'Component tags']) {
       const control = [...this.inspector.querySelectorAll('input')].find((input) => input.getAttribute('aria-label') === label);
       if (control?.parentElement?.classList.contains('art-field')) metadata.append(control.parentElement);
