@@ -29,7 +29,7 @@ export class StudioScreen {
     this.workspace = 'components'; this.app = app; this.project = newProject(); this.history = new History(); this.assetId = this.project.assets[0].id;
     this.componentId = this.project.assets[0].components[0].id; this.nodeId = this.project.assets[0].nodes[0].id; this.layerId = '';
     this.tool = 'pencil'; this.color = '#76b98a'; this.brush = 1; this.round = false; this.grid = true; this.guides = true;
-    this.geometryIndex = 0; this.geometryDrag = null; this.zoom = 10; this.pan = [0, 0]; this.stage = 2; this.seed = 1; this.tab = 'rules'; this.mode = 'component';
+    this.geometryIndex = 0; this.newShape = 'leaf'; this.geometryDrag = null; this.zoom = 10; this.pan = [0, 0]; this.stage = 2; this.seed = 1; this.tab = 'rules'; this.mode = 'component';
     this.selection = null; this.clipboard = null; this.dirty = false; this.loaded = false; this.mounted = false; this.background = '#17212b'; this.hiddenPanels = []; this.componentGroups = new Map(); this.compare = null; this.renderMs = 0;
   }
   get asset() { return this.project.assets.find((a) => a.id === this.assetId) || this.project.assets[0]; }
@@ -240,14 +240,24 @@ export class StudioScreen {
     this.inspector.append(h('div', { class: 'art-control-group art-shape-controls' },
       h('h3', { text: 'Edit generated shapes' }),
       h('p', { class: 'muted', text: 'Choose Shape in the toolbar, drag a shape to move it, or drag its corner to resize.' }),
+      this.select('Shape to add', this.newShape, ['leaf', 'stem', 'crystal', 'ellipse', 'rectangle', 'polygon'].map((shape) => [shape, shape[0].toUpperCase() + shape.slice(1)]), (v) => { this.newShape = v; }),
       this.select('Selected shape', String(this.geometryIndex), c.geometry.length
         ? c.geometry.map((g, idx) => [String(idx), (idx + 1) + '. ' + g.shape])
         : [['', 'No shapes yet']], (value) => {
         this.geometryIndex = Math.max(0, Number(value) || 0);
         this.tool = 'shape'; this.refreshTools(); this.draw();
       }),
+      this.select('Selected shape type', c.geometry[this.geometryIndex]?.shape || '', c.geometry.length
+        ? ['leaf', 'stem', 'crystal', 'ellipse', 'rectangle', 'polygon'].map((shape) => [shape, shape])
+        : [['', 'No shape selected']], (value) => this.edit('Change procedural shape', () => {
+        const g = c.geometry[this.geometryIndex]; if (!g) return;
+        g.shape = value;
+        if (value === 'polygon' && !g.points) g.points = [[16, 2], [30, 28], [2, 28]];
+      })),
       btn('+ Add shape', () => this.edit('Add procedural shape', () => {
-        c.geometry.push({ shape: 'leaf', color: this.color, width: 12, height: 16, x: 16, y: 16 });
+        const shape = this.newShape;
+        c.geometry.push({ shape, color: this.color, width: 12, height: 16, x: 16, y: 16,
+          ...(shape === 'polygon' ? { points: [[16, 2], [30, 28], [2, 28]] } : {}) });
         this.geometryIndex = c.geometry.length - 1; this.tool = 'shape';
       }), { act: 'art-add-shape' }),
       btn('Remove selected shape', () => this.edit('Remove procedural shape', () => {
@@ -407,8 +417,8 @@ export class StudioScreen {
       ctx.setLineDash([]);
       if (selected) {
         const hx = ox + (g.x + g.width / 2) * k, hy = oy + (g.y + g.height / 2) * k;
-        ctx.fillStyle = '#ffda80'; ctx.fillRect(hx - 6, hy - 6, 12, 12);
-        ctx.strokeStyle = '#13252e'; ctx.strokeRect(hx - 6, hy - 6, 12, 12);
+        ctx.fillStyle = '#ffda80'; ctx.fillRect(hx - 8, hy - 8, 16, 16);
+        ctx.strokeStyle = '#13252e'; ctx.strokeRect(hx - 8, hy - 8, 16, 16);
       }
       ctx.restore();
     }
@@ -418,7 +428,7 @@ export class StudioScreen {
     const b = this.canvas.getBoundingClientRect();
     const x = (e.clientX - b.left - this.origin[0]) / this.zoom;
     const y = (e.clientY - b.top - this.origin[1]) / this.zoom;
-    const tolerance = 10 / this.zoom;
+    const tolerance = 12 / this.zoom;
     const selected = this.component.geometry[this.geometryIndex];
     if (selected && Math.hypot(x - selected.x - selected.width / 2, y - selected.y - selected.height / 2) <= tolerance) {
       return { index: this.geometryIndex, action: 'resize', x, y };
