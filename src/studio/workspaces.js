@@ -104,7 +104,7 @@ export class DomainWorkspace {
       btn('Use current graph for this native family', () => this.change('Bind procedural family', () => { for (const spec of WILD_SPECS) if (describe(archetypeIdentity(spec.key)).family === d.family) s.project.domains.ingredients[spec.key] = { ...(s.project.domains.ingredients[spec.key] || { morph: {}, growth: {} }), asset: s.asset.id }; }), { act: 'domain-bind-family' }),
       h('p', { text: `Native family: ${d.family}. Its geometry, growth, icons and shards use the same identity. Parameter edits change the native generator; graph binding replaces the shared construction.` }));
     for (const [name, source, target] of [['Morphology', d.m, cfg.morph], ['Growth grammar', growth, cfg.growth]]) {
-      const details = h('details', { open: true }, h('summary', { text: name }));
+      const details = this.group('ingredient-' + name, name, name === 'Morphology' ? 'Fine-tune the native shape and proportions' : 'Fine-tune how the ingredient grows');
       for (const [key, value] of Object.entries(source)) {
         if (typeof value === 'number') details.append(s.field(name + ': ' + key, target[key] ?? value, (v) => this.change('Native ' + key, () => { target[key] = v; }), 'number', { min: 0, max: 120, step: 0.1 }));
         else if (typeof value === 'boolean') details.append(s.check(name + ': ' + key, target[key] ?? value, (v) => this.change('Native ' + key, () => { target[key] = v; })));
