@@ -71,6 +71,7 @@ export class StudioScreen {
         action('Export Project', () => this.exportProject(), 'export'),
         action('Apply Art Profile', () => this.apply(), 'apply'),
         action('Revert', () => this.revert(), 'revert')));
+    projectMenu.addEventListener('click', (e) => { if (e.target instanceof Element && e.target.closest('button')) projectMenu.open = false; });
     const header = h('header', { class: 'art-header' }, h('div', {}, h('span', { class: 'art-kicker', text: 'POTION BREWER / AUTHORING' }), this.title),
       this.select('Editor workspace', this.workspace, [['components','Draw components'],['ingredients','Ingredients & growth'],['environments','Wilds & terrain'],['creatures','Creatures'],['materials','Materials'],['effects','Magic effects'],['interface','Interface']], (v) => { this.workspace = v; this.inspector.scrollTop = 0; if (v === 'environments' && this.hiddenPanels.includes('inspector')) this.togglePanel('inspector'); this.domainEditor?.destroy(); this.domainEditor = null; this.refresh(); }),
       action('Save Draft', () => this.save(), 'save'),
@@ -162,6 +163,7 @@ export class StudioScreen {
     if (!this.mounted) return;
     const workspaceControl = this.el.querySelector('[aria-label="Editor workspace"]'); if (workspaceControl) workspaceControl.value = this.workspace;
     this.title.textContent = this.project.name + (this.dirty ? ' •' : '');
+    this.el.classList.toggle('art-domain-active', this.workspace !== 'components');
     if (this.workspace !== 'components') {
       this.renderLibrary();
       if (!this.domainEditor) this.domainEditor = new DomainWorkspace(this);
@@ -170,7 +172,14 @@ export class StudioScreen {
     if (this.center.querySelector('.art-domain')) { this.domainEditor?.destroy(); this.domainEditor = null; this.center.replaceChildren(...this.componentChildren); }
     this.renderLibrary(); this.renderInspector(); this.renderBottom(); this.refreshTools(); this.draw();
   }
-  refreshTools() { for (const b of this.tools.querySelectorAll('[data-act^="art-tool-"]')) { const on = b.dataset.act === 'art-tool-' + this.tool; b.classList.toggle('active', on); b.setAttribute('aria-pressed', String(on)); } }
+  refreshTools() {
+    for (const b of this.tools.querySelectorAll('[data-act^="art-tool-"]')) {
+      const on = b.dataset.act === 'art-tool-' + this.tool;
+      b.classList.toggle('active', on); b.setAttribute('aria-pressed', String(on));
+    }
+    const label = this.tools.querySelector('.art-tool-more > summary');
+    if (label) label.textContent = ['pencil', 'eraser', 'line', 'rectangle', 'fill', 'select', 'pan'].includes(this.tool) ? 'More tools' : 'More: ' + this.tool;
+  }
   check(label, checked, change) {
     const input = h('input', { type: 'checkbox', 'aria-label': label, onchange: () => change(input.checked) }); input.checked = checked;
     return h('label', { class: 'art-check' }, input, label);
@@ -283,7 +292,7 @@ export class StudioScreen {
     this.directionScope ??= 'global'; this.directionKey ??= 'herb';
     const scope = this.directionScope, key = this.directionKey;
     const style = scope === 'global' ? d.global : d[scope][key] || d.global;
-    const section = h('details', {}, h('summary', { text: 'Game art direction — ingredient ramps' }));
+    const section = h('details', { class: 'art-settings-group', 'data-editor-group': 'direction', open: this.componentGroups.get('direction') ? true : null }, h('summary', { text: 'Game art direction — ingredient ramps' }));
     const targets = scope === 'biomes' ? ['meadow', 'forest', 'river', 'moonfen', 'quarry', 'crags', 'netherwood'] : scope === 'families' ? Object.keys(FAMILIES) : WILD_SPECS.map((s) => s.key);
     section.append(this.select('Style scope', scope, ['global', 'biomes', 'families', 'species'].map((s) => [s, s]), (v) => { this.directionScope = v; this.directionKey = v === 'biomes' ? 'forest' : v === 'families' ? 'herb' : WILD_SPECS[0].key; this.renderInspector(); }));
     if (scope !== 'global') section.append(this.select('Style target', key, targets.map((s) => [s, s]), (v) => { this.directionKey = v; this.renderInspector(); }));
