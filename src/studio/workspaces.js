@@ -27,6 +27,7 @@ let nextToken = -1;
 const POSES = ['idle', 'hop', 'rear', 'eat', 'loaf', 'hurt', 'sick', 'flop', 'collapse', 'dead'];
 const TRAITS = ['', 'horns', 'antlers', 'unihorn', 'wings', 'scales', 'eye3', 'spines', 'tail-lizard', 'giant', 'tiny'];
 const WILDS_TOOLS = [
+  ['select', 'Select / Move', 'Tap an existing prop or light, then drag its handle.'],
   ['rock', 'Rock', 'Paint solid stone into the scene.'],
   ['soil', 'Soil', 'Paint soft ground for vegetation.'],
   ['erase', 'Erase', 'Clear painted terrain.'],
@@ -42,7 +43,7 @@ export class DomainWorkspace {
     /** @type {number|string} */
     this.seed = 1;
     this.stage = 2; this.pose = 'idle'; this.trait = ''; this.level = 0; this.effect = 'vitality'; this.hp = 0; this.play = this.kind !== 'ingredients' && this.kind !== 'interface';
-    this.groupState = new Map(); this.terrainTool = 'rock'; this.terrainColor = '#5e665f'; this.radius = 8; this.mask = false; this.time = 0; this.last = 0;
+    this.groupState = new Map(); this.terrainTool = 'rock'; this.sceneSelection = null; this.sceneDrag = null; this.terrainColor = '#5e665f'; this.radius = 8; this.mask = false; this.time = 0; this.last = 0;
     this.render(); this.frame = requestAnimationFrame((t) => this.loop(t));
   }
   targets() { return this.kind === 'ingredients' ? WILD_SPECS.map((s) => s.key) : this.kind === 'environments' ? REGIONS : this.kind === 'creatures' ? CREATURES : this.kind === 'materials' ? MATERIALS : this.kind === 'effects' ? EFFECT_NAMES : ICON_NAMES; }
@@ -147,14 +148,15 @@ export class DomainWorkspace {
     i.append(h('p', { class: 'art-inspector-intro', text: '1. Pick a tool above the scene. 2. Edit its settings here. 3. Draw or place directly on the preview.' }));
     const brush = h('section', { class: 'art-control-group' }, h('h3', { text: 'Current tool' }),
       this.select('Terrain tool', this.terrainTool, WILDS_TOOLS.map(([id, label]) => [id, label]), chooseTool));
-    if (!['place', 'light'].includes(this.terrainTool)) brush.append(
+    if (!['select', 'place', 'light'].includes(this.terrainTool)) brush.append(
       s.field('Terrain brush radius', this.radius, (v) => { this.radius = Math.max(1, Math.min(32, v)); }, 'number', { min: 1, max: 32 }));
-    if (!['place', 'light', 'erase'].includes(this.terrainTool)) brush.append(
+    if (!['select', 'place', 'light', 'erase'].includes(this.terrainTool)) brush.append(
       s.field('Terrain material color', this.terrainColor, (v) => { this.terrainColor = v; }, 'color'));
     if (this.terrainTool === 'light') brush.append(
       s.field('New light color', this.terrainColor, (v) => { this.terrainColor = v; }, 'color'));
     if (this.terrainTool === 'place') brush.append(
       this.select('Placement asset', this.placeAsset || s.asset.id, s.project.assets.map((a) => [a.id, a.name]), (v) => { this.placeAsset = v; }));
+    if (this.terrainTool === 'select') brush.append(h('p', { class: 'muted', text: 'Tap a prop or light marker on the scene. Drag its center to move; drag the square handle to change size.' }));
     i.append(brush);
 
     const appearance = h('section', { class: 'art-control-group' }, h('h3', { text: 'Scene appearance' }),
@@ -166,6 +168,9 @@ export class DomainWorkspace {
     const objects = this.group('wilds-objects', 'Placed props', cfg.objects.length + ' objects · select Place prop above to add more', cfg.objects.length > 0);
     for (const [index, o] of cfg.objects.entries()) {
       const item = h('div', { class: 'art-control-item' }, h('h3', { text: 'Prop ' + (index + 1) }),
+        btn('Edit prop ' + (index + 1) + ' on canvas', () => {
+          this.terrainTool = 'select'; this.sceneSelection = { kind: 'object', index }; this.render();
+        }, { act: 'domain-select-object-' + index }),
         this.field('Object X ' + index, o, 'x', 0, 383, 1), this.field('Object Y ' + index, o, 'y', 0, 215, 1),
         this.field('Object scale ' + index, o, 'scale', 0.1, 2),
         s.check('Lock object ' + index, o.locked, (v) => this.change('Lock scene object', () => { o.locked = v; })),
@@ -176,6 +181,9 @@ export class DomainWorkspace {
     const lights = this.group('wilds-lights', 'Scene lights', cfg.lights.length + ' lights · select Add light above to add more', cfg.lights.length > 0);
     for (const [index, l] of cfg.lights.entries()) {
       lights.append(h('div', { class: 'art-control-item' }, h('h3', { text: 'Light ' + (index + 1) }),
+        btn('Edit light ' + (index + 1) + ' on canvas', () => {
+          this.terrainTool = 'select'; this.sceneSelection = { kind: 'light', index }; this.render();
+        }, { act: 'domain-select-light-' + index }),
         this.field('Light X ' + index, l, 'x', 0, 383, 1), this.field('Light Y ' + index, l, 'y', 0, 215, 1),
         this.field('Light radius ' + index, l, 'radius', 2, 120, 1),
         this.field('Light strength ' + index, l, 'strength', 0, 2),
@@ -194,17 +202,94 @@ export class DomainWorkspace {
       }), { act: 'domain-clear-terrain' }));
     i.append(advanced);
 
-    const point = (e) => { const b = this.canvas.getBoundingClientRect(); return [Math.max(0, Math.min(383, Math.round((e.clientX - b.left) * 384 / b.width))), Math.max(0, Math.min(215, Math.round((e.clientY - b.top) * 216 / b.height)))]; };
+    const point = (e) => {
+      const b = this.canvas.getBoundingClientRect();
+      return [Math.max(0, Math.min(383, Math.round((e.clientX - b.left) * 384 / b.width))),
+        Math.max(0, Math.min(215, Math.round((e.clientY - b.top) * 216 / b.height)))];
+    };
+    const hitAt = (p) => {
+      // The active resize handle takes priority over nearby selectable objects.
+      const selected = this.sceneSelection;
+      if (selected) {
+        const o = selected.kind === 'object' ? cfg.objects[selected.index] : cfg.lights[selected.index];
+        if (o) {
+          const hx = o.x + (selected.kind === 'object' ? 20 * o.scale : o.radius);
+          const hy = o.y + (selected.kind === 'object' ? -20 * o.scale : 0);
+          if (Math.hypot(p[0] - hx, p[1] - hy) <= 13) return { ...selected, action: 'resize' };
+        }
+      }
+      for (const kind of ['object', 'light']) {
+        const entries = kind === 'object' ? cfg.objects : cfg.lights;
+        for (let index = entries.length - 1; index >= 0; index--) {
+          if (Math.hypot(p[0] - entries[index].x, p[1] - entries[index].y) <= 15)
+            return { kind, index, action: 'move' };
+        }
+      }
+      return null;
+    };
+    const finishDrag = (cancel = false) => {
+      const d = this.sceneDrag;
+      if (!d) return;
+      this.sceneDrag = null;
+      if (cancel) s.project = d.before;
+      else if (JSON.stringify(d.before) !== JSON.stringify(s.project))
+        s.commitGesture(d.before, d.action === 'resize' ? 'Resize Wilds ' + d.kind : 'Move Wilds ' + d.kind);
+      this.render();
+    };
+
     this.canvas.onpointerdown = (e) => {
-      e.preventDefault(); this.canvas.setPointerCapture(e.pointerId); const p = point(e);
-      if (this.terrainTool === 'light') { this.change('Place localized light', () => cfg.lights.push({ x: p[0], y: p[1], radius: 35, color: this.terrainColor, strength: 0.8 })); return; }
-      if (this.terrainTool === 'place') { this.change('Place scene object', () => cfg.objects.push({ asset: this.placeAsset || s.asset.id, x: p[0], y: p[1], scale: 1, seed: hashString(String(this.seed)), locked: true })); return; }
+      if (e.button !== 0 && e.pointerType === 'mouse') return;
+      e.preventDefault(); const p = point(e);
+      if (this.terrainTool === 'select') {
+        const hit = hitAt(p);
+        if (!hit) { this.sceneSelection = null; this.draw(); return; }
+        this.sceneSelection = { kind: hit.kind, index: hit.index };
+        this.groupState.set(hit.kind === 'object' ? 'wilds-objects' : 'wilds-lights', true);
+        const o = hit.kind === 'object' ? cfg.objects[hit.index] : cfg.lights[hit.index];
+        this.sceneDrag = { ...hit, before: clone(s.project), pointerId: e.pointerId, x: p[0], y: p[1],
+          source: { x: o.x, y: o.y, scale: o.scale, radius: o.radius } };
+        this.canvas.setPointerCapture(e.pointerId);
+        this.draw(); return;
+      }
+      if (this.terrainTool === 'light') {
+        this.change('Place localized light', () => {
+          cfg.lights.push({ x: p[0], y: p[1], radius: 35, color: this.terrainColor, strength: 0.8 });
+          this.sceneSelection = { kind: 'light', index: cfg.lights.length - 1 }; this.terrainTool = 'select';
+        }); return;
+      }
+      if (this.terrainTool === 'place') {
+        this.change('Place scene object', () => {
+          cfg.objects.push({ asset: this.placeAsset || s.asset.id, x: p[0], y: p[1], scale: 1, seed: hashString(String(this.seed)), locked: true });
+          this.sceneSelection = { kind: 'object', index: cfg.objects.length - 1 }; this.terrainTool = 'select';
+        }); return;
+      }
+      this.canvas.setPointerCapture(e.pointerId);
       this.stroke = { kind: this.terrainTool, color: this.terrainColor, radius: this.radius, points: [p] }; this.draw();
     };
-    this.canvas.onpointermove = (e) => { if (this.stroke && this.stroke.points.length < 1024) { this.stroke.points.push(point(e)); this.draw(); } };
-    this.canvas.onpointerup = () => { if (!this.stroke) return; const stroke = this.stroke; this.stroke = null; this.change('Sculpt ' + stroke.kind, () => cfg.strokes.push(stroke)); };
-    this.canvas.onpointercancel = () => { this.stroke = null; this.draw(); };
-    this.messages.textContent = 'Canvas edits affect visuals only. Undo / Redo are available above the preview. Drafts are stored separately from gameplay.';
+    this.canvas.onpointermove = (e) => {
+      const d = this.sceneDrag;
+      if (d && e.pointerId === d.pointerId) {
+        const p = point(e), o = d.kind === 'object' ? cfg.objects[d.index] : cfg.lights[d.index];
+        if (!o) return;
+        if (d.action === 'resize') {
+          if (d.kind === 'object') o.scale = Math.max(0.1, Math.min(2, Math.round((d.source.scale + (p[0] - d.x) / 20) * 10) / 10));
+          else o.radius = Math.max(2, Math.min(120, Math.round(d.source.radius + p[0] - d.x)));
+        } else {
+          o.x = Math.max(0, Math.min(383, Math.round(d.source.x + p[0] - d.x)));
+          o.y = Math.max(0, Math.min(215, Math.round(d.source.y + p[1] - d.y)));
+        }
+        this.draw(); return;
+      }
+      if (this.stroke && this.stroke.points.length < 1024) { this.stroke.points.push(point(e)); this.draw(); }
+    };
+    this.canvas.onpointerup = () => {
+      if (this.sceneDrag) { finishDrag(); return; }
+      if (!this.stroke) return;
+      const stroke = this.stroke; this.stroke = null; this.change('Sculpt ' + stroke.kind, () => cfg.strokes.push(stroke));
+    };
+    this.canvas.onpointercancel = () => { if (this.sceneDrag) { finishDrag(true); return; } this.stroke = null; this.draw(); };
+    this.canvas.onlostpointercapture = () => { if (this.sceneDrag) finishDrag(); };
+    this.messages.textContent = 'Draw with a terrain brush, or use Select / Move to drag existing props and lights. Drag a square handle to resize. Every completed gesture can be undone.';
   }
   creatures(cfg) {
     const s = this.studio, i = s.inspector;
@@ -292,6 +377,29 @@ export class DomainWorkspace {
         ctx.drawImage(this.sceneCanvas, 0, 0); if (this.play) animateRegion(ctx, this.target, this.time, String(this.seed), sc);
         if (this.mask) { ctx.fillStyle = '#ff606060'; for (let k = 0; k < sc.solid.length; k++) if (sc.solid[k]) ctx.fillRect(k % 384, Math.floor(k / 384), 1, 1); ctx.fillStyle = '#44ffbb'; for (let k = 0; k < sc.open.length; k++) if (sc.open[k]) ctx.fillRect(k % 384, Math.floor(k / 384), 1, 1); }
         if (this.stroke) { ctx.fillStyle = this.stroke.kind === 'erase' ? '#101f2b88' : this.stroke.color; for (const [x, y] of this.stroke.points) { ctx.beginPath(); ctx.arc(x, y, this.stroke.radius, 0, Math.PI * 2); ctx.fill(); } }
+        if (this.terrainTool === 'select' || this.sceneSelection) {
+          const cfg = this.config();
+          for (const kind of ['object', 'light']) {
+            const items = kind === 'object' ? cfg.objects : (cfg.lights || []);
+            items.forEach((o, index) => {
+              const selected = this.sceneSelection?.kind === kind && this.sceneSelection.index === index;
+              ctx.save(); ctx.strokeStyle = selected ? '#ffe091' : kind === 'light' ? '#f8d478' : '#8fe8d3';
+              ctx.fillStyle = selected ? '#ffe091' : kind === 'light' ? '#f8d478' : '#8fe8d3';
+              ctx.lineWidth = selected ? 2 : 1;
+              ctx.beginPath(); ctx.arc(o.x, o.y, selected ? 8 : 5, 0, Math.PI * 2); ctx.stroke();
+              ctx.beginPath(); ctx.moveTo(o.x - 3, o.y); ctx.lineTo(o.x + 3, o.y);
+              ctx.moveTo(o.x, o.y - 3); ctx.lineTo(o.x, o.y + 3); ctx.stroke();
+              if (selected) {
+                const hx = o.x + (kind === 'object' ? 20 * o.scale : o.radius);
+                const hy = o.y + (kind === 'object' ? -20 * o.scale : 0);
+                ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(o.x, o.y); ctx.lineTo(hx, hy); ctx.stroke(); ctx.setLineDash([]);
+                ctx.fillRect(hx - 4, hy - 4, 8, 8);
+                ctx.strokeStyle = '#182833'; ctx.strokeRect(hx - 4, hy - 4, 8, 8);
+              }
+              ctx.restore();
+            });
+          }
+        }
         if (sc.meta.artWarnings?.length) this.messages.textContent = sc.meta.artWarnings.join(' · ');
       } else if (this.kind === 'creatures') {
         const rng = new Rng(this.seed), look = this.target === 'rabbit' ? rollLook(rng) : kindLook(/** @type {import('../game/kinds.js').AnimalKind} */ (this.target), rng);
@@ -308,5 +416,5 @@ export class DomainWorkspace {
       }
     });
   }
-  destroy() { this.destroyed = true; this.worker?.terminate(); this.worker = null; this.nextScene = null; cancelAnimationFrame(this.frame); this.frame = null; this.sim = null; this.renderer = null; }
+  destroy() { this.destroyed = true; this.sceneDrag = null; this.worker?.terminate(); this.worker = null; this.nextScene = null; cancelAnimationFrame(this.frame); this.frame = null; this.sim = null; this.renderer = null; }
 }
