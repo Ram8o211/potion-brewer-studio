@@ -35,9 +35,9 @@ test('material, magical effect and UI workspaces persist real visual settings',a
  await page.getByLabel('Editor workspace',{exact:true}).selectOption('effects');await page.getByLabel('Domain target',{exact:true}).selectOption('fire');await field(page,'Particle density',2);await page.getByLabel('Particle shape',{exact:true}).selectOption('cross');
  await page.waitForTimeout(400);await page.getByLabel('Editor workspace',{exact:true}).selectOption('interface');await page.getByLabel('Enable interface profile',{exact:true}).check();
  const id=await state(page,()=>window.__alchemist.screen.asset.id);await page.getByLabel('frame artwork',{exact:true}).selectOption(id);await page.getByLabel('Icon artwork',{exact:true}).selectOption(id);
- await page.locator('[data-act=art-apply]').click();await expect(page.locator('.art-status')).toContainText('Art profile applied');
+ await page.locator('.art-project-menu > summary').click();await page.locator('[data-act=art-apply]').click();await expect(page.locator('.art-status')).toContainText('Art profile applied');
  await page.locator('[data-act=art-exit]').click();await expect(page.locator('#custom-art-profile')).toBeAttached();
- await page.locator('[data-act=art-studio]').click();await page.locator('[data-act=art-revert]').click();await expect(page.locator('#custom-art-profile')).toHaveCount(0);expect(errors).toEqual([]);
+ await page.locator('[data-act=art-studio]').click();await page.locator('.art-project-menu > summary').click();await page.locator('[data-act=art-revert]').click();await expect(page.locator('#custom-art-profile')).toHaveCount(0);expect(errors).toEqual([]);
 });
 
 
@@ -74,6 +74,7 @@ test('Wilds inspector controls remain reachable on short and narrow screens', as
   const appearance = page.getByLabel('Atmospheric density', { exact: true });
   await appearance.scrollIntoViewIfNeeded();
   await expect(appearance).toBeInViewport();
+  await page.locator('[data-editor-group="wilds-advanced"] > summary').click();
   await page.locator('[data-act=domain-clear-terrain]').scrollIntoViewIfNeeded();
   await expect(page.locator('[data-act=domain-clear-terrain]')).toBeInViewport();
   await page.locator('[data-act=art-exit]').scrollIntoViewIfNeeded();
