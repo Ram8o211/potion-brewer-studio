@@ -225,6 +225,7 @@ export class StudioScreen {
     }
   }
   renderInspector() {
+    const inspectorScroll = this.inspector.scrollTop;
     const a = this.asset, c = this.component;
     this.componentGroups ??= new Map();
     for (const group of this.inspector.querySelectorAll('details[data-editor-group]')) this.componentGroups.set(group.dataset.editorGroup, group.open);
@@ -318,6 +319,7 @@ export class StudioScreen {
     this.inspector.append(metadata);
     this.inspector.insertBefore(h('p', { class: 'art-inspector-intro', text: 'Select a component from the left, then paint its pixels here. Open the sections below for precise geometry, layers and asset details.' }), this.inspector.children[1] || null);
     this.renderDirection();
+    this.inspector.scrollTop = inspectorScroll;
   }
   renderDirection() {
     const d = this.project.direction;
