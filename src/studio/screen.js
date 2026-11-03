@@ -75,7 +75,7 @@ export class StudioScreen {
       this.select('Editor workspace', this.workspace, [['components','Draw components'],['ingredients','Ingredients & growth'],['environments','Wilds & terrain'],['creatures','Creatures'],['materials','Materials'],['effects','Magic effects'],['interface','Interface']], (v) => { this.workspace = v; this.inspector.scrollTop = 0; if (v === 'environments' && this.hiddenPanels.includes('inspector')) this.togglePanel('inspector'); this.domainEditor?.destroy(); this.domainEditor = null; this.refresh(); }),
       action('Save Draft', () => this.save(), 'save'),
       action('Preview in Game', () => this.preview(), 'preview'), projectMenu,
-      action('Back to Game', () => this.exit(), 'exit'));
+      action('How to edit', () => this.showGuide(), 'help'), action('Back to Game', () => this.exit(), 'exit'));
     this.library = h('aside', { class: 'art-library art-panel', 'aria-label': 'Asset library' });
     this.inspector = h('aside', { class: 'art-inspector art-panel', 'aria-label': 'Properties' });
     this.bottom = h('section', { class: 'art-bottom art-panel', 'aria-label': 'Procedural workspace' });
@@ -129,6 +129,22 @@ export class StudioScreen {
     this.observer = new ResizeObserver(() => { this.draw(); clearTimeout(this.layoutTimer); this.layoutTimer = setTimeout(() => this.saveLayout(), 500); });
     this.observer.observe(this.canvas); this.observer.observe(this.library); this.observer.observe(this.inspector); this.observer.observe(this.bottom);
     this.refresh();
+  }
+  showGuide() {
+    const guides = {
+      components: ['Choose a plant or component in the library.', 'Draw with Pencil, Eraser or Fill. Expand More tools when you need precise edits.', 'Watch the assembled result on the right; adjust growth and attachments in the tabs below.'],
+      ingredients: ['Choose an ingredient species in Domain target.', 'Select its growth stage and see the icon, plant and fragments together.', 'Bind a reusable component graph, or open the native morphology details for precise adjustments.'],
+      environments: ['Choose a biome in Domain target.', 'Pick Rock, Soil, Erase, Water, Lava, Place prop or Add light above the preview.', 'Drag on the canvas to paint, or tap to place. Fine-tune colors and atmosphere in Properties.'],
+      creatures: ['Choose a creature.', 'Adjust its anatomy and pose while watching the live animation.', 'Preview mutations and magical effects before applying the art profile.'],
+      materials: ['Choose a material type.', 'Change color, opacity and texture while watching the live simulation.', 'Use the sample buttons to test its appearance in different conditions.'],
+      effects: ['Choose a magical effect.', 'Edit particle size, density, shape and color.', 'Preview the effect against simulated material.'],
+      interface: ['Choose an interface icon or artwork target.', 'Tune the colors and frame artwork.', 'Switch preview widths to check phone and tablet layouts.']
+    };
+    const body = h('div', { class: 'art-guide-content' },
+      h('p', { text: 'A quick workflow for this workspace:' }),
+      h('ol', {}, (guides[this.workspace] || guides.components).map((tip) => h('li', { text: tip }))),
+      h('p', { text: 'Save Draft stores your project locally. Apply Art Profile makes it active in the game. Export Project creates a portable backup; both are in Project options.' }));
+    modal({ title: 'Art Studio guide', body });
   }
   async run(fn) { try { await fn(); } catch (e) { this.message(e.message || String(e), true); } }
   message(text, error = false) { if (!this.mounted) return; this.status.textContent = text; this.status.classList.toggle('error', error); }
