@@ -177,6 +177,7 @@ export class StudioScreen {
       const on = b.dataset.act === 'art-tool-' + this.tool;
       b.classList.toggle('active', on); b.setAttribute('aria-pressed', String(on));
     }
+    this.canvas.dataset.editorTool = this.tool;
     const label = this.tools.querySelector('.art-tool-more > summary');
     if (label) label.textContent = ['shape', 'pencil', 'eraser', 'line', 'rectangle', 'fill', 'select', 'pan'].includes(this.tool) ? 'More tools' : 'More: ' + this.tool;
   }
