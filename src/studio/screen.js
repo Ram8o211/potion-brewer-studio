@@ -30,7 +30,7 @@ export class StudioScreen {
     this.componentId = this.project.assets[0].components[0].id; this.nodeId = this.project.assets[0].nodes[0].id; this.layerId = '';
     this.tool = 'pencil'; this.color = '#76b98a'; this.brush = 1; this.round = false; this.grid = true; this.guides = true;
     this.zoom = 10; this.pan = [0, 0]; this.stage = 2; this.seed = 1; this.tab = 'rules'; this.mode = 'component';
-    this.selection = null; this.clipboard = null; this.dirty = false; this.loaded = false; this.mounted = false; this.background = '#17212b'; this.hiddenPanels = []; this.compare = null; this.renderMs = 0;
+    this.selection = null; this.clipboard = null; this.dirty = false; this.loaded = false; this.mounted = false; this.background = '#17212b'; this.hiddenPanels = []; this.componentGroups = new Map(); this.compare = null; this.renderMs = 0;
   }
   get asset() { return this.project.assets.find((a) => a.id === this.assetId) || this.project.assets[0]; }
   get component() { return this.asset.components.find((c) => c.id === this.componentId) || this.asset.components[0]; }
