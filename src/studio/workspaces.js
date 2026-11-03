@@ -142,6 +142,7 @@ export class DomainWorkspace {
   environments(cfg) {
     const s = this.studio, i = s.inspector;
     cfg.lights ??= [];
+    this.canvas.dataset.editorTool = this.terrainTool;
     const tool = WILDS_TOOLS.find(([id]) => id === this.terrainTool) || WILDS_TOOLS[0];
     const chooseTool = (id) => { this.terrainTool = id; this.render(); };
 
