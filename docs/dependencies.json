@@ -1,0 +1,940 @@
+{
+  "modules": 148,
+  "edges": 593,
+  "cycles": [],
+  "layers": {
+    "alchemy": {
+      "reactions": 1
+    },
+    "game": {
+      "simulation": 7,
+      "reactions": 7,
+      "alchemy": 10,
+      "core": 11,
+      "visual": 1,
+      "materials": 3
+    },
+    "main.js": {
+      "ui": 2
+    },
+    "materials": {
+      "visual": 3,
+      "core": 6,
+      "alchemy": 2
+    },
+    "reactions": {
+      "simulation": 3,
+      "core": 2,
+      "alchemy": 3,
+      "materials": 2
+    },
+    "rendering": {
+      "core": 7,
+      "reactions": 2,
+      "visual": 14,
+      "materials": 2,
+      "simulation": 4,
+      "studio": 6,
+      "alchemy": 3,
+      "game": 3
+    },
+    "simulation": {
+      "reactions": 10,
+      "alchemy": 3,
+      "core": 1,
+      "materials": 1,
+      "visual": 1
+    },
+    "studio": {
+      "visual": 23,
+      "core": 3,
+      "simulation": 3,
+      "ui": 3,
+      "materials": 3,
+      "rendering": 3,
+      "game": 2,
+      "alchemy": 1
+    },
+    "ui": {
+      "studio": 6,
+      "audio": 10,
+      "game": 54,
+      "materials": 3,
+      "core": 7,
+      "simulation": 9,
+      "reactions": 3,
+      "rendering": 20,
+      "alchemy": 11,
+      "visual": 2
+    },
+    "visual": {
+      "materials": 2,
+      "core": 12,
+      "studio": 6
+    }
+  },
+  "graph": {
+    "src/alchemy/arcane.js": [
+      "src/alchemy/effects.js"
+    ],
+    "src/alchemy/effects.js": [
+      "src/reactions/compatibility.js"
+    ],
+    "src/audio/audio.js": [],
+    "src/core/color.js": [],
+    "src/core/math.js": [],
+    "src/core/rng.js": [],
+    "src/game/autobrew.js": [
+      "src/simulation/constants.js",
+      "src/reactions/species.js"
+    ],
+    "src/game/colony.js": [
+      "src/alchemy/effects.js",
+      "src/core/rng.js",
+      "src/game/kinds.js"
+    ],
+    "src/game/commerce.js": [
+      "src/core/rng.js",
+      "src/alchemy/effects.js",
+      "src/game/evaluate.js",
+      "src/game/requests.js",
+      "src/game/experiments.js"
+    ],
+    "src/game/commissions.js": [
+      "src/core/rng.js",
+      "src/core/color.js",
+      "src/game/predict.js",
+      "src/game/customers.js",
+      "src/game/evaluate.js",
+      "src/simulation/constants.js",
+      "src/alchemy/effects.js",
+      "src/alchemy/arcane.js",
+      "src/reactions/compatibility.js",
+      "src/game/requests.js"
+    ],
+    "src/game/customers.js": [
+      "src/core/rng.js"
+    ],
+    "src/game/equipment.js": [],
+    "src/game/evaluate.js": [
+      "src/alchemy/effects.js"
+    ],
+    "src/game/experiments.js": [
+      "src/alchemy/effects.js",
+      "src/core/rng.js",
+      "src/game/colony.js",
+      "src/game/kinds.js"
+    ],
+    "src/game/gathering.js": [
+      "src/core/rng.js",
+      "src/visual/taxonomy.js"
+    ],
+    "src/game/journal.js": [],
+    "src/game/kinds.js": [
+      "src/core/rng.js"
+    ],
+    "src/game/measure.js": [
+      "src/reactions/species.js",
+      "src/simulation/constants.js",
+      "src/reactions/compatibility.js",
+      "src/core/color.js",
+      "src/alchemy/effects.js"
+    ],
+    "src/game/mechanics.js": [],
+    "src/game/patrons.js": [],
+    "src/game/persistence.js": [
+      "src/game/state.js"
+    ],
+    "src/game/predict.js": [
+      "src/reactions/species.js",
+      "src/reactions/mixture.js",
+      "src/alchemy/effects.js",
+      "src/alchemy/arcane.js"
+    ],
+    "src/game/recipes.js": [],
+    "src/game/requests.js": [],
+    "src/game/state.js": [
+      "src/core/rng.js",
+      "src/materials/generator.js",
+      "src/materials/schema.js",
+      "src/game/commissions.js",
+      "src/game/equipment.js",
+      "src/simulation/constants.js",
+      "src/game/experiments.js",
+      "src/game/gathering.js",
+      "src/game/predict.js",
+      "src/alchemy/effects.js",
+      "src/game/vial.js",
+      "src/game/commerce.js",
+      "src/game/colony.js",
+      "src/game/kinds.js",
+      "src/materials/remains.js",
+      "src/game/patrons.js",
+      "src/game/commissions.js",
+      "src/game/recipes.js"
+    ],
+    "src/game/vial.js": [
+      "src/simulation/world.js",
+      "src/simulation/constants.js",
+      "src/reactions/species.js",
+      "src/game/measure.js",
+      "src/simulation/derived.js"
+    ],
+    "src/game/wild-rabbits.js": [
+      "src/core/rng.js",
+      "src/game/colony.js",
+      "src/game/kinds.js"
+    ],
+    "src/main.js": [
+      "src/ui/app.js",
+      "src/ui/textures.js"
+    ],
+    "src/materials/generator.js": [
+      "src/visual/identity.js",
+      "src/core/rng.js",
+      "src/core/color.js",
+      "src/materials/schema.js",
+      "src/materials/names.js",
+      "src/materials/profiles.js",
+      "src/materials/wild.js",
+      "src/alchemy/arcane.js"
+    ],
+    "src/materials/names.js": [
+      "src/core/color.js"
+    ],
+    "src/materials/profiles.js": [
+      "src/core/rng.js"
+    ],
+    "src/materials/rarity.js": [],
+    "src/materials/reference.js": [
+      "src/materials/schema.js"
+    ],
+    "src/materials/remains.js": [
+      "src/materials/schema.js",
+      "src/materials/profiles.js"
+    ],
+    "src/materials/schema.js": [],
+    "src/materials/shapes.js": [
+      "src/visual/pieces.js",
+      "src/materials/wild.js"
+    ],
+    "src/materials/wild.js": [
+      "src/core/rng.js",
+      "src/core/color.js",
+      "src/materials/schema.js",
+      "src/alchemy/effects.js",
+      "src/materials/profiles.js",
+      "src/visual/identity.js"
+    ],
+    "src/reactions/compatibility.js": [],
+    "src/reactions/diffusion.js": [
+      "src/simulation/constants.js",
+      "src/reactions/species.js",
+      "src/reactions/compatibility.js"
+    ],
+    "src/reactions/mixture.js": [
+      "src/reactions/species.js",
+      "src/core/color.js"
+    ],
+    "src/reactions/reactions.js": [
+      "src/reactions/species.js",
+      "src/simulation/constants.js",
+      "src/alchemy/arcane.js",
+      "src/simulation/arcane.js"
+    ],
+    "src/reactions/species.js": [
+      "src/core/color.js",
+      "src/materials/schema.js",
+      "src/alchemy/effects.js",
+      "src/alchemy/arcane.js",
+      "src/materials/shapes.js"
+    ],
+    "src/rendering/art.js": [
+      "src/core/rng.js"
+    ],
+    "src/rendering/brew-palette.js": [
+      "src/reactions/species.js",
+      "src/core/color.js",
+      "src/visual/pieces.js",
+      "src/materials/shapes.js",
+      "src/simulation/derived.js"
+    ],
+    "src/rendering/crisp.js": [],
+    "src/rendering/effects.js": [
+      "src/rendering/art.js"
+    ],
+    "src/rendering/fluid.js": [
+      "src/studio/material-runtime.js",
+      "src/simulation/constants.js",
+      "src/materials/shapes.js",
+      "src/visual/pieces.js",
+      "src/alchemy/effects.js",
+      "src/reactions/species.js",
+      "src/rendering/potion-fx.js",
+      "src/rendering/brew-palette.js"
+    ],
+    "src/rendering/hutch-scene.js": [
+      "src/core/rng.js",
+      "src/rendering/art.js",
+      "src/rendering/rabbit.js",
+      "src/game/kinds.js",
+      "src/visual/env/pens.js",
+      "src/rendering/pen-anim.js"
+    ],
+    "src/rendering/pen-anim.js": [],
+    "src/rendering/portraits.js": [
+      "src/core/rng.js"
+    ],
+    "src/rendering/potion-fx.js": [
+      "src/studio/direction.js",
+      "src/visual/color.js",
+      "src/alchemy/effects.js"
+    ],
+    "src/rendering/punch.js": [],
+    "src/rendering/rabbit.js": [
+      "src/studio/creature-runtime.js",
+      "src/studio/direction.js",
+      "src/core/rng.js",
+      "src/rendering/art.js",
+      "src/game/colony.js",
+      "src/game/kinds.js",
+      "src/rendering/punch.js"
+    ],
+    "src/rendering/ragdoll.js": [],
+    "src/rendering/renderer.js": [
+      "src/rendering/art.js",
+      "src/rendering/fluid.js",
+      "src/rendering/effects.js",
+      "src/simulation/cauldron.js",
+      "src/simulation/constants.js",
+      "src/alchemy/effects.js"
+    ],
+    "src/rendering/scenes.js": [],
+    "src/rendering/species-sprites.js": [
+      "src/studio/direction.js",
+      "src/visual/descriptor.js",
+      "src/visual/render.js",
+      "src/visual/identity.js",
+      "src/visual/pieces.js",
+      "src/visual/pixels.js",
+      "src/visual/taxonomy.js",
+      "src/rendering/scenes.js",
+      "src/visual/growth.js",
+      "src/core/rng.js",
+      "src/visual/style.js"
+    ],
+    "src/rendering/wild-scene.js": [
+      "src/studio/direction.js",
+      "src/visual/env/scene.js",
+      "src/rendering/species-sprites.js",
+      "src/core/rng.js",
+      "src/visual/growth.js"
+    ],
+    "src/simulation/arcane.js": [
+      "src/reactions/species.js",
+      "src/alchemy/arcane.js",
+      "src/simulation/particles.js"
+    ],
+    "src/simulation/cauldron.js": [
+      "src/simulation/constants.js"
+    ],
+    "src/simulation/constants.js": [],
+    "src/simulation/derived.js": [
+      "src/reactions/species.js",
+      "src/reactions/mixture.js",
+      "src/core/color.js",
+      "src/simulation/constants.js",
+      "src/alchemy/effects.js",
+      "src/simulation/particles.js"
+    ],
+    "src/simulation/electric.js": [
+      "src/simulation/constants.js"
+    ],
+    "src/simulation/emitter.js": [
+      "src/simulation/constants.js",
+      "src/simulation/cauldron.js",
+      "src/materials/shapes.js",
+      "src/visual/pieces.js"
+    ],
+    "src/simulation/grid.js": [],
+    "src/simulation/particles.js": [
+      "src/reactions/species.js",
+      "src/simulation/constants.js",
+      "src/alchemy/effects.js"
+    ],
+    "src/simulation/phase.js": [
+      "src/simulation/constants.js",
+      "src/reactions/species.js",
+      "src/simulation/derived.js",
+      "src/simulation/rigid.js"
+    ],
+    "src/simulation/rigid.js": [
+      "src/simulation/constants.js"
+    ],
+    "src/simulation/snapshot.js": [
+      "src/reactions/species.js",
+      "src/simulation/derived.js",
+      "src/simulation/world.js",
+      "src/simulation/cauldron.js"
+    ],
+    "src/simulation/thermal.js": [
+      "src/simulation/constants.js"
+    ],
+    "src/simulation/tools.js": [
+      "src/simulation/constants.js",
+      "src/reactions/species.js"
+    ],
+    "src/simulation/world.js": [
+      "src/simulation/constants.js",
+      "src/simulation/particles.js",
+      "src/simulation/grid.js",
+      "src/simulation/cauldron.js",
+      "src/reactions/species.js",
+      "src/simulation/derived.js",
+      "src/simulation/rigid.js",
+      "src/simulation/thermal.js",
+      "src/simulation/phase.js",
+      "src/reactions/diffusion.js",
+      "src/reactions/reactions.js",
+      "src/simulation/tools.js",
+      "src/simulation/emitter.js",
+      "src/simulation/electric.js",
+      "src/simulation/arcane.js"
+    ],
+    "src/studio/asset-runtime.js": [
+      "src/studio/direction.js",
+      "src/studio/engine.js",
+      "src/visual/pixels.js"
+    ],
+    "src/studio/creature-runtime.js": [
+      "src/studio/direction.js",
+      "src/visual/color.js"
+    ],
+    "src/studio/direction.js": [
+      "src/visual/color.js",
+      "src/studio/model.js"
+    ],
+    "src/studio/domain-model.js": [],
+    "src/studio/engine.js": [
+      "src/core/rng.js",
+      "src/visual/geometry.js",
+      "src/visual/raster.js",
+      "src/visual/color.js",
+      "src/visual/pixels.js",
+      "src/studio/pixels.js"
+    ],
+    "src/studio/environment-runtime.js": [
+      "src/studio/direction.js",
+      "src/studio/engine.js",
+      "src/studio/asset-runtime.js",
+      "src/visual/color.js",
+      "src/core/rng.js"
+    ],
+    "src/studio/interface-runtime.js": [
+      "src/studio/direction.js",
+      "src/studio/asset-runtime.js"
+    ],
+    "src/studio/material-runtime.js": [
+      "src/studio/direction.js",
+      "src/visual/color.js",
+      "src/simulation/constants.js"
+    ],
+    "src/studio/model.js": [
+      "src/studio/domain-model.js"
+    ],
+    "src/studio/pixels.js": [
+      "src/visual/pixels.js",
+      "src/visual/color.js"
+    ],
+    "src/studio/proposals.js": [
+      "src/studio/model.js"
+    ],
+    "src/studio/screen.js": [
+      "src/studio/proposals.js",
+      "src/studio/workspaces.js",
+      "src/ui/dom.js",
+      "src/studio/model.js",
+      "src/studio/engine.js",
+      "src/visual/pixels.js",
+      "src/studio/pixels.js",
+      "src/studio/storage.js",
+      "src/studio/direction.js",
+      "src/visual/pieces.js",
+      "src/visual/descriptor.js",
+      "src/visual/render.js",
+      "src/materials/wild.js",
+      "src/visual/families/index.js"
+    ],
+    "src/studio/storage.js": [
+      "src/studio/model.js"
+    ],
+    "src/studio/worker.js": [
+      "src/studio/direction.js",
+      "src/visual/env/scene.js"
+    ],
+    "src/studio/workspaces.js": [
+      "src/ui/dom.js",
+      "src/studio/model.js",
+      "src/studio/domain-model.js",
+      "src/studio/direction.js",
+      "src/visual/descriptor.js",
+      "src/visual/pieces.js",
+      "src/materials/wild.js",
+      "src/visual/growth.js",
+      "src/visual/render.js",
+      "src/visual/families/index.js",
+      "src/visual/env/scene.js",
+      "src/rendering/wild-scene.js",
+      "src/rendering/rabbit.js",
+      "src/game/kinds.js",
+      "src/game/colony.js",
+      "src/core/rng.js",
+      "src/simulation/world.js",
+      "src/rendering/renderer.js",
+      "src/materials/reference.js",
+      "src/simulation/constants.js",
+      "src/alchemy/effects.js",
+      "src/ui/icons.js",
+      "src/studio/interface-runtime.js",
+      "src/studio/pixels.js"
+    ],
+    "src/ui/app.js": [
+      "src/studio/model.js",
+      "src/studio/screen.js",
+      "src/studio/storage.js",
+      "src/studio/direction.js",
+      "src/ui/dom.js",
+      "src/ui/icons.js",
+      "src/audio/audio.js",
+      "src/game/state.js",
+      "src/materials/generator.js",
+      "src/game/equipment.js",
+      "src/game/persistence.js",
+      "src/ui/lab.js",
+      "src/ui/menu.js",
+      "src/ui/panels.js",
+      "src/core/rng.js",
+      "src/game/experiments.js",
+      "src/game/gathering.js"
+    ],
+    "src/ui/dom.js": [
+      "src/ui/icons.js",
+      "src/audio/audio.js"
+    ],
+    "src/ui/icons.js": [
+      "src/studio/interface-runtime.js",
+      "src/studio/direction.js"
+    ],
+    "src/ui/lab.js": [
+      "src/simulation/world.js",
+      "src/simulation/constants.js",
+      "src/simulation/snapshot.js",
+      "src/simulation/tools.js",
+      "src/reactions/species.js",
+      "src/reactions/compatibility.js",
+      "src/rendering/renderer.js",
+      "src/rendering/portraits.js",
+      "src/rendering/art.js",
+      "src/rendering/species-sprites.js",
+      "src/game/measure.js",
+      "src/game/evaluate.js",
+      "src/game/journal.js",
+      "src/game/persistence.js",
+      "src/game/autobrew.js",
+      "src/game/recipes.js",
+      "src/game/commerce.js",
+      "src/game/equipment.js",
+      "src/game/experiments.js",
+      "src/materials/generator.js",
+      "src/game/vial.js",
+      "src/alchemy/effects.js",
+      "src/alchemy/arcane.js",
+      "src/simulation/particles.js",
+      "src/core/color.js",
+      "src/ui/dom.js",
+      "src/ui/icons.js",
+      "src/audio/audio.js",
+      "src/ui/panels.js",
+      "src/ui/trade.js",
+      "src/ui/tutorial.js",
+      "src/ui/views/counter.js",
+      "src/ui/views/wilds.js",
+      "src/ui/views/trials.js",
+      "src/ui/views/book.js",
+      "src/game/customers.js"
+    ],
+    "src/ui/menu.js": [
+      "src/ui/dom.js",
+      "src/rendering/renderer.js",
+      "src/simulation/world.js",
+      "src/materials/reference.js",
+      "src/game/persistence.js",
+      "src/audio/audio.js"
+    ],
+    "src/ui/panels.js": [
+      "src/game/recipes.js",
+      "src/game/mechanics.js",
+      "src/game/experiments.js",
+      "src/ui/dom.js",
+      "src/ui/icons.js",
+      "src/rendering/portraits.js",
+      "src/rendering/art.js",
+      "src/game/equipment.js",
+      "src/game/state.js",
+      "src/game/measure.js",
+      "src/alchemy/effects.js",
+      "src/rendering/species-sprites.js",
+      "src/reactions/compatibility.js",
+      "src/core/color.js",
+      "src/simulation/constants.js",
+      "src/game/persistence.js",
+      "src/audio/audio.js",
+      "src/alchemy/arcane.js",
+      "src/game/colony.js"
+    ],
+    "src/ui/textures.js": [
+      "src/core/rng.js"
+    ],
+    "src/ui/trade.js": [
+      "src/ui/dom.js",
+      "src/ui/icons.js",
+      "src/rendering/portraits.js",
+      "src/audio/audio.js",
+      "src/alchemy/effects.js",
+      "src/game/commerce.js",
+      "src/game/requests.js",
+      "src/game/customers.js"
+    ],
+    "src/ui/tutorial.js": [
+      "src/ui/dom.js",
+      "src/simulation/constants.js",
+      "src/game/commissions.js",
+      "src/game/customers.js"
+    ],
+    "src/ui/views/book.js": [
+      "src/game/kinds.js",
+      "src/ui/dom.js",
+      "src/ui/icons.js",
+      "src/audio/audio.js",
+      "src/ui/panels.js",
+      "src/game/experiments.js",
+      "src/alchemy/effects.js",
+      "src/core/color.js"
+    ],
+    "src/ui/views/counter.js": [
+      "src/ui/dom.js",
+      "src/ui/icons.js",
+      "src/rendering/portraits.js",
+      "src/rendering/renderer.js",
+      "src/game/evaluate.js",
+      "src/game/commissions.js",
+      "src/alchemy/effects.js",
+      "src/alchemy/effects.js",
+      "src/game/experiments.js",
+      "src/game/commerce.js",
+      "src/ui/trade.js",
+      "src/core/color.js",
+      "src/game/measure.js",
+      "src/ui/panels.js",
+      "src/game/customers.js"
+    ],
+    "src/ui/views/hutch.js": [
+      "src/game/experiments.js",
+      "src/game/kinds.js",
+      "src/ui/dom.js",
+      "src/ui/icons.js",
+      "src/audio/audio.js",
+      "src/rendering/rabbit.js",
+      "src/rendering/hutch-scene.js",
+      "src/visual/env/pens.js",
+      "src/rendering/crisp.js",
+      "src/alchemy/effects.js",
+      "src/game/colony.js",
+      "src/game/state.js"
+    ],
+    "src/ui/views/trials.js": [
+      "src/ui/dom.js",
+      "src/ui/icons.js",
+      "src/audio/audio.js",
+      "src/game/experiments.js",
+      "src/alchemy/effects.js",
+      "src/simulation/constants.js",
+      "src/game/commerce.js",
+      "src/game/experiments.js",
+      "src/game/commerce.js",
+      "src/game/customers.js",
+      "src/rendering/rabbit.js",
+      "src/game/colony.js",
+      "src/ui/views/hutch.js"
+    ],
+    "src/ui/views/wilds.js": [
+      "src/rendering/crisp.js",
+      "src/ui/dom.js",
+      "src/ui/icons.js",
+      "src/audio/audio.js",
+      "src/game/gathering.js",
+      "src/game/equipment.js",
+      "src/game/equipment.js",
+      "src/rendering/wild-scene.js",
+      "src/rendering/ragdoll.js",
+      "src/visual/env/scene.js",
+      "src/rendering/species-sprites.js",
+      "src/alchemy/effects.js",
+      "src/core/rng.js",
+      "src/game/wild-rabbits.js",
+      "src/rendering/rabbit.js",
+      "src/game/colony.js",
+      "src/game/kinds.js"
+    ],
+    "src/visual/atlas-contract.js": [
+      "src/materials/rarity.js"
+    ],
+    "src/visual/color.js": [
+      "src/core/color.js"
+    ],
+    "src/visual/descriptor.js": [
+      "src/studio/direction.js",
+      "src/core/rng.js",
+      "src/visual/taxonomy.js",
+      "src/visual/color.js",
+      "src/visual/identity.js",
+      "src/visual/families/index.js"
+    ],
+    "src/visual/env/cave.js": [
+      "src/visual/noise.js",
+      "src/visual/color.js",
+      "src/visual/env/side.js",
+      "src/visual/env/stone.js",
+      "src/visual/env/lighting.js"
+    ],
+    "src/visual/env/crags.js": [
+      "src/visual/env/paint.js",
+      "src/visual/env/kit.js",
+      "src/visual/env/side.js",
+      "src/visual/env/cave.js",
+      "src/visual/env/objects.js",
+      "src/visual/env/trees.js",
+      "src/visual/noise.js",
+      "src/visual/color.js",
+      "src/visual/geometry.js"
+    ],
+    "src/visual/env/flourish.js": [
+      "src/visual/noise.js",
+      "src/visual/env/side.js"
+    ],
+    "src/visual/env/foliage.js": [
+      "src/visual/geometry.js"
+    ],
+    "src/visual/env/forest.js": [
+      "src/visual/env/paint.js",
+      "src/visual/env/kit.js",
+      "src/visual/env/side.js",
+      "src/visual/env/cave.js",
+      "src/visual/env/objects.js",
+      "src/visual/env/trees.js",
+      "src/visual/noise.js"
+    ],
+    "src/visual/env/grade.js": [],
+    "src/visual/env/kit.js": [
+      "src/visual/env/paint.js",
+      "src/core/rng.js",
+      "src/visual/color.js"
+    ],
+    "src/visual/env/legible.js": [
+      "src/visual/noise.js",
+      "src/visual/color.js",
+      "src/core/rng.js"
+    ],
+    "src/visual/env/lighting.js": [],
+    "src/visual/env/meadow.js": [
+      "src/visual/env/paint.js",
+      "src/visual/env/kit.js",
+      "src/visual/env/side.js",
+      "src/visual/env/cave.js",
+      "src/visual/env/objects.js",
+      "src/visual/env/trees.js",
+      "src/visual/geometry.js",
+      "src/visual/color.js"
+    ],
+    "src/visual/env/moonfen.js": [
+      "src/visual/env/paint.js",
+      "src/visual/env/kit.js",
+      "src/visual/env/side.js",
+      "src/visual/env/cave.js",
+      "src/visual/env/objects.js",
+      "src/visual/env/trees.js",
+      "src/visual/noise.js",
+      "src/visual/color.js"
+    ],
+    "src/visual/env/netherwood.js": [
+      "src/visual/env/paint.js",
+      "src/visual/env/kit.js",
+      "src/visual/env/side.js",
+      "src/visual/env/cave.js",
+      "src/visual/env/objects.js",
+      "src/visual/env/trees.js",
+      "src/visual/env/forest.js"
+    ],
+    "src/visual/env/objects.js": [
+      "src/visual/geometry.js",
+      "src/visual/env/foliage.js"
+    ],
+    "src/visual/env/paint.js": [
+      "src/visual/pixels.js",
+      "src/visual/raster.js",
+      "src/visual/geometry.js",
+      "src/visual/color.js"
+    ],
+    "src/visual/env/pens.js": [
+      "src/visual/env/paint.js",
+      "src/visual/env/side.js",
+      "src/visual/env/cave.js",
+      "src/visual/env/grade.js",
+      "src/visual/env/stone.js",
+      "src/visual/noise.js",
+      "src/visual/color.js",
+      "src/core/rng.js"
+    ],
+    "src/visual/env/quarry.js": [
+      "src/visual/env/paint.js",
+      "src/visual/env/kit.js",
+      "src/visual/env/side.js",
+      "src/visual/env/cave.js",
+      "src/visual/env/objects.js",
+      "src/visual/env/trees.js",
+      "src/visual/geometry.js",
+      "src/core/rng.js"
+    ],
+    "src/visual/env/river.js": [
+      "src/visual/env/paint.js",
+      "src/visual/env/kit.js",
+      "src/visual/env/side.js",
+      "src/visual/env/cave.js",
+      "src/visual/env/objects.js",
+      "src/visual/env/trees.js",
+      "src/visual/geometry.js"
+    ],
+    "src/visual/env/scene.js": [
+      "src/studio/environment-runtime.js",
+      "src/studio/direction.js",
+      "src/visual/env/paint.js",
+      "src/core/rng.js",
+      "src/visual/env/cave.js",
+      "src/visual/env/legible.js",
+      "src/visual/env/flourish.js",
+      "src/visual/env/grade.js",
+      "src/visual/env/meadow.js",
+      "src/visual/env/forest.js",
+      "src/visual/env/river.js",
+      "src/visual/env/quarry.js",
+      "src/visual/env/moonfen.js",
+      "src/visual/env/crags.js",
+      "src/visual/env/netherwood.js"
+    ],
+    "src/visual/env/side.js": [
+      "src/visual/noise.js",
+      "src/visual/color.js",
+      "src/visual/env/paint.js",
+      "src/visual/env/stone.js"
+    ],
+    "src/visual/env/stone.js": [
+      "src/visual/noise.js",
+      "src/visual/color.js"
+    ],
+    "src/visual/env/trees.js": [
+      "src/visual/env/objects.js",
+      "src/core/rng.js",
+      "src/visual/color.js"
+    ],
+    "src/visual/families/bark.js": [
+      "src/visual/families/common.js"
+    ],
+    "src/visual/families/common.js": [
+      "src/core/rng.js",
+      "src/visual/geometry.js"
+    ],
+    "src/visual/families/crystal.js": [
+      "src/visual/families/common.js"
+    ],
+    "src/visual/families/flower.js": [
+      "src/visual/families/common.js"
+    ],
+    "src/visual/families/fruit.js": [
+      "src/visual/families/common.js"
+    ],
+    "src/visual/families/fungus.js": [
+      "src/visual/families/common.js"
+    ],
+    "src/visual/families/herb.js": [
+      "src/visual/families/common.js"
+    ],
+    "src/visual/families/index.js": [
+      "src/visual/families/flower.js",
+      "src/visual/families/herb.js",
+      "src/visual/families/root.js",
+      "src/visual/families/fungus.js",
+      "src/visual/families/moss.js",
+      "src/visual/families/fruit.js",
+      "src/visual/families/reed.js",
+      "src/visual/families/bark.js",
+      "src/visual/families/crystal.js",
+      "src/visual/families/mineral.js",
+      "src/visual/families/shell.js"
+    ],
+    "src/visual/families/mineral.js": [
+      "src/visual/families/common.js"
+    ],
+    "src/visual/families/moss.js": [
+      "src/visual/families/common.js"
+    ],
+    "src/visual/families/reed.js": [
+      "src/visual/families/common.js"
+    ],
+    "src/visual/families/root.js": [
+      "src/visual/families/common.js"
+    ],
+    "src/visual/families/shell.js": [
+      "src/visual/families/common.js"
+    ],
+    "src/visual/geometry.js": [],
+    "src/visual/growth.js": [
+      "src/studio/direction.js",
+      "src/core/rng.js",
+      "src/visual/pixels.js",
+      "src/visual/style.js",
+      "src/visual/color.js"
+    ],
+    "src/visual/identity.js": [
+      "src/core/rng.js"
+    ],
+    "src/visual/noise.js": [],
+    "src/visual/pieces.js": [
+      "src/studio/direction.js",
+      "src/materials/wild.js",
+      "src/core/color.js",
+      "src/visual/identity.js",
+      "src/visual/descriptor.js",
+      "src/visual/render.js"
+    ],
+    "src/visual/pixels.js": [],
+    "src/visual/raster.js": [
+      "src/visual/pixels.js",
+      "src/visual/noise.js",
+      "src/visual/color.js",
+      "src/visual/style.js"
+    ],
+    "src/visual/render.js": [
+      "src/studio/asset-runtime.js",
+      "src/visual/families/index.js",
+      "src/visual/raster.js",
+      "src/visual/pixels.js",
+      "src/visual/style.js",
+      "src/visual/growth.js",
+      "src/visual/noise.js"
+    ],
+    "src/visual/style.js": [
+      "src/visual/pixels.js"
+    ],
+    "src/visual/taxonomy.js": []
+  }
+}
