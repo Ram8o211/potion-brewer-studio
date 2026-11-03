@@ -13,7 +13,7 @@ import { plantFrame, iconFrame, pieceArt } from '../visual/render.js';
 import { WILD_SPECS } from '../materials/wild.js';
 import { FAMILIES } from '../visual/families/index.js';
 
-const TOOLS = ['pencil', 'eraser', 'line', 'rectangle', 'ellipse', 'fill', 'eyedropper', 'select', 'lasso', 'contiguous', 'move', 'anchor', 'tip', 'vertex', 'pan'];
+const TOOLS = ['shape', 'pencil', 'eraser', 'line', 'rectangle', 'ellipse', 'fill', 'eyedropper', 'select', 'lasso', 'contiguous', 'move', 'anchor', 'tip', 'vertex', 'pan'];
 function named(title, initial = '') {
   return new Promise((resolve) => {
     const input = h('input', { value: initial, maxlength: 100, 'aria-label': title }); let accepted = false;
@@ -29,7 +29,7 @@ export class StudioScreen {
     this.workspace = 'components'; this.app = app; this.project = newProject(); this.history = new History(); this.assetId = this.project.assets[0].id;
     this.componentId = this.project.assets[0].components[0].id; this.nodeId = this.project.assets[0].nodes[0].id; this.layerId = '';
     this.tool = 'pencil'; this.color = '#76b98a'; this.brush = 1; this.round = false; this.grid = true; this.guides = true;
-    this.zoom = 10; this.pan = [0, 0]; this.stage = 2; this.seed = 1; this.tab = 'rules'; this.mode = 'component';
+    this.geometryIndex = 0; this.newShape = 'leaf'; this.geometryDrag = null; this.zoom = 10; this.pan = [0, 0]; this.stage = 2; this.seed = 1; this.tab = 'rules'; this.mode = 'component';
     this.selection = null; this.clipboard = null; this.dirty = false; this.loaded = false; this.mounted = false; this.background = '#17212b'; this.hiddenPanels = []; this.componentGroups = new Map(); this.compare = null; this.renderMs = 0;
   }
   get asset() { return this.project.assets.find((a) => a.id === this.assetId) || this.project.assets[0]; }
@@ -105,7 +105,7 @@ export class StudioScreen {
     const moreTools = h('details', { class: 'art-tool-more' }, h('summary', { text: 'More tools' }), h('div', { class: 'art-tool-more-content' }));
     for (const t of TOOLS) {
       const item = btn(t[0].toUpperCase() + t.slice(1), () => { this.tool = t; this.refreshTools(); }, { act: 'art-tool-' + t });
-      (['pencil', 'eraser', 'line', 'rectangle', 'fill', 'select', 'pan'].includes(t) ? tools : moreTools.lastChild).append(item);
+      (['shape', 'pencil', 'eraser', 'line', 'rectangle', 'fill', 'select', 'pan'].includes(t) ? tools : moreTools.lastChild).append(item);
     }
     tools.append(moreTools);
     tools.append(action('Undo', () => this.undo(), 'undo'), action('Redo', () => this.redo(), 'redo'), action('Fit', () => { this.pan = [0, 0]; this.zoom = Math.max(2, Math.floor(Math.min(this.canvas.clientWidth, this.canvas.clientHeight) / 40)); this.draw(); }, 'fit'),
@@ -133,9 +133,9 @@ export class StudioScreen {
   }
   showGuide() {
     const guides = {
-      components: ['Choose a plant or component in the library.', 'Draw with Pencil, Eraser or Fill. Expand More tools when you need precise edits.', 'Watch the assembled result on the right; adjust growth and attachments in the tabs below.'],
+      components: ['Choose a plant or component in the library.', 'Use Shape to drag generated geometry or its corner handle to resize; use Pencil or Eraser for pixel corrections.', 'Watch the assembled result on the right; adjust growth and attachments in the tabs below.'],
       ingredients: ['Choose an ingredient species in Domain target.', 'Select its growth stage and see the icon, plant and fragments together.', 'Bind a reusable component graph, or open the native morphology details for precise adjustments.'],
-      environments: ['Choose a biome in Domain target.', 'Pick Rock, Soil, Erase, Water, Lava, Place prop or Add light above the preview.', 'Drag on the canvas to paint, or tap to place. Fine-tune colors and atmosphere in Properties.'],
+      environments: ['Choose a biome in Domain target.', 'Pick Rock, Soil, Erase, Water, Lava, Place prop or Add light above the preview.', 'After placement, drag a prop or light center to move it; drag the square handle to resize. Sliders adjust the rest.'],
       creatures: ['Choose a creature.', 'Adjust its anatomy and pose while watching the live animation.', 'Preview mutations and magical effects before applying the art profile.'],
       materials: ['Choose a material type.', 'Change color, opacity and texture while watching the live simulation.', 'Use the sample buttons to test its appearance in different conditions.'],
       effects: ['Choose a magical effect.', 'Edit particle size, density, shape and color.', 'Preview the effect against simulated material.'],
@@ -177,8 +177,9 @@ export class StudioScreen {
       const on = b.dataset.act === 'art-tool-' + this.tool;
       b.classList.toggle('active', on); b.setAttribute('aria-pressed', String(on));
     }
+    this.canvas.dataset.editorTool = this.tool;
     const label = this.tools.querySelector('.art-tool-more > summary');
-    if (label) label.textContent = ['pencil', 'eraser', 'line', 'rectangle', 'fill', 'select', 'pan'].includes(this.tool) ? 'More tools' : 'More: ' + this.tool;
+    if (label) label.textContent = ['shape', 'pencil', 'eraser', 'line', 'rectangle', 'fill', 'select', 'pan'].includes(this.tool) ? 'More tools' : 'More: ' + this.tool;
   }
   check(label, checked, change) {
     const input = h('input', { type: 'checkbox', 'aria-label': label, onchange: () => change(input.checked) }); input.checked = checked;
@@ -224,6 +225,7 @@ export class StudioScreen {
     }
   }
   renderInspector() {
+    const inspectorScroll = this.inspector.scrollTop;
     const a = this.asset, c = this.component;
     this.componentGroups ??= new Map();
     for (const group of this.inspector.querySelectorAll('details[data-editor-group]')) this.componentGroups.set(group.dataset.editorGroup, group.open);
@@ -235,6 +237,37 @@ export class StudioScreen {
       editField('Component name', c, 'name'), editField('Component tags', c, 'tags'));
     this.inspector.append(btn('Duplicate component', () => this.edit('Duplicate component', () => { const copy = clone(c); copy.id = uid(); copy.name += ' copy'; this.asset.components.push(copy); this.componentId = copy.id; })),
       btn('Delete unattached component', () => this.run(() => { if (this.asset.components.length < 2 || this.asset.nodes.some((n) => n.component === c.id)) throw new Error('Remove rules referencing this component before deleting it.'); this.edit('Delete component', () => { this.asset.components = this.asset.components.filter((p) => p.id !== c.id); this.componentId = this.asset.components[0].id; }); })));
+    // Visual shape tools are deliberately separate from pixel correction layers.
+    this.geometryIndex = Math.max(0, Math.min(this.geometryIndex, c.geometry.length - 1));
+    this.inspector.append(h('div', { class: 'art-control-group art-shape-controls' },
+      h('h3', { text: 'Edit generated shapes' }),
+      h('p', { class: 'muted', text: 'Choose Shape in the toolbar, drag a shape to move it, or drag its corner to resize.' }),
+      this.select('Shape to add', this.newShape, ['leaf', 'stem', 'crystal', 'ellipse', 'rectangle', 'polygon'].map((shape) => [shape, shape[0].toUpperCase() + shape.slice(1)]), (v) => { this.newShape = v; }),
+      this.select('Selected shape', String(this.geometryIndex), c.geometry.length
+        ? c.geometry.map((g, idx) => [String(idx), (idx + 1) + '. ' + g.shape])
+        : [['', 'No shapes yet']], (value) => {
+        this.geometryIndex = Math.max(0, Number(value) || 0);
+        this.tool = 'shape'; this.refreshTools(); this.draw();
+      }),
+      this.select('Selected shape type', c.geometry[this.geometryIndex]?.shape || '', c.geometry.length
+        ? ['leaf', 'stem', 'crystal', 'ellipse', 'rectangle', 'polygon'].map((shape) => [shape, shape])
+        : [['', 'No shape selected']], (value) => this.edit('Change procedural shape', () => {
+        const g = c.geometry[this.geometryIndex]; if (!g) return;
+        g.shape = value;
+        if (value === 'polygon' && !g.points) g.points = [[16, 2], [30, 28], [2, 28]];
+      })),
+      btn('+ Add shape', () => this.edit('Add procedural shape', () => {
+        const shape = this.newShape;
+        c.geometry.push({ shape, color: this.color, width: 12, height: 16, x: 16, y: 16,
+          ...(shape === 'polygon' ? { points: [[16, 2], [30, 28], [2, 28]] } : {}) });
+        this.geometryIndex = c.geometry.length - 1; this.tool = 'shape';
+      }), { act: 'art-add-shape' }),
+      btn('Remove selected shape', () => this.edit('Remove procedural shape', () => {
+        if (!c.geometry.length) return;
+        c.geometry.splice(this.geometryIndex, 1);
+        this.geometryIndex = Math.max(0, Math.min(this.geometryIndex, c.geometry.length - 1));
+      }), { act: 'art-remove-shape' })
+    ));
     this.inspector.append(this.field('Brush size', this.brush, (v) => { this.brush = Math.max(1, Math.min(16, v)); }, 'number', { min: 1, max: 16 }), this.check('Round brush', this.round, (v) => { this.round = v; }),
       this.field('Paint color', this.color, (v) => { this.color = v; }, 'color'), h('div', { class: 'art-palette' }, this.project.palette.map((color) => btn(' ', () => { this.color = color; this.paletteIndex = this.project.palette.indexOf(color); this.renderInspector(); }, { title: color, act: 'art-color-' + color.slice(1) })).map((b, i) => { b.style.background = this.project.palette[i]; return b; })),
       btn('Add paint color to palette', () => this.edit('Palette color', () => { if (!this.project.palette.includes(this.color)) this.project.palette.push(this.color); })),
@@ -286,6 +319,7 @@ export class StudioScreen {
     this.inspector.append(metadata);
     this.inspector.insertBefore(h('p', { class: 'art-inspector-intro', text: 'Select a component from the left, then paint its pixels here. Open the sections below for precise geometry, layers and asset details.' }), this.inspector.children[1] || null);
     this.renderDirection();
+    this.inspector.scrollTop = inspectorScroll;
   }
   renderDirection() {
     const d = this.project.direction;
@@ -371,7 +405,51 @@ export class StudioScreen {
       for (const [point, color, label] of markers) { const x = ox + point[0] * this.zoom, y = oy + point[1] * this.zoom; ctx.strokeStyle = color; ctx.beginPath(); ctx.moveTo(x - 8, y); ctx.lineTo(x + 8, y); ctx.moveTo(x, y - 8); ctx.lineTo(x, y + 8); ctx.stroke(); ctx.fillText(label, x + 7, y - 7); }
     }
     if (this.tool === 'vertex') { ctx.fillStyle = '#ffcc66'; for (const g of this.component.geometry) for (const p of g.points || []) ctx.fillRect(ox + (g.x + (p[0] - 16) * g.width / 32) * this.zoom - 3, oy + (g.y + (p[1] - 16) * g.height / 32) * this.zoom - 3, 6, 6); }
+    if (this.tool === 'shape') this.drawShapeHandles(ctx, ox, oy);
     this.drawGenerated();
+  }
+  drawShapeHandles(ctx, ox, oy) {
+    for (const [index, g] of this.component.geometry.entries()) {
+      const selected = this.geometryIndex === index, k = this.zoom;
+      const x = ox + (g.x - g.width / 2) * k, y = oy + (g.y - g.height / 2) * k;
+      ctx.save();
+      ctx.strokeStyle = selected ? '#ffda80' : '#78c7bf';
+      ctx.lineWidth = selected ? 2 : 1;
+      ctx.setLineDash(selected ? [5, 3] : [3, 4]);
+      ctx.strokeRect(x, y, g.width * k, g.height * k);
+      ctx.setLineDash([]);
+      if (selected) {
+        const hx = ox + (g.x + g.width / 2) * k, hy = oy + (g.y + g.height / 2) * k;
+        ctx.fillStyle = '#ffda80'; ctx.fillRect(hx - 8, hy - 8, 16, 16);
+        ctx.strokeStyle = '#13252e'; ctx.strokeRect(hx - 8, hy - 8, 16, 16);
+      }
+      ctx.restore();
+    }
+  }
+  // Canvas hit testing uses component coordinates, including fractional zoom/pan.
+  shapeHit(e) {
+    const b = this.canvas.getBoundingClientRect();
+    const x = (e.clientX - b.left - this.origin[0]) / this.zoom;
+    const y = (e.clientY - b.top - this.origin[1]) / this.zoom;
+    const tolerance = 12 / this.zoom;
+    const selected = this.component.geometry[this.geometryIndex];
+    if (selected && Math.hypot(x - selected.x - selected.width / 2, y - selected.y - selected.height / 2) <= tolerance) {
+      return { index: this.geometryIndex, action: 'resize', x, y };
+    }
+    for (let i = this.component.geometry.length - 1; i >= 0; i--) {
+      const g = this.component.geometry[i];
+      if (Math.abs(x - g.x) <= g.width / 2 + tolerance && Math.abs(y - g.y) <= g.height / 2 + tolerance) {
+        return { index: i, action: 'move', x, y };
+      }
+    }
+    return null;
+  }
+  finishGeometryDrag(cancel = false) {
+    const d = this.geometryDrag; if (!d) return;
+    this.geometryDrag = null;
+    if (cancel) this.project = d.before;
+    else if (JSON.stringify(d.before) !== JSON.stringify(this.project)) this.commitGesture(d.before, d.action === 'resize' ? 'Resize procedural shape' : 'Move procedural shape');
+    this.refresh();
   }
   drawGenerated() {
     if (!this.generated) return;
@@ -397,6 +475,16 @@ export class StudioScreen {
       if (!this.origin) this.paint();
       const p = this.point(e), tool = this.space || e.button === 1 ? 'pan' : this.tool;
       if (tool !== 'pan' && (p[0] < 0 || p[0] >= 32 || p[1] < 0 || p[1] >= 32)) return;
+      if (tool === 'shape') {
+        const hit = this.shapeHit(e);
+        if (!hit) return;
+        this.geometryIndex = hit.index;
+        const g = this.component.geometry[hit.index];
+        this.geometryDrag = { before: clone(this.project), pointerId: e.pointerId,
+          action: hit.action, index: hit.index, x: hit.x, y: hit.y,
+          source: { x: g.x, y: g.y, width: g.width, height: g.height } };
+        this.draw(); return;
+      }
       if (tool === 'eyedropper') { this.color = wordColor(this.bitmap.get(p[0], p[1])); this.renderInspector(); return; }
       if (tool === 'fill' || tool === 'contiguous') {
         const pixels = region(this.bitmap.px, 32, 32, p[0], p[1]);
@@ -413,6 +501,22 @@ export class StudioScreen {
       this.draw();
     });
     cv.addEventListener('pointermove', (e) => {
+      const d = this.geometryDrag;
+      if (d && e.pointerId === d.pointerId) {
+        const b = cv.getBoundingClientRect();
+        const x = (e.clientX - b.left - this.origin[0]) / this.zoom;
+        const y = (e.clientY - b.top - this.origin[1]) / this.zoom;
+        const dx = x - d.x, dy = y - d.y, g = this.component.geometry[d.index];
+        if (!g) return;
+        if (d.action === 'resize') {
+          g.width = Math.max(1, Math.min(32, Math.round(d.source.width + dx * 2)));
+          g.height = Math.max(1, Math.min(32, Math.round(d.source.height + dy * 2)));
+        } else {
+          g.x = Math.max(0, Math.min(32, Math.round(d.source.x + dx)));
+          g.y = Math.max(0, Math.min(32, Math.round(d.source.y + dy)));
+        }
+        this.draw(); return;
+      }
       const s = this.stroke; if (!s) return;
       const p = this.point(e).map((v) => Math.max(0, Math.min(31, v)));
       if (s.tool === 'pan') { this.pan = [s.pan[0] + e.clientX - s.screen[0], s.pan[1] + e.clientY - s.screen[1]]; this.draw(); return; }
@@ -428,9 +532,12 @@ export class StudioScreen {
       } else if (s.tool === 'vertex' && s.vertex) { const g = this.component.geometry[s.vertex.gi]; g.points[s.vertex.vi] = [Math.max(0, Math.min(32, (p[0] - g.x) * 32 / g.width + 16)), Math.max(0, Math.min(32, (p[1] - g.y) * 32 / g.height + 16))]; } else if (s.tool === 'anchor' || s.tool === 'tip') this.component[s.tool] = p;
       s.last = p; this.draw();
     });
-    cv.addEventListener('pointerup', () => this.endStroke());
-    cv.addEventListener('pointercancel', () => { if (this.stroke) this.project = this.stroke.before; this.stroke = null; this.draw(); });
-    cv.addEventListener('lostpointercapture', () => this.endStroke());
+    cv.addEventListener('pointerup', () => { if (this.geometryDrag) this.finishGeometryDrag(); else this.endStroke(); });
+    cv.addEventListener('pointercancel', () => {
+      if (this.geometryDrag) { this.finishGeometryDrag(true); return; }
+      if (this.stroke) this.project = this.stroke.before; this.stroke = null; this.draw();
+    });
+    cv.addEventListener('lostpointercapture', () => { if (this.geometryDrag) this.finishGeometryDrag(); else this.endStroke(); });
   }
   commitGesture(before, label) {
     try { validateProject(this.project); this.history.push(before, label); this.dirty = true; }
@@ -557,7 +664,7 @@ export class StudioScreen {
   }
   unmount() {
     this.domainEditor?.destroy(); this.domainEditor = null;
-    this.mounted = false; this.stroke = null; this.nodeDrag = null; this.space = false; cancelAnimationFrame(this.drawRequest); clearInterval(this.playTimer); this.playTimer = null; clearTimeout(this.layoutTimer);
+    this.mounted = false; this.stroke = null; this.geometryDrag = null; this.nodeDrag = null; this.space = false; cancelAnimationFrame(this.drawRequest); clearInterval(this.playTimer); this.playTimer = null; clearTimeout(this.layoutTimer);
     window.removeEventListener('keyup', this.keyUpHandler); window.removeEventListener('blur', this.blurHandler);
     window.removeEventListener('keydown', this.keyHandler); window.removeEventListener('beforeunload', this.unload); this.observer?.disconnect();
     this.bitmapCanvas = null; this.componentKey = ''; this.el.remove();

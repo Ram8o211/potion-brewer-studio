@@ -2,6 +2,14 @@
 
 Open **Procedural Art Studio** from the game's main menu. **Editor workspace** switches between seven integrated editors. They share a project, component library, undo/redo, portable files, and the profile applied to the actual game. No external editor or new dependency is required.
 
+## Direct manipulation (quick workflow)
+
+In **Draw components**, choose **Shape** in the pixel-tool row. Select a part by clicking or tapping its outlined bounds, then drag it to move it within the 32×32 component cell. Drag the square handle at its lower-right corner to adjust its width and height. **Shape to add** offers leaves, stems, crystals, ellipses, rectangles and polygons; the selected geometry type can also be changed without redrawing it. These edits modify reusable source geometry, not the transparent pixel-correction layer. **Undo/Redo** records one action per completed drag. Pointer cancellation restores the pre-drag state.
+
+In **Wilds & terrain**, choose **Place prop** or **Add light** and click the desired location. The editor immediately enters **Select / Move**, showing a marker for the new item. Drag the center marker to reposition it; drag its square handle to adjust prop scale or light radius. Existing objects and lights can also be selected from their inspector entries. The game still checks terrain placement and object collisions at composition time; a requested position may be moved or rejected by the native placement rules.
+
+Terrain appearance now offers drag sliders next to precise numeric inputs for vegetation, lighting, tint and atmosphere. Object scale and light size/strength have the same dual input. The sliders change visual parameters only, and saved document format, material physics and gameplay remain unchanged. Touch targets and overlays are provided for mobile editing, though physical-device validation remains separate.
+
 ## Components and executable rules
 
 Draw reusable 32×32 components with pencil/eraser, square/round brushes, lines, rectangles, ellipses, fill, eyedropper, rectangle/lasso/contiguous selections, correction-layer move, copy/paste, flip, rotation and nearest-neighbour scaling. Layers have visibility, opacity, ordering and all-variant / exact-seed / growth-stage scopes. PNG import preserves transparency; erasing is an explicit cutout distinct from untouched pixels. Zoom is pointer-centred, pan supports Space/drag or the Pan tool, and coordinates remain image-relative at every zoom and device pixel ratio.

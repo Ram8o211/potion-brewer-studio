@@ -1529,3 +1529,46 @@ details.steps summary { cursor: pointer; min-height: 24px; }
 }
 .art-studio .art-guide-content { max-width:520px; }
 .art-studio .art-guide-content li { padding:5px 0; line-height:1.45; }
+
+
+/* Direct manipulation, visible drag handles, and non-technical range controls. */
+.art-studio .art-canvas[data-editor-tool="shape"],
+.art-studio .art-domain-canvas[data-editor-tool="select"] {
+  cursor:move;
+}
+.art-studio .art-shape-controls {
+  border-color:#588b85;
+  background:#213740;
+}
+.art-studio .art-shape-controls .btn {
+  width:100%;
+  margin:4px 0;
+}
+.art-studio .art-slider-field {
+  margin:6px 0 13px;
+  padding:3px 2px 8px;
+  border-bottom:1px solid #314650;
+}
+.art-studio .art-slider-field .art-field {
+  margin-bottom:2px;
+}
+.art-studio .art-slider-field input[type="range"] {
+  display:block;
+  width:100%;
+  min-height:28px;
+  padding:0;
+  margin:0;
+  border:none;
+  background:transparent;
+  accent-color:#9bd7c2;
+  cursor:ew-resize;
+  touch-action:pan-y;
+}
+.art-studio .art-slider-field input[type="range"]:focus-visible {
+  outline:2px solid #f0ca87;
+  outline-offset:2px;
+}
+@media(pointer:coarse) {
+  .art-studio .art-slider-field input[type="range"] { min-height:42px; }
+  .art-studio .art-shape-controls .btn { min-height:40px; }
+}
