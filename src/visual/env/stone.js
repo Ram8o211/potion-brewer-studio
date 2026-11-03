@@ -45,7 +45,7 @@ const TONES = new Map();
 function tones(c) {
   let t = TONES.get(c);
   if (!t) {
-    t = [mixPacked(c, 0xffffffff, 0.34), mixPacked(c, 0xffffffff, 0.16), c, mixPacked(c, 0xff000000, 0.2), mixPacked(c, 0xff000000, 0.4)];
+    t = [mixPacked(c, 0xffffffff, 0.42), mixPacked(c, 0xffffffff, 0.21), c, mixPacked(c, 0xff000000, 0.23), mixPacked(c, 0xff000000, 0.48)];
     TONES.set(c, t);
   }
   return t;
@@ -82,7 +82,10 @@ export function pebble(x, y, o) {
   if (edge < 0.75 || Math.sqrt(d3) - Math.sqrt(d1) < 1.7) return o.mortar;
   const r = s * 0.56, e = Math.sqrt(d1) / r;
   const T = tones(o.stones[Math.floor(hash2(id, 3, o.seed) * o.stones.length)]);
-  const u = bx / r, v = by / r, lit = -(u * 0.55 + v * 0.85);
+  const u = bx / r, v = by / r;
+  // A shallow dome gives each stone volume rather than a single planar face.
+  const dome = Math.max(0, 1 - u * u - v * v);
+  const lit = -(u * 0.55 + v * 0.85) + dome * 0.22;
   // moss on its top: a tuft of two greens on some of the stones
   if (o.moss && v < -0.22 && e > 0.3 && hash2(id, 11, o.seed) < 0.12) {
     const m = Math.abs(u - (hash2(id, 12, o.seed) - 0.5) * 0.8);
@@ -90,15 +93,19 @@ export function pebble(x, y, o) {
   }
   // the underside's shadow, then the dome's light from the upper left
   let t;
-  if (edge < 1.35 && v > -0.3) t = 4;
-  else if (lit > 0.6 && edge < 2.7) t = 0;
-  else if (lit > 0.25) t = 1;
-  else if (lit > -0.35) t = 2;
+  if (edge < 1.6 && v > -0.22) t = 4;
+  else if (lit > 0.76 && v < -0.12) t = 0;
+  else if (lit > 0.27) t = 1;
+  else if (lit > -0.28) t = 2;
   else t = lit > -0.7 ? 3 : 4;
   // Broad mineral facets, anchored to the stone, never salt-and-pepper noise.
-  const n = noise2((x + id % 7) * 0.2, y * 0.24, o.seed + 31);
-  if (t === 2 && n > 0.68) t = 1;
-  else if (t === 2 && n < 0.23) t = 3;
+  const n = noise2((x + id % 7) * 0.38, y * 0.42, o.seed + 31);
+  if (t > 0 && t < 4) {
+    if (n > 0.67 && lit > -0.15) t--;
+    else if (n < 0.27) t++;
+    // Short mineral chips sit inside the face, not in the mortar.
+    if (edge > 2 && hash2(x >> 1, y, o.seed + 44) > 0.965) t = Math.max(0, t - 1);
+  }
   // a crack across some of them
   if (hash2(id, 13, o.seed) < 0.08 && e < 0.7) {
     const ca = hash2(id, 14, o.seed) * Math.PI, d = Math.abs(u * Math.sin(ca) - v * Math.cos(ca) + (hash2(id, 15, o.seed) - 0.5) * 0.4);

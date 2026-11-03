@@ -148,7 +148,15 @@ export function paintTerrain(cv, o) {
       }
       // the crust's lower edge uneven: here and there it hangs a pixel or two into what lies under it, in drips two pixels wide
       const drip = hash2(x >> 1, 5, o.seed) < 0.32 ? 1 + Math.floor(hash2(x >> 1, 6, o.seed) * 2) : 0;
-      if (d < ch) c = crust[Math.min(crust.length - 1, d)];
+      if (d < ch) {
+        let tone = Math.min(crust.length - 1, d);
+        // Short lit clumps break up the otherwise ruler-straight turf/sand
+        // bands; keep the top edge continuous enough to read as a ledge.
+        const tuft = hash2(x >> 1, y - d, o.seed + 19);
+        if (d === 0 && tuft < 0.16) tone = Math.min(crust.length - 1, 1);
+        else if (d > 0 && tuft > 0.74) tone--;
+        c = crust[tone];
+      }
       else if (d < ch + drip && floors) c = crust[Math.min(crust.length - 1, d - 1)];
       else if (li >= 0) {
         const l = layers[li];
@@ -198,7 +206,7 @@ export const STRATA = {
   // short lighter runs, small round pebbles bedded in it, each lit on top and shaded under, and a dark
   // seam along its floor — c: body, body 2, streak, top band, pebble, pebble shade
   dirt(x, y, into, c, seed, thick) {
-    const band = 2 + Math.round(fbm1(x * 0.09, seed + 11, 2) * 3);
+    const band = 1 + Math.round(fbm1(x * 0.13, seed + 11, 2) * 2);
     if (thick - into <= 1 + (hash2(x >> 1, 7, seed) < 0.4 ? 1 : 0)) return mixPacked(c[0], 0xff000000, 0.3);
     // pebbles: one now and then in a cell of 10 × 7, an egg of 4–5 × 3, its corners rounded off
     const cx = Math.floor(x / 10), cy = Math.floor((y + (cx & 1) * 3) / 7);
@@ -208,9 +216,13 @@ export const STRATA = {
       const u = x - px, v = y - py;
       if (u >= 0 && u < pw && v >= 0 && v < ph && !((u === 0 || u === pw - 1) && (v === 0 || v === ph - 1))) return v === 0 ? c[4] : v === ph - 1 ? c[5] : (u < 2 ? c[4] : mixPacked(c[4], c[5], 0.45));
     }
-    if (into < band) return into === band - 1 && hash2(x, y, seed + 9) < 0.5 ? c[2] : c[3];
-    if (hash2(Math.floor((x + (y & 3) * 2) / 6), y, seed + 7) < 0.07) return c[2];
-    return fbm2(x * 0.07, y * 0.18, seed, 2) > 0.55 ? c[1] : c[0];
+    if (into < band) return hash2(x >> 1, y, seed + 9) < 0.2 ? c[2] : c[3];
+    const clod = noise2(x * 0.23, y * 0.38, seed + 17);
+    const streak = hash2(Math.floor((x + (y & 3) * 2) / 4), y, seed + 7);
+    if (streak < 0.12 && clod > 0.45) return c[2];
+    if (clod < 0.24) return mixPacked(c[0], 0xff000000, 0.18);
+    if (clod > 0.72) return mixPacked(c[1], c[2], 0.5);
+    return fbm2(x * 0.13, y * 0.25, seed, 2) > 0.5 ? c[1] : c[0];
   },
   // a band of grey rock between soils: lit along its top, dark along its floor, streaked — c: body, streak, lit, shade
   band(x, y, into, c, seed, thick) {
@@ -222,11 +234,13 @@ export const STRATA = {
   sand(x, y, into, c, seed) {
     if (into === 0) return c[0];
     const g = hash2(x, y, seed + 1);
-    if (g < 0.035) return c[3];
-    if (g > 0.985) return c[0];
+    if (g < 0.018) return c[3];
+    if (g > 0.98) return c[0];
     // long faint ripples of shade lying level, the sand between them flat
     const v = y + fbm1(x * 0.05, seed, 2) * 5;
-    return Math.floor(v / 4) % 3 === 2 && hash2(x >> 3, Math.floor(v / 4), seed + 2) < 0.7 ? c[2] : c[1];
+    if (Math.floor(v / 4) % 3 === 2 && hash2(x >> 3, Math.floor(v / 4), seed + 2) < 0.7) return c[2];
+    const patch = noise2(x * 0.22, y * 0.32, seed + 12);
+    return patch > 0.68 ? mixPacked(c[1], c[0], 0.45) : patch < 0.28 ? mixPacked(c[1], c[2], 0.4) : c[1];
   },
   // soil: two tones in soft blotches, small pebbles bedded in it, each lit on top — c: a, b, pebble lit, pebble shade
   soil(x, y, into, c, seed) {
@@ -247,8 +261,10 @@ export const STRATA = {
   banded(x, y, into, c, seed) {
     const n = c.length - 1, v = y + fbm1(x * 0.025, seed, 2) * 7 + fbm1(x * 0.11, seed + 3, 2) * 1.5, h = 4, b = Math.floor(v / h), f = v - b * h;
     const t = c[((b % n) + n) % n];
-    if (f >= h - 1 && hash2(x >> 2, b, seed + 4) < 0.8) return c[n];
-    return f < 1 ? mixPacked(t, 0xffffffff, 0.14) : t;
+    if (f >= h - 1 && hash2(x >> 2, b, seed + 4) < 0.65) return c[n];
+    const grain = noise2(x * 0.35, y * 0.4, seed + 8);
+    if (f < 1) return mixPacked(t, 0xffffffff, grain > 0.5 ? 0.18 : 0.08);
+    return grain < 0.24 ? mixPacked(t, c[n], 0.22) : grain > 0.74 ? mixPacked(t, 0xffffffff, 0.1) : t;
   },
   // gravel: small rounded stones of uneven sizes packed close, each lit on its upper left, grit between — c: lit, mid, shade, the grit
   gravel(x, y, into, c, seed) {
@@ -384,7 +400,8 @@ export function sunbeams(cv, sx, sy, strength = 0.12) {
       const q = Math.abs(u - off) / (3 + d * 0.08);
       if (q < 1) a = Math.max(a, (1 - q) * strength * Math.max(0, 1 - d / cv.H));
     }
-    return a;
+    // Gentle rays keep the daytime sky's colour and cloud detail.
+    return a * 0.48;
   }, sy, cv.H);
 }
 

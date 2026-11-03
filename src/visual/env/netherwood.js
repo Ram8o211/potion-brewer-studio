@@ -24,7 +24,7 @@ export function compose(cv, seed) {
   }), s('pal'), 1);
   const back = '#0e1820';
   sky(cv, 0, H, ['#03080e', '#06121d', '#092536', '#123649']);
-  farPillars(cv, { n: 8, fill: '#0c141c', rim: '#121c26', seed: s('far1').int(0, 1e9), w: [10, 22], floor: 180, caps: true });
+  farPillars(cv, { n: 8, fill: '#0d2332', rim: '#15364a', seed: s('far1').int(0, 1e9), w: [10, 22], floor: 180, caps: true });
   fog(cv, '#1c2c40', 80, 200, 0.3, s('fog1').int(0, 1e9));
   // the ground line, and the ghostly wood behind
   const ts = s('terrain'), top = heights(W, ts.int(0, 1e9), { base: 172, amp: 8, freq: 0.012 });
