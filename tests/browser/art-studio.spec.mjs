@@ -109,3 +109,25 @@ test('zoomed coordinates, cancelled gestures and hidden layouts remain reliable'
   await page.locator('[data-act=art-save]').click(); await page.reload(); await page.locator('[data-act=art-studio]').click();
   await expect(page.locator('.art-library')).toBeHidden(); await page.locator('[data-act=art-toggle-library]').click(); await expect(page.locator('.art-library')).toBeVisible();
 });
+
+
+test('component editor keeps the drawing workflow visible and advanced groups optional', async ({ page }) => {
+  const errors = watchErrors(page);
+  await enter(page);
+  await expect(page.getByLabel('Asset name', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Paint color', { exact: true })).toBeVisible();
+  await expect(page.locator('.art-tool-more > summary')).toBeVisible();
+  await expect(page.getByLabel('Shape 1', { exact: true })).toBeHidden();
+  const advancedShapes = page.locator('[data-editor-group="component-shapes"]');
+  await advancedShapes.locator('summary').click();
+  await expect(page.getByLabel('Shape 1', { exact: true })).toBeVisible();
+  await page.getByLabel('Shape 1', { exact: true }).selectOption('ellipse');
+  await expect(advancedShapes).toHaveAttribute('open', '');
+  await expect(page.getByLabel('Shape 1', { exact: true })).toHaveValue('ellipse');
+  await expect(page.getByLabel('Category', { exact: true })).toBeHidden();
+  await page.locator('[data-editor-group="component-meta"] > summary').click();
+  await expect(page.getByLabel('Category', { exact: true })).toBeVisible();
+  await page.locator('[data-act=art-help]').click();
+  await expect(page.getByRole('dialog', { name: 'Art Studio guide' })).toContainText('Draw a component');
+  expect(errors).toEqual([]);
+});
