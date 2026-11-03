@@ -1253,3 +1253,322 @@ details.steps summary { cursor: pointer; min-height: 24px; }
   }
 }
 .art-domain{padding:12px;overflow:auto;height:100%;display:flex;flex-direction:column;gap:12px}.art-domain-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:8px}.art-domain-toolbar .art-field{min-width:130px;max-width:220px}.art-domain-canvas{width:100%;max-height:70vh;object-fit:contain;image-rendering:pixelated;touch-action:none;background:#14212a;border:1px solid #42616a}.art-domain-messages{padding:14px;color:#bcd4d6}.art-ui-example{padding:22px;min-height:190px;box-sizing:border-box}.art-ui-example img{image-rendering:pixelated}.art-ui-example button:hover{filter:brightness(1.2)}.art-ui-example button:active{filter:brightness(.75)}.art-animation-timeline{display:flex;flex-wrap:wrap;gap:5px;padding:8px}.art-header>.art-field{margin:0;min-width:170px}
+
+/* Keep all Art Studio controls reachable, including tall Wilds inspectors. */
+@media (min-width:701px) {
+  .art-studio {
+    grid-template-columns:clamp(160px,var(--art-left),32vw) minmax(240px,1fr) clamp(205px,var(--art-right),34vw);
+    grid-template-rows:auto minmax(160px,1fr) clamp(140px,var(--art-bottom),35dvh) auto;
+  }
+  .art-studio.art-hide-library {
+    grid-template-columns:0 minmax(240px,1fr) clamp(205px,var(--art-right),34vw);
+  }
+  .art-studio.art-hide-inspector {
+    grid-template-columns:clamp(160px,var(--art-left),32vw) minmax(240px,1fr) 0;
+  }
+  .art-studio.art-hide-library.art-hide-inspector {
+    grid-template-columns:0 minmax(240px,1fr) 0;
+  }
+}
+.art-studio .art-inspector {
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+}
+.art-studio .art-inspector > h2 {
+  position:sticky;
+  top:-10px;
+  z-index:2;
+  padding:8px 0;
+  margin:0 0 12px;
+  background:#1c2a34;
+}
+.art-studio .art-domain { min-width:0; min-height:0; }
+.art-studio .art-domain-toolbar { flex:0 0 auto; min-width:0; }
+.art-studio .art-domain-canvas { aspect-ratio:16/9; height:auto; min-height:0; flex:0 0 auto; }
+/* On short landscape viewports the grid must scroll rather than clip its footer/controls. */
+@media (min-width:701px) and (max-height:650px) {
+  .art-studio {
+    overflow-x:hidden;
+    overflow-y:auto;
+    align-content:start;
+    grid-template-rows:auto minmax(240px,1fr) 170px auto;
+  }
+  .art-studio .art-library,.art-studio .art-inspector { min-height:0; }
+  .art-studio .art-footer { position:sticky; bottom:0; z-index:5; }
+}
+/* Narrow screens use full-width sections instead of clipping a three-column editor. */
+@media (max-width:700px) {
+  .art-studio,
+  .art-studio.art-hide-library,
+  .art-studio.art-hide-inspector,
+  .art-studio.art-hide-library.art-hide-inspector {
+    grid-template-columns:minmax(0,1fr);
+    grid-template-rows:auto auto auto auto auto auto;
+    align-content:start;
+    overflow-x:hidden;
+    overflow-y:auto;
+  }
+  .art-studio .art-header { grid-column:1; grid-row:1; }
+  .art-studio .art-center,
+  .art-studio.art-hide-library .art-center {
+    grid-column:1;
+    grid-row:2;
+    min-height:260px;
+    height:clamp(260px,48dvh,440px);
+    overflow:hidden;
+  }
+  .art-studio .art-inspector {
+    grid-column:1;
+    grid-row:3;
+    width:100%;
+    max-width:none;
+    max-height:min(60dvh,520px);
+    resize:none;
+  }
+  .art-studio .art-bottom,
+  .art-studio.art-hide-inspector .art-bottom {
+    grid-column:1;
+    grid-row:4;
+    width:100%;
+    height:auto;
+    min-height:100px;
+    max-height:260px;
+    resize:none;
+  }
+  .art-studio .art-library {
+    grid-column:1;
+    grid-row:5;
+    width:100%;
+    max-width:none;
+    max-height:240px;
+    resize:none;
+  }
+  .art-studio .art-footer {
+    grid-column:1;
+    grid-row:6;
+    position:sticky;
+    bottom:0;
+    z-index:5;
+    flex-wrap:wrap;
+  }
+  .art-studio .art-domain { padding:8px; }
+  .art-studio .art-domain-toolbar .art-field { min-width:min(130px,100%); }
+}
+
+
+/* Art Studio: focused primary actions and progressive disclosure. */
+.art-studio .art-header {
+  position:relative;
+  z-index:12;
+}
+.art-studio .art-project-menu {
+  position:relative;
+  flex:none;
+  font:12px/1.4 system-ui,sans-serif;
+}
+.art-studio .art-project-menu > summary,
+.art-studio .art-tool-more > summary {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid #526c74;
+  background:#263640;
+  color:#e3ece5;
+  border-radius:4px;
+  cursor:pointer;
+  padding:8px 11px;
+  min-height:34px;
+  user-select:none;
+}
+.art-studio .art-project-menu > summary:hover,
+.art-studio .art-tool-more > summary:hover { background:#365e59; }
+.art-studio .art-project-menu > summary:focus-visible,
+.art-studio .art-tool-more > summary:focus-visible,
+.art-studio .art-settings-group > summary:focus-visible {
+  outline:2px solid #f0ca87;
+  outline-offset:2px;
+}
+.art-studio .art-project-menu-content {
+  position:absolute;
+  z-index:20;
+  right:0;
+  top:calc(100% + 5px);
+  width:min(235px,80vw);
+  padding:8px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  background:#1b2c36;
+  border:1px solid #6b8a8a;
+  box-shadow:0 8px 22px #000b;
+}
+.art-studio .art-project-menu-content > button { text-align:left; }
+.art-studio .art-workspace-guide {
+  flex:none;
+  margin:0;
+  padding:5px 12px;
+  font-size:11px;
+  background:#1a3038;
+  color:#b5d4c9;
+}
+.art-studio .art-tools {
+  align-items:center;
+  min-width:0;
+}
+.art-studio .art-tool-more {
+  flex:none;
+  max-width:100%;
+}
+.art-studio .art-tool-more-content {
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  margin-top:6px;
+  padding:7px;
+  background:#152731;
+  border:1px solid #476168;
+}
+.art-studio .art-inspector-intro {
+  font-size:12px;
+  line-height:1.5;
+  color:#bdd2cb;
+  padding:8px 10px;
+  margin:4px 0 12px;
+  background:#203742;
+  border-left:3px solid #79bba6;
+}
+.art-studio .art-settings-group {
+  margin:9px 0;
+  padding:0 9px 9px;
+  border:1px solid #3c5661;
+  background:#172630;
+}
+.art-studio .art-settings-group > summary {
+  cursor:pointer;
+  padding:10px 4px;
+  color:#e1eee6;
+  font-size:12px;
+  line-height:1.4;
+}
+.art-studio .art-settings-group[open] > summary {
+  border-bottom:1px solid #38535a;
+  margin-bottom:10px;
+}
+.art-studio .art-settings-group .art-group-description {
+  display:block;
+  font-size:10px;
+  font-weight:400;
+  color:#a7bdc0;
+  padding-left:18px;
+  margin-top:2px;
+}
+.art-studio .art-control-group {
+  padding:9px 10px 4px;
+  margin:10px 0;
+  background:#172832;
+  border:1px solid #3e5961;
+}
+.art-studio .art-control-group h3 {
+  margin:0 0 12px;
+  font-size:12px;
+  color:#d4dfd9;
+}
+.art-studio .art-control-item {
+  border-bottom:1px solid #3c5560;
+  padding:8px 3px;
+  margin-bottom:8px;
+}
+.art-studio .art-control-item:last-child { border-bottom:0; }
+.art-studio .art-wilds-tools {
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  flex:0 0 auto;
+  padding:8px;
+  background:#1c303a;
+  border:1px solid #39515b;
+}
+.art-studio .art-wilds-tools .btn {
+  flex:1 1 auto;
+  min-height:36px;
+  padding:7px 10px;
+}
+.art-studio .art-wilds-tools .btn.active {
+  box-shadow:inset 0 -3px 0 #95ddc0;
+}
+.art-studio .art-workspace-hint {
+  flex:0 0 auto;
+  margin:0;
+  padding:6px 10px;
+  background:#172832;
+  border-left:3px solid #649d8d;
+  color:#bdd5cb;
+  line-height:1.4;
+  font-size:11px;
+}
+.art-studio .art-domain-toolbar { gap:6px; }
+.art-studio .art-domain-toolbar .btn { min-height:34px; }
+.art-studio .art-domain-canvas { cursor:crosshair; }
+@media (max-width:700px) {
+  .art-studio .art-header { gap:5px; }
+  .art-studio .art-header > .art-field { flex:1 1 140px; }
+  .art-studio .art-header > .btn { flex:1 0 auto; }
+  .art-studio .art-project-menu { flex:1 0 auto; }
+  .art-studio .art-project-menu > summary { width:100%; }
+  .art-studio .art-wilds-tools .btn { flex:1 1 25%; min-height:40px; }
+  .art-studio .art-domain { gap:6px; }
+  .art-studio .art-workspace-hint { font-size:10px; }
+}
+
+/* Domain editors need preview space, not the tall component-rules footer. */
+@media (min-width:701px) and (min-height:651px) {
+  .art-studio.art-domain-active {
+    grid-template-rows:auto minmax(240px,1fr) 90px auto;
+  }
+}
+.art-studio .art-guide-content { max-width:520px; }
+.art-studio .art-guide-content li { padding:5px 0; line-height:1.45; }
+
+
+/* Direct manipulation, visible drag handles, and non-technical range controls. */
+.art-studio .art-canvas[data-editor-tool="shape"],
+.art-studio .art-domain-canvas[data-editor-tool="select"] {
+  cursor:move;
+}
+.art-studio .art-shape-controls {
+  border-color:#588b85;
+  background:#213740;
+}
+.art-studio .art-shape-controls .btn {
+  width:100%;
+  margin:4px 0;
+}
+.art-studio .art-slider-field {
+  margin:6px 0 13px;
+  padding:3px 2px 8px;
+  border-bottom:1px solid #314650;
+}
+.art-studio .art-slider-field .art-field {
+  margin-bottom:2px;
+}
+.art-studio .art-slider-field input[type="range"] {
+  display:block;
+  width:100%;
+  min-height:28px;
+  padding:0;
+  margin:0;
+  border:none;
+  background:transparent;
+  accent-color:#9bd7c2;
+  cursor:ew-resize;
+  touch-action:pan-y;
+}
+.art-studio .art-slider-field input[type="range"]:focus-visible {
+  outline:2px solid #f0ca87;
+  outline-offset:2px;
+}
+@media(pointer:coarse) {
+  .art-studio .art-slider-field input[type="range"] { min-height:42px; }
+  .art-studio .art-shape-controls .btn { min-height:40px; }
+}

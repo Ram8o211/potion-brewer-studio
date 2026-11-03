@@ -18,7 +18,7 @@ import { pack } from '../color.js';
 export function compose(cv, seed) {
   const W = cv.W, H = cv.H, s = (p) => streamOf(seed, 'moonfen', p);
   const pal = vary(palette({
-    leaf: ['#24483c', { spread: 0.5 }], leaf2: ['#224658', { spread: 0.5 }], bloom: ['#c860a8', { spread: 0.5 }], moss: ['#2e5a46', { spread: 0.5 }], bark: ['#2a2420', { spread: 0.4 }], wood: '#5a4a3a', rock: ['#3e4250', { spread: 0.45 }],
+    leaf: ['#278679', { spread: 0.45, cool: 0.15 }], leaf2: ['#307d96', { spread: 0.45, cool: 0.15 }], bloom: ['#c860a8', { spread: 0.5 }], moss: ['#3c9270', { spread: 0.45 }], bark: ['#49404b', { spread: 0.4 }], wood: '#5a4a3a', rock: ['#61677e', { spread: 0.45 }],
     reed: ['#2e4a34', { spread: 0.45 }], cattail: '#3a2a1e', gem: ['#6ac8f0', { spread: 0.6 }],
   }), s('pal'), 0.8);
   sky(cv, 0, H, ['#04050e', '#0a0f2a', '#121a40', '#1a2250']);
@@ -27,7 +27,7 @@ export function compose(cv, seed) {
   for (let i = 0; i < 140; i++) { const x = st.int(0, W - 1), y = st.int(0, 110), b = st.next(); cv.set(x, y, pack(b > 0.8 ? [0.95, 0.95, 1] : b > 0.4 ? [0.7, 0.72, 0.95] : [0.45, 0.48, 0.75])); }
   for (let i = 0; i < 5; i++) { const x = st.int(4, W - 4), y = st.int(4, 70), c = pack([0.85, 0.9, 1]); for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [0, 0]]) cv.set(x + dx, y + dy, c); }
   // the moon and its halo, in the rent of the roof
-  const fs = s('frame'), cave = fs.next() < 0.4, o0 = fs.int(70, 150), o1 = o0 + fs.int(140, 200);
+  const fs = s('frame'), cave = fs.next() < 0.12, o0 = fs.int(70, 150), o1 = o0 + fs.int(140, 200);
   const mx = Math.round((o0 + o1) / 2) + s('moon').int(-30, 30), my = s('moon2').int(30, 44), mr = 12;
   glow(cv, mx, my, 80, [0.45, 0.5, 0.8], 0.4);
   const ms = s('craters').int(0, 1e9), crescent = s('phase').next() < 0.5;
@@ -72,7 +72,7 @@ export function compose(cv, seed) {
   const ss = ts.int(0, 1e9);
   paintTerrain(cv, {
     a: '#1e1a18', b: '#2a2420', grain: '#4a4038', dark: '#0a0a10', deep: '#050508', cave: '#030305',
-    crust: ['#3e8a6a', '#2e6a52', '#1e4a3c', '#16382e'], crustH: 4, seed: ss,
+    crust: ['#7ae3be', '#40b59a', '#287a6c', '#205449'], crustH: 4, seed: ss,
     cobble: { stones: ['#283247', '#323850', '#3b425b', '#454f68', '#2e3a4c', '#3a4658'], mortar: '#020308', s: 10, moss: ['#1e4a3c', '#3e8a6a'] },
     grass: { cols: ['#2e6a52', '#3e8a6a', '#1e4a3c'], tall: 4, rate: 0.55, flowers: ['#8ff0ff', '#d8ff8a'] },
     // under the bog moss a dark peaty earth with pale pebbles, a seam of blue-grey rock, then the stones
@@ -88,8 +88,8 @@ export function compose(cv, seed) {
   // willows hung with moss, a dead tree, reeds at the pools
   const wr = s('willows');
   const look = { mats: ['leaf', 'leaf2'], bloom: { mat: 'bloom', rate: 0.05 }, hang: { mat: 'moss', rate: 0.4, len: /** @type {[number, number]} */ ([4, 12]) } };
-  terrainTrees(cv, wr, pal, { n: 2, kinds: ['wisteria', 'willow'], h: [64, 116], dark: 0.25, gap: 120, look });
-  terrainTrees(cv, wr, pal, { n: 2, kinds: ['dead', 'wisteria', 'gnarl'], shapes: ['lean', 'tall'], h: [36, 70], dark: 0.2, gap: 40, ledges: true, look });
+  terrainTrees(cv, wr, pal, { n: 2, kinds: ['gnarl', 'tiers'], h: [54, 96], dark: 0.06, gap: 120, look });
+  terrainTrees(cv, wr, pal, { n: 2, kinds: ['dead', 'wisteria', 'gnarl'], shapes: ['lean', 'tall'], h: [36, 70], dark: 0.08, gap: 40, ledges: true, look });
   const rr = s('reeds');
   for (const p of pools) for (const side of [-1, 1]) {
     let x = p.x + side * p.hw;
@@ -101,7 +101,7 @@ export function compose(cv, seed) {
   cv.place(cairn(sr, 6), pal, bx + sr.int(5, 25), { foot: [6, 2], range: 30 });
   const glows = [];
   for (let i = 0; i < 3; i++) {
-    const at = cv.place(spire(sr, sr.int(8, 14)), pal, sr.int(16, W - 16), { foot: [4, 2], range: 30 });
+    const at = cv.place(spire(sr, sr.int(12, 20)), pal, sr.int(16, W - 16), { foot: [5, 2], range: 40 });
     if (!at) continue;
     glow(cv, at.fx, at.fy - 7, 30, [0.3, 0.6, 0.95], 0.4);
     glows.push([at.fx, at.fy - 7]);
@@ -115,7 +115,7 @@ export function compose(cv, seed) {
   }, 100, H);
   cv.meta.glows = glows;
   cv.meta.moon = [mx, my];
-  cv.meta.vignette = 0.6;
+  cv.meta.vignette = 0.3;
   cv.meta.wind = cave ? 0.4 : 0.7;
   cv.meta.horizon = 124;
 }

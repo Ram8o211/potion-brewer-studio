@@ -101,10 +101,10 @@ export function cluster(m, rng, x, y, rx, ry, o = {}) {
   const leafy = { shade: /** @type {'flat'} */ ('flat'), noOutline: true, ...sw };
   // the shade at its heart and underside, showing between the clumps
   m.poly(oval(x + rx * 0.04, y + ry * 0.12, rx * 0.9, ry * (o.flat ? 0.68 : 0.84), rnd), mats[0], { ...leafy, step: st(0.2) });
-  // round clumps, the lower ones first, each drawn as the reference sheets draw them: a dark rim
-  // on its lower right (where it overlaps the clump below, so every clump reads apart), its body,
-  // a lit crescent on its upper left and a bright highlight there — four clean tones, no speckle
-  const pr = Math.max(2.2, Math.min(4.2, Math.min(rx, ry) * 0.45)), n = Math.max(3, Math.round(((rx * ry) / (pr * pr)) * 1.05 * (o.dense ?? 1)));
+  // Overlapping leafy facets, with broken highlights on their upper edges.
+  // Concentric puffs make rings at this scale, so the lit face is a lopsided
+  // patch and its highlights are individual leaves instead of smaller discs.
+  const pr = Math.max(2.2, Math.min(3.6, Math.min(rx, ry) * 0.46)), n = Math.max(4, Math.round(((rx * ry) / (pr * pr)) * 1.25 * (o.dense ?? 1)));
   /** @type {[number, number, number][]} */
   const at = [];
   for (let i = 0; i < n; i++) {
@@ -116,15 +116,20 @@ export function cluster(m, rng, x, y, rx, ry, o = {}) {
   at.sort((p, q) => q[1] - p[1]);
   for (const [px, py, r] of at) {
     // the higher and further left, the more of it in the light
-    const up = (y - py) / ry, left = (x - px) / rx, mat = pick(rnd, mats), b = 0.36 + up * 0.14 + left * 0.06 + (rnd() - 0.5) * 0.06;
-    m.poly(puff(px + r * 0.12, py + r * 0.18, r + 0.8, rnd, 0.82), mat, { ...leafy, step: st(b - 0.34) });
+    const up = (y - py) / ry, left = (x - px) / rx, mat = pick(rnd, mats), b = 0.46 + up * 0.12 + left * 0.06 + (rnd() - 0.5) * 0.08;
+    m.poly(puff(px + r * 0.14, py + r * 0.18, r + 0.4, rnd, 0.82), mat, { ...leafy, step: st(b - 0.14) });
     m.poly(puff(px, py, r, rnd), mat, { ...leafy, step: st(b) });
-    m.poly(puff(px - r * 0.22, py - r * 0.26, r * 0.66, rnd, 0.8), mat, { ...leafy, step: st(b + 0.2) });
-    m.poly(puff(px - r * 0.36, py - r * 0.42, Math.max(0.9, r * 0.3), rnd, 0.6), mat, { ...leafy, step: st(b + 0.42) });
+    m.poly([
+      [px - r, py - r * 0.18], [px - r * 0.5, py - r * 0.78],
+      [px + r * 0.05, py - r * 0.82], [px + r * 0.6, py - r * 0.38],
+      [px + r * 0.18, py + r * 0.05], [px - r * 0.35, py - r * 0.06],
+      [px - r * 0.55, py + r * 0.25],
+    ], mat, { ...leafy, step: st(b + 0.17) });
+    m.poly(leaf(rnd, px - r * 0.48, py - r * 0.55, Math.max(0.8, r * 0.42)), mat, { ...leafy, step: st(b + 0.3) });
     // a leaf or two standing out of its top edge
     for (let j = 0; j < Math.max(1, Math.round(r * 0.35)); j++) {
       const a = Math.PI * (1.15 + rnd() * 0.6);
-      m.poly(leaf(rnd, px + Math.cos(a) * r * 0.95, py + Math.sin(a) * r * 0.9, 0.7 + rnd() * 0.4), mat, { ...leafy, step: st(b + 0.3) });
+      m.poly(leaf(rnd, px + Math.cos(a) * r * 0.95, py + Math.sin(a) * r * 0.9, 0.8 + rnd() * 0.6), mat, { ...leafy, step: st(b + 0.24) });
     }
   }
   // leaf tufts breaking the outline: small leaves round the edge, lit above, dark below

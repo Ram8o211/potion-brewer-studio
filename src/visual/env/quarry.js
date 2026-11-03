@@ -8,9 +8,9 @@
 
 import { sky } from './paint.js';
 import { palette, vary, streamOf } from './kit.js';
-import { fillSolid, blob, ledges, paintTerrain, markOpen, glow, drips, silhouette, mountains } from './side.js';
+import { fillSolid, blob, ledges, paintTerrain, markOpen, glow, drips, silhouette, mountains, sunbeams } from './side.js';
 import { caveFrame, farPillars, fog, moss, torch, ledgeTops } from './cave.js';
-import { crane, ladder, cart, crate, beam, boulder, scaffold, wheel, cloud } from './objects.js';
+import { crane, ladder, cart, crate, beam, boulder, scaffold, wheel, cloud, spire } from './objects.js';
 import { terrainTrees } from './trees.js';
 import { Model } from '../geometry.js';
 import { Rng } from '../../core/rng.js';
@@ -19,10 +19,10 @@ export function compose(cv, seed) {
   const W = cv.W, H = cv.H, s = (p) => streamOf(seed, 'quarry', p);
   const pal = vary(palette({
     rock: ['#5a5048', { spread: 0.55 }], timber: ['#6a4428', { spread: 0.5 }], rope: '#4a3a2a', ore: ['#5a4a46', { spread: 0.5 }], metal: '#5a5a62',
-    seamC: ['#e8c040', { spread: 0.4, n: 4 }], leaf: ['#56603e', { spread: 0.5 }], leaf2: ['#6e6a4c', { spread: 0.45 }], bark: ['#4a3e34', { spread: 0.45 }], cloud: ['#eef0f0', { spread: 0.3 }],
+    seamC: ['#e8c040', { spread: 0.4, n: 4 }], leaf: ['#647e35', { spread: 0.45 }], leaf2: ['#85873e', { spread: 0.45 }], bark: ['#4a3e34', { spread: 0.45 }], cloud: ['#eef0f0', { spread: 0.3 }], gem: ['#f05e48', { spread: 0.5, n: 5, cool: 0.12 }],
   }), s('pal'), 0.8);
   // an open pit under the sky, or a mine worked deep in a cavern
-  const fs = s('frame'), cave = fs.next() < 0.5;
+  const fs = s('frame'), cave = fs.next() < 0.2;
   if (cave) {
     sky(cv, 0, H, ['#070504', '#0e0a08', '#16100c', '#1c140e']);
     farPillars(cv, { n: 7, fill: '#1a130e', rim: '#241a12', seed: s('far1').int(0, 1e9), w: [12, 24], floor: 180 });
@@ -39,6 +39,7 @@ export function compose(cv, seed) {
     mountains(cv, { base: 104, amp: 44, n: 8, seed: s('far').int(0, 1e9), fill: '#b0a498', lit: '#c8beb0', dark: '#9a8e82' });
     fog(cv, '#e0d8cc', 70, 120, 0.25, s('haze').int(0, 1e9));
     silhouette(cv, { base: 100, amp: 8, freq: 0.02, seed: s('far2').int(0, 1e9), fill: '#8a7e72', rim: '#a09486', rough: 3 });
+    sunbeams(cv, 32, 52, 0.2);
   }
   // the benches: steps cut down from one side, each a level shelf over a sheer face
   const ts = s('terrain'), top = new Float32Array(W), right = ts.next() < 0.5;
@@ -117,6 +118,8 @@ export function compose(cv, seed) {
   terrainTrees(cv, s('trees'), pal, { n: cave ? 1 : 3, kinds: ['sparse', 'sparse', 'gnarl'], h: [30, 64], gap: 50, ledges: true, dark: cave ? 0.3 : 0, look: { mats: ['leaf', 'leaf2'] } });
   const br = s('rubble');
   for (let i = 0; i < 4; i++) cv.place(boulder(br, br.int(3, 6), br.int(2, 4)), pal, br.int(10, W - 10), { foot: [5, 1], range: 30 });
+  const gems = s('gems');
+  for (let i = 0; i < 2; i++) cv.place(spire(gems, gems.int(12, 19)), pal, gems.int(18, W - 18), { foot: [6, 2], range: 45 });
   // a lantern on its post, and torches on the shelves
   const lp = new Model();
   beam(lp, [0, 0], [0, -26], 2.4); beam(lp, [0, -26], [6, -26], 1.6);
@@ -134,7 +137,7 @@ export function compose(cv, seed) {
     torch(cv, x0, y0, h); cv.block(x0 - 3, y0 - 14, x0 + 4, y0 + 1);
   }
   cv.meta.trickles = drips(cv, ss, 5);
-  cv.meta.vignette = cave ? 0.6 : 0.3;
+  cv.meta.vignette = cave ? 0.32 : 0.14;
   cv.meta.wind = cave ? 0.3 : 0.8;
   cv.meta.horizon = 100;
 }

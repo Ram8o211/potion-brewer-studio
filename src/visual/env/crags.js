@@ -23,10 +23,10 @@ export function compose(cv, seed) {
   const W = cv.W, H = cv.H, s = (p) => streamOf(seed, 'crags', p);
   const pal = vary(palette({
     rock: ['#3a2e34', { spread: 0.5 }], lava: ['#e05a18', { spread: 0.7, n: 7, warm: 0.6 }], bark: ['#2a1e1a', { spread: 0.35 }],
-    gem: ['#ff8a3a', { spread: 0.55 }], leaf: ['#4e4c1c', { spread: 0.5 }], leaf2: ['#6e6420', { spread: 0.5 }], bloom: ['#f08a2a', { spread: 0.4 }], wood: '#3a2a20', cloud: ['#4a3a3e', { spread: 0.4 }],
+    gem: ['#f65b4e', { spread: 0.55, cool: 0.15 }], leaf: ['#7f831d', { spread: 0.5 }], leaf2: ['#9a9728', { spread: 0.48 }], bloom: ['#f08a2a', { spread: 0.4 }], wood: '#3a2a20', cloud: ['#4a3a3e', { spread: 0.4 }],
   }), s('pal'), 0.6);
   // a volcanic cavern, or the open slopes under a smoking cone
-  const fs = s('frame'), cave = fs.next() < 0.5;
+  const fs = s('frame'), cave = fs.next() < 0.85;
   let frame = null;
   if (cave) {
     sky(cv, 0, H, ['#080303', '#120505', '#1c0807', '#260c08']);
@@ -35,7 +35,7 @@ export function compose(cv, seed) {
     farPillars(cv, { n: 5, fill: '#24100c', rim: '#381610', seed: s('far2').int(0, 1e9), w: [18, 30], floor: 185, caps: true });
     fog(cv, '#6a2210', 130, 216, 0.25, s('fog2').int(0, 1e9));
     frame = caveFrame(cv, {
-      seed: fs.int(0, 1e9), stones: ['#2e2220', '#3a2a26', '#24191a'], mortar: '#080404', dark: 0.35, roof: [10, 32], walls: [10, 12],
+      seed: fs.int(0, 1e9), stones: ['#4d3932', '#5b4038', '#392a27'], mortar: '#080404', dark: 0.2, roof: [10, 30], walls: [8, 9],
       stal: { n: 18, len: [6, 34], w: [3, 7], tip: '#ff6a20' }, lip: ['#5a2a1a', '#3a1a12'],
     });
     for (const [x, y] of cv.meta.tips) glow(cv, x, y, 10, [1, 0.4, 0.12], 0.4);
@@ -65,7 +65,7 @@ export function compose(cv, seed) {
   const ss = ts.int(0, 1e9);
   paintTerrain(cv, {
     a: '#2a2228', b: '#352a30', grain: '#5a3a36', dark: '#100a0a', deep: '#060304', cave: '#040203',
-    crust: ['#6a6a2e', '#4e4e24', '#3a3a1e', '#2a2418'], crustH: 4, seed: ss,
+    crust: ['#a4aa35', '#7d852c', '#555922', '#35351b'], crustH: 4, seed: ss,
     cobble: { stones: ['#45312d', '#3a231e', '#5e3a30', '#4a2a22', '#6c4436', '#3e2a26'], mortar: '#050202', s: 10 },
     grass: { cols: ['#5a5a26', '#6a6a2e', '#4a4420'], tall: 3, rate: 0.45, flowers: ['#ff5a2a', '#ff8a3a', '#e0302a'] },
     // under the scorched moss a slab of grey ash speckled pale, a band of red cinders, then the red-brown cinder stones
@@ -83,7 +83,7 @@ export function compose(cv, seed) {
   // in the cavern, a fall of lava from the roof into the pool (all the lava there is pours into or lies in the pool)
   const lf = s('falls');
   const fx = px + lf.int(-hw + 8, hw - 8);
-  if (frame) fall(cv, fx, Math.max(0, frame.roof[fx]) + 1, { w: 2, cols: LAVA, rgb: [1, 0.45, 0.12], seed: lf.int(0, 1e9) });
+  if (frame) fall(cv, fx, Math.max(0, frame.roof[fx]) + 1, { w: 3, cols: LAVA, rgb: [1, 0.45, 0.12], seed: lf.int(0, 1e9) });
   // basalt columns, fire-glass, charred brush
   const br = s('basalt');
   for (let g = 0; g < 2; g++) {
@@ -115,7 +115,7 @@ export function compose(cv, seed) {
   }
   cv.meta.vents = vents;
   cv.meta.trickles = drips(cv, ss, 4);
-  cv.meta.vignette = cave ? 0.55 : 0.35;
+  cv.meta.vignette = cave ? 0.32 : 0.2;
   cv.meta.wind = cave ? 0.3 : 0.6;
   cv.meta.horizon = 120;
 }
