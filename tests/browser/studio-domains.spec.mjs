@@ -116,3 +116,50 @@ test('Wilds painting tools are direct, contextual and reversible', async ({ page
   await expect(page.getByRole('dialog', { name: 'Art Studio guide' })).toContainText('Choose a biome');
   expect(errors).toEqual([]);
 });
+
+
+test('Wilds props and lights expose draggable position and size handles', async ({ page }) => {
+  const errors = watchErrors(page);
+  await open(page, 'environments');
+  await page.getByLabel('Domain target', { exact: true }).selectOption('forest');
+  const preview = page.locator('.art-domain-canvas');
+  const at = (x, y) => page.evaluate(([x, y]) => {
+    const b = document.querySelector('.art-domain-canvas').getBoundingClientRect();
+    return { x: b.left + x * b.width / 384, y: b.top + y * b.height / 216 };
+  }, [x, y]);
+  await page.locator('[data-act=domain-tool-light]').click();
+  const drop = await at(95, 70);
+  await preview.scrollIntoViewIfNeeded();
+  await page.mouse.click(drop.x, drop.y);
+  await expect.poll(() => page.evaluate(() => window.__alchemist.screen.project.domains.environments.forest.lights.length)).toBe(1);
+  await expect(page.locator('[data-act=domain-tool-select]')).toHaveAttribute('aria-pressed', 'true');
+  const moved = await at(125, 82);
+  await page.mouse.move(drop.x, drop.y);
+  await page.mouse.down();
+  await page.mouse.move(moved.x, moved.y, { steps: 6 });
+  await page.mouse.up();
+  await expect.poll(() => page.evaluate(() => window.__alchemist.screen.project.domains.environments.forest.lights[0].x)).toBe(125);
+  await page.locator('[data-act=domain-undo]').click();
+  await expect.poll(() => page.evaluate(() => window.__alchemist.screen.project.domains.environments.forest.lights[0].x)).toBe(95);
+  await page.locator('[data-act=domain-redo]').click();
+  await expect.poll(() => page.evaluate(() => window.__alchemist.screen.project.domains.environments.forest.lights[0].x)).toBe(125);
+  const handle = await at(160, 82), enlarged = await at(175, 82);
+  await page.mouse.move(handle.x, handle.y);
+  await page.mouse.down();
+  await page.mouse.move(enlarged.x, enlarged.y, { steps: 5 });
+  await page.mouse.up();
+  await expect.poll(() => page.evaluate(() => window.__alchemist.screen.project.domains.environments.forest.lights[0].radius)).toBe(50);
+  await page.locator('[data-act=domain-tool-place]').click();
+  const prop = await at(230, 120);
+  await page.mouse.click(prop.x, prop.y);
+  await expect.poll(() => page.evaluate(() => window.__alchemist.screen.project.domains.environments.forest.objects.length)).toBe(1);
+  const before = await page.evaluate(() => window.__alchemist.screen.project.domains.environments.forest.objects[0].scale);
+  const propHandle = await at(230 + 20 * before, 120 - 20 * before);
+  const grow = await at(230 + 20 * before + 6, 120 - 20 * before);
+  await page.mouse.move(propHandle.x, propHandle.y);
+  await page.mouse.down();
+  await page.mouse.move(grow.x, grow.y, { steps: 4 });
+  await page.mouse.up();
+  await expect.poll(() => page.evaluate(() => window.__alchemist.screen.project.domains.environments.forest.objects[0].scale)).toBe(1.3);
+  expect(errors).toEqual([]);
+});
