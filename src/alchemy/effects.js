@@ -50,7 +50,16 @@ export const EFFECTS = [
   { key: 'acidity', label: 'Acidity', icon: 'acid', color: [0.84, 0.91, 0.45], kind: 'chemical', signed: true, harmful: true, desc: 'Corrosive acid. Negative values are alkaline; acids and alkalis neutralise.' },
   { key: 'toxicity', label: 'Toxicity', icon: 'skull', color: [0.57, 0.8, 0.44], kind: 'chemical', harmful: true, desc: 'Poison. Vitality neutralises it.' },
   { key: 'death', label: 'Death', icon: 'death', color: [0.71, 0.57, 0.93], kind: 'magic', harmful: true, desc: 'Necromantic decay. Opposes vitality.' },
+  // Append only: the first ten positions are part of the historical save format.
+  { key: 'swiftness', label: 'Swiftness', icon: 'speed', color: [0.78, 0.95, 0.45], kind: 'magic', desc: 'Quickens movement and reactions.' },
+  { key: 'levitation', label: 'Levitation', icon: 'feather', color: [0.53, 0.88, 1], kind: 'magic', desc: 'Lifts the body above the ground.' },
+  { key: 'invisibility', label: 'Invisibility', icon: 'eye', color: [0.74, 0.65, 0.94], kind: 'magic', desc: 'Veils the body from sight.' },
+  { key: 'phasing', label: 'Phasing', icon: 'crystal', color: [0.45, 1, 0.9], kind: 'magic', desc: 'Shifts the body toward a spectral state.' },
+  { key: 'temporal', label: 'Temporal Distortion', icon: 'clock', color: [1, 0.82, 0.4], kind: 'magic', desc: 'Distorts the pace of a creature’s local time.' },
 ];
+
+export const NATURAL_EFFECTS = Object.freeze(['vitality', 'strength', 'love', 'fire', 'frost', 'acidity', 'toxicity', 'death', 'swiftness']);
+export const EXOTIC_EFFECTS = Object.freeze(['arcana', 'levitation', 'transformation', 'invisibility', 'phasing', 'temporal']);
 
 export const NE = EFFECTS.length;
 export const EFFECT_KEYS = EFFECTS.map((e) => e.key);

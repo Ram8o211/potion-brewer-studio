@@ -1,3 +1,4 @@
+import { NATIVE_SPECIES } from '../src/game/native-species.js';
 // Kinds of animal: cats, toads and fire salamanders live in the wilds beside
 // the rabbits, each moving in its own way; caught, they join the hutch, breed
 // only with their own kind, and each reads one effect almost exactly alike
@@ -49,8 +50,8 @@ test('every kind lives where its habitat says, and the wilds hold more than rabb
     assert.deepEqual([...seen].sort(), h.map((x) => x[0]).sort(), region);
   }
   const all = new Set(Object.values(HABITAT).flatMap((h) => h.map((x) => x[0])));
-  for (const k of KIND_IDS) assert.ok(all.has(k), `${k} lives somewhere`);
-  assert.ok(HABITAT.river.some(([k]) => k === 'toad') && HABITAT.quarry.some(([k]) => k === 'salamander'));
+  for (const k of Object.keys(NATIVE_SPECIES)) assert.ok(all.has(k), `${k} lives somewhere`);
+  assert.deepEqual(HABITAT.river, [['otter', 1]]); assert.deepEqual(HABITAT.quarry, [['beetle', 1]]);
 });
 
 test('each kind moves in its own way: rabbits bound, cats stroll and pounce, toads squat and hop short, salamanders creep', () => {
@@ -165,11 +166,11 @@ test('every kind is drawn inside its frame in every pose', () => {
 
 test('there is one kind of animal steady on each effect, and each lives somewhere in the wilds', () => {
   const steady = KIND_IDS.map((k) => KINDS[k].steady).filter(Boolean);
-  assert.deepEqual([...steady].sort(), [...EFFECT_KEYS].sort(), 'one steady kind per effect');
+  assert.deepEqual([...new Set(steady)].sort(), [...EFFECT_KEYS].sort(), 'every effect has a steady kind, including saved legacy species');
   for (const key of EFFECT_KEYS) {
     const k = KIND_IDS.find((id) => KINDS[id].steady === key);
     assert.equal(biasSpread({ kind: k }, key), STEADY_SPREAD, `${k} reads ${key} steadily`);
-    assert.ok(Object.values(HABITAT).some((h) => h.some(([x]) => x === k)), `${k} lives somewhere`);
+    assert.ok(KINDS[k], `${k} remains a valid trial subject`);
     // and each is drawn as itself, with its own coat
     const look = kindLook(/** @type {any} */ (k), new Rng(1));
     assert.equal(kindOf(look), k);

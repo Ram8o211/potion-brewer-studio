@@ -40,6 +40,7 @@
 
 import { Rng, hashString } from '../core/rng.js';
 import { isBotanical, familyOf, habitatOf } from '../visual/taxonomy.js';
+import { BIOMES } from './biomes.js';
 
 /**
  * @typedef {Object} Region
@@ -49,18 +50,15 @@ import { isBotanical, familyOf, habitatOf } from '../visual/taxonomy.js';
  * @property {boolean} magical
  * @property {string} desc
  * @property {number[]} sky      palette seeds for the scene renderer
+ * @property {string} category
+ * @property {string} dominant
+ * @property {string} creature
+ * @property {number} sales
+ * @property {string} [interaction]
  */
 
 /** @type {Region[]} */
-export const REGIONS = [
-  { id: 'forest', name: 'Whisperwood', rank: 0, magical: false, desc: 'Old oaks and ferns. Roots and leaves grow in the shade.', sky: [0.36, 0.52, 0.42] },
-  { id: 'netherwood', name: 'Netherwood', rank: 1, magical: false, desc: 'A forest grown in a cavern under the Whisperwood, lit by glowing fungi. Shelf fungi and screaming roots thrive in the dark.', sky: [0.1, 0.12, 0.18] },
-  { id: 'meadow', name: 'Sunlit Meadow', rank: 0, magical: false, desc: 'Flowers and clover under an open sky.', sky: [0.55, 0.72, 0.9] },
-  { id: 'river', name: 'Willow Bank', rank: 0, magical: false, desc: 'Chalky banks, mushrooms and bog plants along the slow river.', sky: [0.5, 0.66, 0.78] },
-  { id: 'quarry', name: 'Ironstone Quarry', rank: 0, magical: false, desc: 'Cut rock faces, mineral crusts and glittering dust.', sky: [0.62, 0.6, 0.58] },
-  { id: 'moonfen', name: 'Moonfen', rank: 2, magical: true, desc: 'A haunted bog lit by wisps. Death-moss and star crystals — and magic that wakes in the cold, not the heat.', sky: [0.16, 0.18, 0.32] },
-  { id: 'crags', name: 'Ember Crags', rank: 3, magical: true, desc: 'Volcanic slopes where fire-peppers and salamanders live.', sky: [0.42, 0.2, 0.16] },
-];
+export const REGIONS = BIOMES;
 /** @type {Record<string, Region>} */
 export const REGION_BY_ID = Object.fromEntries(REGIONS.map((r) => [r.id, r]));
 
@@ -82,6 +80,8 @@ export const REGION_BY_ID = Object.fromEntries(REGIONS.map((r) => [r.id, r]));
  * @property {string} [place]    a name for the spot
  * @property {boolean} botanical a living plant that drinks (else a mineral or shell that comes back with time)
  * @property {number} thirst     how much moisture it needs to grow at full pace (0..1)
+ * @property {boolean} [finite] a Traveller generation: no watering or regrowth
+ * @property {string} [generationSeed] saved generation identity
  */
 
 /**
@@ -119,22 +119,24 @@ export const SPROUT_SHARE = 0.4;
  * @param {(id:string)=>any} lookup
  * @returns {Deposit[]}
  */
-export function generateDeposits(world, lookup) {
+export function generateDeposits(world, lookup, instances = null) {
   const rng = new Rng('deposits:' + world.seed);
   /** @type {Deposit[]} */
   const out = [];
   for (const region of REGIONS) {
-    const mats = (world.wild || []).map(lookup).filter((m) => m && m.wild && m.wild.region === region.id);
+    const instance = instances?.[region.id];
+    if (instances && !instance) continue;
+    const mats = (instance ? instance.roster.map((r) => r.id) : (world.wild || [])).map(lookup).filter((m) => m && m.wild && m.wild.region === region.id);
     mats.forEach((m, k) => {
       const rare = !!m.wild.rare;
       // a crowded region grows fewer of each ingredient, so its ground does not overflow
-      const slots = rare ? 1 + (mats.length < 5 ? 1 : 0) : mats.length >= 5 ? 2 : 3;
+      const slots = instance ? instance.roster.find((r) => r.id === m.id).count : rare ? 1 : Math.max(1, Math.min(3, Math.floor(18 / mats.length)));
       const take = rare ? rng.int(3, 4) * 10 : rng.int(5, 8) * 10;
       const growMs = Math.round((rare ? rng.range(18, 30) : rng.range(4, 8)) * 60000);
       const spawnMs = Math.round((rare ? rng.range(15, 25) : rng.range(3, 5)) * 60000);
       out.push({
-        id: `${region.id}:${m.wild.key}:0`,
-        place: PLACES[region.id][k % PLACES[region.id].length],
+        id: `${region.id}:${m.wild.key}:${instance?.revision || 0}`,
+        place: (PLACES[region.id] || ['along the ancient path'])[k % (PLACES[region.id]?.length || 1)],
         region: region.id,
         materialId: m.id,
         x: Math.round(rng.range(0.1, 0.9) * 1000) / 1000,
@@ -149,6 +151,7 @@ export function generateDeposits(world, lookup) {
         rare,
         botanical: isBotanical(m.wild.shape),
         thirst: thirstOf(m.wild.shape, region.id),
+        ...(instance ? { finite: true, generationSeed: instance.seed } : {}),
       });
     });
   }
@@ -172,11 +175,11 @@ export function thirstOf(shape, region) {
 
 /** Fresh gathering state: every stand saturated, some of it already mature. */
 export function createGathering(now = Date.now()) {
-  return { v: GATHER_VERSION, nodes: /** @type {Record<string, Stand>} */ ({}), total: 0, trips: 0, created: now, sky: 'clear', watered: 0 };
+  return { v: GATHER_VERSION, nodes: /** @type {Record<string, Stand>} */ ({}), instances: /** @type {Record<string, any>} */ ({}), total: 0, trips: 0, created: now, sky: 'clear', watered: 0 };
 }
 
 /** Version of the gathering state: 2 adds the moisture and growth checkpoints of living plants. */
-export const GATHER_VERSION = 2;
+export const GATHER_VERSION = 3;
 
 const finite = (/** @type {any} */ v) => typeof v === 'number' && Number.isFinite(v);
 
@@ -184,6 +187,12 @@ const finite = (/** @type {any} */ v) => typeof v === 'number' && Number.isFinit
 export function normalizeGathering(g, now = Date.now()) {
   const out = createGathering(now);
   if (!g || typeof g !== 'object') return out;
+  if (g.instances && typeof g.instances === 'object') for (const [id, raw] of Object.entries(g.instances)) {
+    const i = /** @type {any} */ (raw);
+    if (REGION_BY_ID[id] && typeof i?.seed === 'string' && Number.isInteger(i.revision) && i.revision >= 0 && Array.isArray(i.roster)) out.instances[id] = { version: 1, seed: i.seed, revision: i.revision,
+      roster: i.roster.filter((r) => r && typeof r.id === 'string' && Number.isInteger(r.count) && r.count > 0 && r.count <= 6), captured: Array.isArray(i.captured) ? i.captured.filter((x) => typeof x === 'string') : [],
+      ...(i.wildlife?.version === 1 ? { wildlife: structuredClone(i.wildlife) } : {}) };
+  }
   if (finite(g.created)) out.created = Math.min(g.created, now);
   if (g.nodes && typeof g.nodes === 'object') {
     for (const [id, v] of Object.entries(g.nodes)) {
@@ -286,7 +295,7 @@ export function checkpoint(d, p, now, sky = 'clear') {
 
 /** A new sprout of a stand, somewhere random in its region (a living one in soil at the habitat's level). @param {ReturnType<typeof createGathering>} g @param {Deposit} d @param {number} seq @param {number} born @param {number} [grown] @returns {Plant} */
 function sprout(g, d, seq, born, grown = 0) {
-  const rng = new Rng(hashString(`sprout:${g.created}:${d.id}:${seq}`));
+  const rng = new Rng(hashString(`sprout:${d.generationSeed || g.created}:${d.id}:${seq}`));
   const p = { id: `${d.id}#${seq}`, x: Math.round(rng.range(0.06, 0.94) * 1000) / 1000, y: Math.round(rng.range(0.56, 0.9) * 1000) / 1000, born: Math.round(born) };
   return d.botanical ? { ...p, g: grown, t: p.born, w: moistureEnv(d, g.sky).base } : p;
 }
@@ -301,9 +310,9 @@ function untouched(g, d, now) {
   const plants = [];
   for (let k = 0; k < d.slots; k++) {
     const age = d.growMs * (k === 0 ? 1.2 : rng.range(0.1, 1.6));
-    const p = sprout(g, d, k, t0 - age);
+    const p = sprout(g, d, k, t0 - age, d.finite ? 1 : 0);
     // a living plant's growth so far is written at the moment the wilds were first walked
-    plants.push(d.botanical ? { ...p, g: Math.min(1, age / d.growMs), t: t0 } : p);
+    plants.push(d.botanical ? { ...p, g: d.finite ? 1 : Math.min(1, age / d.growMs), t: t0 } : p);
   }
   return { plants, due: null, seq: d.slots };
 }
@@ -320,6 +329,7 @@ export function standOf(g, d, now = Date.now()) {
   const saved = g.nodes[d.id] || untouched(g, d, now);
   /** @type {Stand} */
   const s = { plants: saved.plants.slice(), due: saved.due, seq: saved.seq, ...(saved.scar ? { scar: true } : {}) };
+  if (d.finite) { s.due = null; return s; }
   while (s.due !== null && s.due <= now && s.plants.length < d.slots) {
     s.plants.push(sprout(g, d, s.seq++, s.due));
     s.due += every(d, s);
@@ -334,6 +344,7 @@ export function standOf(g, d, now = Date.now()) {
  * @param {Deposit} d @param {Plant} p @param {number} [now] @param {string} [sky]
  */
 export function plantStage(d, p, now = Date.now(), sky = 'clear') {
+  if (d.finite) return { stage: 'mature', grown: 1, matureIn: 0, moisture: null, thirsty: false };
   const { g: grown, w } = growthOf(d, p, now, sky);
   const e = d.botanical ? moistureEnv(d, sky) : null;
   return {
@@ -377,7 +388,7 @@ export function depositStatus(g, d, now = Date.now()) {
  * @param {ReturnType<typeof createGathering>} g @param {Deposit} d @param {string[]|null} ids the plants to water (null: every growing one) @param {number} [now]
  */
 export function water(g, d, ids = null, now = Date.now()) {
-  if (!d.botanical) return 0;
+  if (d.finite || !d.botanical) return 0;
   const s = standOf(g, d, now), sky = g.sky || 'clear';
   let n = 0;
   const plants = s.plants.map((p) => {
@@ -576,6 +587,7 @@ function soak(g, d, now) {
  */
 export function weatherRegrowth(g, deposits, weather, lookup, now = Date.now()) {
   for (const d of deposits) {
+    if (d.finite) continue;
     const m = lookup(d.materialId);
     const shape = m && m.wild ? m.wild.shape : '';
     if (weather.id === 'rain' && d.botanical) soak(g, d, now);
@@ -615,7 +627,7 @@ export function harvest(st, d, opts = {}) {
   if (amount <= 0) return { ok: false, amount: 0, reason: 'full' };
   const plants = s.plants.filter((q) => q !== p).map((q) => checkpoint(d, q, now, sky));
   const scar = !!(opts.thorough || s.scar);
-  g.nodes[d.id] = { plants, due: s.due ?? now + every(d, { scar }), seq: s.seq, ...(scar ? { scar: true } : {}) };
+  g.nodes[d.id] = { plants, due: d.finite ? null : s.due ?? now + every(d, { scar }), seq: s.seq, ...(scar && !d.finite ? { scar: true } : {}) };
   if (!opts.free) { st.inventory[d.materialId] = have + amount; g.total += amount; }
   return { ok: true, amount, plant: p.id, remaining: (ripe.length - 1) * d.take };
 }
@@ -631,6 +643,7 @@ export function harvest(st, d, opts = {}) {
 export function newDayRegrowth(g, deposits, now = Date.now()) {
   const sky = g.sky || 'clear';
   for (const d of deposits) {
+    if (d.finite) continue;
     if (!g.nodes[d.id] && !d.botanical) continue;
     const s = standOf(g, d, now);
     const plants = s.plants.map((p) => {
@@ -658,16 +671,20 @@ export const SANDBOX_PACE = 8;
  * @param {ReturnType<typeof createGathering>} g @param {Deposit[]} deposits @param {number} [now]
  */
 export function sandboxWilds(g, deposits, now = Date.now()) {
-  for (const d of deposits) {
-    d.growMs = Math.round(d.growMs / SANDBOX_PACE);
-    d.spawnMs = Math.round(d.spawnMs / SANDBOX_PACE);
-    d.regrowMs = d.spawnMs * (d.slots - 1) + d.growMs;
-  }
+  for (const d of deposits) sandboxDeposit(d);
   // walked long enough ago that every untouched plant has grown up
   g.nodes = {};
   g.created = now - 3600000;
   g.sky = 'clear';
   return g;
+}
+
+/** Apply only to newly generated sandbox deposits; keeps other visited stands. */
+export function sandboxDeposit(d) {
+  d.finite = false;
+  d.growMs = Math.round(d.growMs / SANDBOX_PACE);
+  d.spawnMs = Math.round(d.spawnMs / SANDBOX_PACE);
+  d.regrowMs = d.spawnMs * (d.slots - 1) + d.growMs;
 }
 
 /** Human readable duration. @param {number} ms */

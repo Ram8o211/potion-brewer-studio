@@ -24,6 +24,7 @@ import { withAwakened } from '../alchemy/arcane.js';
 /**
  * @typedef {Object} World
  * @property {string} seed
+ * @property {number} [catalogVersion] fixed-species catalog revision, absent in legacy saves
  * @property {MaterialDef[]} materials       every material (ingredients, products, universals)
  * @property {string[]} ingredients          purchasable ingredient ids (display order)
  * @property {string[]} starting             ids available from the start
@@ -400,14 +401,14 @@ export function generateWorld(seed) {
  */
 export function addAlchemy(world) {
   for (const m of world.materials) applyProfile(m, world.seed);
-  const stale = !world.wild || world.materials.some((m) => m.id.startsWith('wild-') && m.fxv !== WILD_FX_VERSION);
+  const stale = !world.catalogVersion || !world.wild || world.materials.some((m) => m.id.startsWith('wild-') && m.fxv !== WILD_FX_VERSION);
   if (stale) {
     const w = generateWild(world.seed, world);
     for (const m of w.materials) {
       const old = world.materials.find((x) => x.id === m.id);
       if (!old) { world.materials.push(m); continue; }
       const mm = /** @type {any} */ (m);
-      Object.assign(old, { effects: mm.effects, arcane: mm.arcane, fxv: mm.fxv, solubility: m.solubility, binder: m.binder, description: m.description });
+      Object.assign(old, { effects: mm.effects, arcane: mm.arcane, arcaneVariant: mm.arcaneVariant, speciesId: mm.speciesId, rarity: mm.rarity, dominant: mm.dominant, cultivation: mm.cultivation, fxv: mm.fxv, solubility: m.solubility, binder: m.binder, description: m.description });
       if (mm.wild) old.wild = { ...mm.wild };
     }
     for (const r of w.reactions) {
@@ -416,6 +417,7 @@ export function addAlchemy(world) {
       else world.reactions[k] = r;
     }
     world.wild = w.materials.filter((m) => !m.product).map((m) => m.id);
+    world.catalogVersion = 1;
     for (const id of world.wild) if (!world.ingredients.includes(id)) world.ingredients.push(id);
     if (!world.laws) world.laws = w.laws;
   }
@@ -431,7 +433,7 @@ export function addAlchemy(world) {
   // older worlds stocked prepared reagents (essences, salts, crystals…):
   // only the solvents, the wild ingredients and recovered remains stay
   const keep = new Set([...SOLVENT_ROLES.map((r) => world.roles[r]), ...world.wild]);
-  world.ingredients = world.ingredients.filter((id) => keep.has(id) || world.materials.some((m) => m.id === id && m.remains));
+  world.ingredients = world.ingredients.filter((id) => keep.has(id) || world.materials.some((m) => m.id === id && (m.remains || (m.legacy && !m.product))));
   world.starting = SOLVENT_ROLES.map((r) => world.roles[r]).filter(Boolean);
   return world;
 }

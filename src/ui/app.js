@@ -18,6 +18,7 @@ import { openSettings, openHelp } from './panels.js';
 import { Rng } from '../core/rng.js';
 import { normalizeTrials } from '../game/experiments.js';
 import { sandboxWilds } from '../game/gathering.js';
+import { BIOMES } from '../game/biomes.js';
 
 const DEFAULT_SETTINGS = { master: 0.8, sfx: 0.8, music: 0.35, musicOn: true, muted: false, quality: 'auto', showFps: false, resolution: 3 };
 const SEED_WORDS = ['amber', 'ashen', 'brine', 'copper', 'dusk', 'elder', 'fen', 'gloam', 'hollow', 'iron', 'juniper', 'kelp', 'lantern', 'moon', 'nettle', 'oak', 'pewter', 'quill', 'raven', 'sage', 'thorn', 'umber', 'vale', 'willow', 'wyrm', 'yarrow'];
@@ -139,6 +140,7 @@ export class App {
     for (const id of sandboxIngredients(st.world)) st.inventory[id] = Infinity;
     st.equipment = EQUIPMENT.map((e) => e.id);
     st.reputation = 99999;
+    st.unlockedBiomes = BIOMES.map((b) => b.id);
     st.current = null;
     // its wilds stand fully grown and grow back quickly after every harvest
     sandboxWilds(st.gathering, st.deposits);

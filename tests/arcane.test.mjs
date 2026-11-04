@@ -19,9 +19,9 @@ const world = generateWorld('arcane-tests-1');
 // two hand-made reagents from the brief: a strength reagent at −1000 and a
 // venom at +800, each carrying one effect, both miscible with water
 const strengthR = completeMaterial({ id: 'test-might', name: 'Might Draught', form: 'liquid', color: [0.9, 0.7, 0.3], compat: [0.84, 0.11], boil: 180, melt: -60 });
-Object.assign(strengthR, { effects: { strength: 10 }, arcane: { thr: -1000, gain: 3 } });
+Object.assign(strengthR, { effects: { strength: 10 }, arcaneVariant: true, arcane: { thr: -1000, gain: 3 } });
 const venomR = completeMaterial({ id: 'test-venom', name: 'Viper Venom', form: 'liquid', color: [0.4, 0.8, 0.3], compat: [0.84, 0.11], boil: 180, melt: -60 });
-Object.assign(venomR, { effects: { toxicity: 10 }, arcane: { thr: 800, gain: 3 } });
+Object.assign(venomR, { effects: { toxicity: 10 }, arcaneVariant: true, arcane: { thr: 800, gain: 3 } });
 const lookup = makeLookup(world, [strengthR, venomR]);
 const R = world.roles;
 

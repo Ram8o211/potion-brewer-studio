@@ -17,7 +17,7 @@ The supplied environment and farm reference sheets guide the native pixel render
 
 ## Preview
 
-Generate a gallery of all seven biomes and eleven enclosures:
+Generate a gallery of all twelve biomes and twenty-one enclosures:
 
 ```sh
 node scripts/environment-gallery.mjs test-results/environment-gallery reference-garden
@@ -46,3 +46,11 @@ The biome composers choose material ramps, terrain layers, scenery, local lights
 `lighting.js` accumulates local lights before shading, using a bounded material response so overlapping sources preserve stone facets and foliage texture. Terrain and cave walls catch the light and shade its direct spill, with a small amount of scattered bloom around ledges. Background air receives a soft coloured glow. The still painting, the background revealed by wind, and the individual wind layers are shaded consistently; a calm frame reproduces the painting exactly. Light and shadow are baked once when composing a scene, while the runtime overlay adds a quieter flicker.
 
 Solid terrain, liquids, open surfaces, prop claims, tree attachments and animal walking areas remain separate structural maps. Newly placed decorative crystals use the existing placement/claim checks. Editor terrain strokes, custom props, lights and saved art profiles continue through the existing rendering pipeline.
+
+## Overhaul checkpoint
+
+The twelve-biome renderer and native domestic habitats are documented in
+[STUDIO_OVERHAUL.md](STUDIO_OVERHAUL.md). Its [current contact sheet](screenshots/overhaul/wilds-overview.png)
+includes the five new exotic scenes; the older reference gallery above remains
+a record of the preceding material-lighting pass. Live portrait verification
+is pending because the available Chromium process crashes before page creation.

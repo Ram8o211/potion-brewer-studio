@@ -23,6 +23,7 @@ import { cobble } from './stone.js';
 import { fbm1, fbm2, hash2, noise2 } from '../noise.js';
 import { mixPacked } from '../color.js';
 import { Rng, hashString } from '../../core/rng.js';
+import { NATIVE_SPECIES } from '../../game/native-species.js';
 
 export const PEN_W = 224;
 export const PEN_H = 92;
@@ -32,7 +33,7 @@ export const GROUND_Y0 = 69;
 const GROUND_Y1 = 86;
 
 /** Version of the pens' painting (names caches only). */
-export const PENS_VERSION = 8;
+export const PENS_VERSION = 9;
 
 /**
  * @typedef {Object} Pen
@@ -1507,6 +1508,33 @@ const PENS = {
       ground(cv, BACK, 'cobble', seed + 4);
       return { rack: { x: 44, y: GROUND_Y0 + 1 }, nest: [54, BACK - 3, 70, BACK], anim: [{ type: 'lantern', x: 114, y: 14 }, { type: 'motes', n: 8, x: 114, y: 28, r: 18 }, { type: 'drip', x: 104, y0: 10, y1: BACK + 2, every: 3.2 }, { type: 'drip', x: 126, y0: 8, y1: BACK + 2, every: 4.5 }] };
     },
+  },
+};
+
+const NATIVE_HOME = { hare: 'rabbit', otter: 'toad', beetle: 'badger', cavemoth: 'dove', wisp: 'cat', cloudray: 'dove', mimiclizard: 'toad', shroudmoth: 'dove', axolotl: 'toad', scarab: 'snail' };
+for (const [id, n] of Object.entries(NATIVE_SPECIES)) if (!PENS[id]) PENS[id] = {
+  title: n.label + ' habitat',
+  compose(ctx) {
+    const { cv, seed } = ctx;
+    // Domestic structures retain their feeders, nests and walking exclusions;
+    // the species' habitat changes their planting, material and local light.
+    const out = PENS[NATIVE_HOME[id]].compose(ctx);
+    if (['wisp', 'cavemoth', 'shroudmoth', 'axolotl'].includes(id)) {
+      const tint = col(id === 'wisp' ? '#274a68' : id === 'axolotl' ? '#1d6984' : '#4f3568');
+      for (let y = 0; y < BACK; y++) for (let x = 0; x < cv.W; x++) cv.set(x, y, mixPacked(cv.pix.get(x, y), tint, 0.25));
+      for (const x of [24, 110, 198]) cv.glow(x, BACK - 18, 26, id === 'axolotl' ? [0.25, 0.8, 0.9] : [0.6, 0.4, 0.9], 0.25);
+    }
+    if (id === 'hare') { carrots(cv, 16, 60, BACK - 1, seed); hay(cv, 167, BACK - 1, 24, 5, seed + 3); }
+    if (id === 'otter') { stone_(cv, 31, BACK - 2, 12, seed); bucket_(cv, 199, BACK - 1); }
+    if (id === 'beetle' || id === 'scarab') for (let i = 0; i < 6; i++) stone_(cv, 20 + i * 34, BACK - 1, 6 + i % 3, seed + i);
+    if (id === 'mimiclizard') { overgrowth(cv, 24, 195, 8, P.moss, seed, { rate: 0.2, len: [6, 22] }); mushroom_(cv, 34, BACK, 13, '#bd7aad'); }
+    if (id === 'cloudray') {
+      clouds(cv, 10, 34, seed, 4); frame_(cv, 5, [7, 216], P.pine); mesh(cv, 8, 216, 9, 50);
+      cv.glow(118, 22, 36, [0.4, 0.75, 1], 0.24);
+    }
+    if (id === 'axolotl') for (let i = 0; i < 5; i++) bottle_(cv, 18 + i * 12, BACK - 2, i % 2 ? '#c77dd7' : '#6bcbd5', 'round');
+    if (id === 'scarab') { shelf_(cv, 76, 149, 33, P.oak); bottle_(cv, 114, 31, '#dab65b', 'round'); }
+    return { ...out, anim: [...(out.anim || []), ...(['wisp', 'cavemoth', 'shroudmoth', 'axolotl'].includes(id) ? [{ type: 'motes', n: 9, x: 114, y: 34, r: 34 }] : [])] };
   },
 };
 

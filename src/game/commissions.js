@@ -119,7 +119,7 @@ function solventsOf(ctx) {
  * reaction where it has one.
  * @returns {{solvent:any, heatTo:number, coolTo:number, hold:number, ground?:boolean, lo?:number, hi?:number}|null}
  */
-function prepFor(m, ctx, solvents) {
+export function prepFor(m, ctx, solvents) {
   const water = solvents.find((x) => x.id === ctx.world.roles.water) || solvents[0];
   if (m.form === 'liquid') {
     const compat = solvents.find((l) => compatFactor(m.compat[0], m.compat[1], l.compat[0], l.compat[1]) > 0.6);
@@ -278,6 +278,21 @@ function composePlan(pick, wanted, exclude, ctx, solvents, n, o, pool) {
   const temps = stageT === null ? quietServe : [stageT, ...quietServe];
   // helpers: anything that keeps this stage quiet and is not a carrier
   const helpers = pool.filter((m) => !uniq.includes(m) && arcaneRegime([...uniq.map((c) => c.id), m.id], ctx.lookup, temps) === 'quiet');
+  // A larger catalogue must not make every customer probe hundreds of nearly
+  // equivalent herbs. Keep three useful neutralisers per signed dominant
+  // channel, preserving solvent and temperature diversity within the shortlist.
+  const groups = new Map();
+  for (const m of helpers) {
+    const entries = Object.entries(m.effects).filter(([k]) => NEUTRALISABLE.has(k)).sort((a, b) => Math.abs(Number(b[1])) - Math.abs(Number(a[1])));
+    const main = entries[0];
+    if (!main) continue;
+    const key = main[0] + ':' + Math.sign(Number(main[1]));
+    const side = Object.entries(m.effects).reduce((n, [k, v]) => n + (k === main[0] || exclude.includes(k) ? 0 : Math.abs(Number(v))), 0);
+    const score = Math.abs(Number(main[1])) / (1 + side);
+    const list = groups.get(key) || [];
+    list.push({ m, score }); list.sort((a, b) => b.score - a.score); groups.set(key, list.slice(0, 3));
+  }
+  helpers.splice(0, helpers.length, ...[...groups.values()].flatMap((list) => list.map((x) => x.m)));
   const solidFrac = (id) => ctx.lookup(id).form !== 'liquid';
 
   /** the plain plan for a list of ingredients (finish() adds the stages) */
@@ -443,10 +458,11 @@ function composePlan(pick, wanted, exclude, ctx, solvents, n, o, pool) {
   for (const m of uniq) vecOf(m);
   if (uniq.some((m) => model.get(m.id).every((v) => v === 0))) return null;
   const E_ = EFFECT_INDEX;
-  const net = (v) => [v[E_.fire] - v[E_.frost], v[E_.vitality] - v[E_.death] - 2 * v[E_.toxicity], v[E_.acidity], v[E_.strength], v[E_.love], v[E_.arcana], v[E_.transformation]];
-  const NC = 7;
+  const singles = EFFECT_KEYS.filter((k) => !['fire', 'frost', 'vitality', 'death', 'toxicity', 'acidity'].includes(k));
+  const net = (v) => [v[E_.fire] - v[E_.frost], v[E_.vitality] - v[E_.death] - 2 * v[E_.toxicity], v[E_.acidity], ...singles.map((k) => v[E_[k]])];
+  const NC = 3 + singles.length;
   const tgt = new Array(NC).fill(0), wt = new Array(NC).fill(6);
-  const chan = { fire: [0, 1], frost: [0, -1], vitality: [1, 1], acidity: [2, 1], strength: [3, 1], love: [4, 1], arcana: [5, 1], transformation: [6, 1] };
+  const chan = { fire: [0, 1], frost: [0, -1], vitality: [1, 1], acidity: [2, 1], ...Object.fromEntries(singles.map((k, i) => [k, [i + 3, 1]])) };
   const convex = wanted.every((w) => chan[w.key]);
   for (const w of wanted) {
     if (!chan[w.key]) continue;
@@ -465,20 +481,21 @@ function composePlan(pick, wanted, exclude, ctx, solvents, n, o, pool) {
     const r = tgt.map((t, c) => cand.reduce((acc, m, j) => acc + M[j][c] * x[j], 0) - t);
     for (let sweep = 0; sweep < 300; sweep++) {
       let change = 0;
+      let totalUsed = x.reduce((n, v) => n + v, 0), totalSolid = x.reduce((n, v, j) => n + (solid[j] ? v : 0), 0);
       for (let j = 0; j < cand.length; j++) {
         let g = 0.02, hh = 0;
         for (let c = 0; c < NC; c++) { g += 2 * wt[c] * M[j][c] * r[c]; hh += 2 * wt[c] * M[j][c] * M[j][c]; }
         if (hh <= 1e-12) continue;
         let nx = Math.max(0, x[j] - g / hh);
         // keep within the brew: at most 92 % ingredients, at most 48 % grains
-        let used = 0, sol = 0;
-        for (let q = 0; q < cand.length; q++) if (q !== j) { used += x[q]; if (solid[q]) sol += x[q]; }
+        const used = totalUsed - x[j], sol = totalSolid - (solid[j] ? x[j] : 0);
         nx = Math.min(nx, 0.92 - used, solid[j] ? 0.48 - sol : 1);
         nx = Math.max(0, nx);
         const d = nx - x[j];
         if (d === 0) continue;
         for (let c = 0; c < NC; c++) r[c] += M[j][c] * d;
         x[j] = nx;
+        totalUsed += d; if (solid[j]) totalSolid += d;
         change = Math.max(change, Math.abs(d));
       }
       if (change < 1e-5) break;
@@ -774,7 +791,7 @@ function effectCommission(req, arch, tier, ctx, rng, totalN, bottleMl, bottleN, 
   const reqs = [];
   for (const w of wanted) {
     const v = w.sign * pred.effects[EFFECT_INDEX[w.key]];
-    reqs.push(effectRequirement(w.key, w.sign, Math.min(chosen.includes('strong') ? v * 0.85 : w.target, v * 0.88)));
+    reqs.push(effectRequirement(w.key, w.sign, Math.min(chosen.includes('strong') ? v * 0.85 : w.target, Math.max(w.target, v * 0.88))));
   }
   // an exacting master sometimes wants a measured dose, not just "enough"
   if (tier >= 3 && strict < 1 && rng.chance(0.4)) {

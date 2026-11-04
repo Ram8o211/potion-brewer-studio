@@ -59,7 +59,7 @@ export function baseIdOf(id) {
  * @param {any} def
  */
 export function isMagical(def) {
-  return !!(def && def.arcane && Number.isFinite(def.arcane.thr) && !def.awakened);
+  return !!(def && def.arcaneVariant === true && def.arcane && Number.isFinite(def.arcane.thr) && !def.awakened);
 }
 
 /**
@@ -73,7 +73,7 @@ export function awakenedDef(base) {
   const effects = {};
   for (const k of EFFECT_KEYS) {
     const v = base.effects ? Number(base.effects[k]) || 0 : 0;
-    if (v) effects[k] = Math.round(Math.max(-100, Math.min(100, v * gain)) * 10) / 10;
+    if (v) effects[k] = Math.round(v * gain * 10) / 10;
   }
   return {
     ...base,

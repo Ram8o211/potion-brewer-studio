@@ -65,6 +65,20 @@ export const REQUESTS = [
     story: ['The northern campaign. Strength, fire against the frost and healing for the march — the general’s own order.'] },
   { id: 'starseer', title: 'Star-Seer’s Elixir', fx: [{ key: 'arcana' }, { key: 'transformation', share: 0.5 }, { key: 'love', share: 0.4 }], who: ['wizard', 'noble'], minTier: 4,
     story: ['A rite under the comet: sight, change and the bond between the casters — all three, in measure.'] },
+  { id: 'fleetfoot', title: 'Courier’s Fleetfoot', fx: [{ key: 'swiftness' }], who: ['traveler', 'hunter'], minTier: 1,
+    story: ['The bridge closes at sunset. Lend speed to my feet without clouding my head.', 'An urgent message for the next valley. I need to run swiftly and arrive well.'] },
+  { id: 'levitation', title: 'Featherstep Draught', fx: [{ key: 'levitation' }], who: ['traveler', 'scholar', 'wizard'], minTier: 3,
+    story: ['The Skyshard bridge has fallen. Lift me gently across the gap.', 'The upper shelves of the observatory have no stairs. A steady lift, please.'] },
+  { id: 'invisibility', title: 'Unseen Visitor', fx: [{ key: 'invisibility' }], who: ['hunter', 'witch', 'scholar'], minTier: 3,
+    story: ['I must observe the nesting cloud rays without disturbing them. Let me pass unseen.', 'My study concerns creatures that flee at a glance. Hide me while I watch.'] },
+  { id: 'phasing', title: 'Threshold Draught', fx: [{ key: 'phasing' }], who: ['wizard', 'scholar', 'traveler'], minTier: 4,
+    story: ['The old library has sealed itself. Let me cross its threshold without breaking a stone.', 'A fallen gate bars the sanctuary. I need to pass through it and return intact.'] },
+  { id: 'temporal', title: 'Borrowed Moment', fx: [{ key: 'temporal' }], who: ['wizard', 'scholar'], minTier: 4,
+    story: ['The chronoglass cracks before I can measure it. Lend me a longer moment to study it.', 'The stars turn too quickly for my instrument. A little time bent in my favour.'] },
+  { id: 'skywalk', title: 'Storm Courier', fx: [{ key: 'levitation' }, { key: 'swiftness', share: 0.5 }], who: ['traveler'], minTier: 3,
+    story: ['The islands drift apart in the storm. Lift me above the broken path and hasten my steps.'] },
+  { id: 'silentpassage', title: 'Spectral Survey', fx: [{ key: 'invisibility' }, { key: 'phasing', share: 0.5 }], who: ['scholar', 'wizard'], minTier: 4,
+    story: ['The sealed reef chamber must remain untouched. Let me enter through its walls and study it unseen.'] },
 ];
 
 /** Concentration targets (percent) of a request's main effect by tier. */

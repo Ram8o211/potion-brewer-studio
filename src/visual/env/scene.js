@@ -19,11 +19,13 @@ import * as quarry from './quarry.js';
 import * as moonfen from './moonfen.js';
 import * as crags from './crags.js';
 import * as netherwood from './netherwood.js';
+import * as garden from './garden.js';
+import { skyshard, morphgrove, veil, ghostglass, chronoglass } from './exotic.js';
 
 /** Version of the environment generator (scenes are not saved; this only names caches). */
 export const ENV_VERSION = 15;
 
-const COMPOSERS = { meadow, forest, netherwood, river, quarry, moonfen, crags };
+const COMPOSERS = { meadow, forest, netherwood, river, quarry, moonfen, crags, garden, skyshard, morphgrove, veil, ghostglass, chronoglass };
 
 /**
  * @typedef {Object} Scene

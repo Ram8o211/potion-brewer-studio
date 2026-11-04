@@ -46,7 +46,7 @@ import { Rng, hashString } from '../core/rng.js';
 import { kindOf, biasSpread, kindLook, RABBIT_SPREAD } from './kinds.js';
 
 /** Visible / exposure channels: the ten effects with acidity split by sign. */
-export const RABBIT_MARKS = ['vitality', 'strength', 'love', 'arcana', 'transformation', 'fire', 'frost', 'acid', 'alkali', 'toxicity', 'death'];
+export const RABBIT_MARKS = ['vitality', 'strength', 'love', 'arcana', 'transformation', 'fire', 'frost', 'acid', 'alkali', 'toxicity', 'death', 'swiftness', 'levitation', 'invisibility', 'phasing', 'temporal'];
 /** @type {Record<string, number>} */
 export const MARK_INDEX = Object.fromEntries(RABBIT_MARKS.map((k, i) => [k, i]));
 
@@ -362,7 +362,8 @@ export function decodeSnap(str) {
   const stage = CH_STAGE[p[0][0]];
   const lv = p[1].split('').map(Number);
   const sc = p[2].split('').map(Number);
-  if (!stage || lv.length !== RABBIT_MARKS.length || lv.some((v) => !(v >= 0 && v <= 3)) || sc.some((v) => !(v >= 0 && v <= 3))) return defaultSnap();
+  if (!stage || ![11, RABBIT_MARKS.length].includes(lv.length) || lv.some((v) => !(v >= 0 && v <= 3)) || sc.some((v) => !(v >= 0 && v <= 3))) return defaultSnap();
+  while (lv.length < RABBIT_MARKS.length) lv.push(0);
   while (sc.length < 5) sc.push(0);
   const hp = Number(p[0][1]);
   const dg = p[5] ? p[5].split(',').filter((k) => MARK_INDEX[k] !== undefined) : [];
@@ -600,7 +601,7 @@ const STAGE_SENS = { kit: 1.6, young: 1.25, adult: 1, elder: 1.15 };
 /** Reading uncertainty grows for small and frail subjects. */
 export const STAGE_ERR = { kit: 1.4, young: 1.15, adult: 1, elder: 1.1 };
 /** Daily fading of each transient mark. */
-export const MARK_DECAY = { vitality: 0.5, strength: 0.8, love: 0.6, arcana: 0.7, transformation: 0.75, fire: 0.4, frost: 0.4, acid: 0.7, alkali: 0.6, toxicity: 0.75, death: 0.85 };
+export const MARK_DECAY = { vitality: 0.5, strength: 0.8, love: 0.6, arcana: 0.7, transformation: 0.75, fire: 0.4, frost: 0.4, acid: 0.7, alkali: 0.6, toxicity: 0.75, death: 0.85, swiftness: 0.7, levitation: 0.65, invisibility: 0.6, phasing: 0.75, temporal: 0.55 };
 /** What a trait favours: weights by the other effects in the same dose. */
 const TRAIT_AFF = {
   ears2: { love: 1 }, horns: { fire: 1, strength: 1 }, antlers: { vitality: 1, arcana: 0.5 }, unihorn: { vitality: 0.8, arcana: 1 },
@@ -688,6 +689,7 @@ export function rabbitResponse(before, effects, ml, o = {}) {
     vitality: Math.max(0, e('vitality')), strength: Math.max(0, e('strength')), love: Math.max(0, e('love')), arcana: Math.max(0, e('arcana')),
     transformation: Math.max(0, e('transformation')), fire: Math.max(0, e('fire')), frost: Math.max(0, e('frost')),
     acid: Math.max(0, acidity), alkali: Math.max(0, -acidity), toxicity: Math.max(0, e('toxicity')), death: Math.max(0, e('death')),
+    ...Object.fromEntries(['swiftness', 'levitation', 'invisibility', 'phasing', 'temporal'].map((k) => [k, Math.max(0, e(k))])),
   };
   const m = r.marks;
   const add = (k, v) => { m[k] = clamp(m[k] + v, 0, 100); };
@@ -702,6 +704,7 @@ export function rabbitResponse(before, effects, ml, o = {}) {
   add('alkali', 0.9 * a.alkali - 0.5 * a.acid);
   add('toxicity', a.toxicity - 0.5 * a.vitality);
   add('death', 1.5 * a.death - 0.3 * a.vitality);
+  for (const k of ['swiftness', 'levitation', 'invisibility', 'phasing', 'temporal']) add(k, a[k]);
   const e0 = r.exposure.transformation;
   for (const k of RABBIT_MARKS) r.exposure[k] = round1(r.exposure[k] + a[k]);
   // harm, by channel (the largest one names the cause of a death)
@@ -736,6 +739,8 @@ export function rabbitResponse(before, effects, ml, o = {}) {
   if (a.love > 1) say('love', 'good', big(a.love) ? 'It nuzzles your hand, utterly devoted; little hearts seem to hang in the air.' : 'It nuzzles your hand.');
   if (a.arcana > 1) say('arcana', 'neutral', big(a.arcana) ? 'Violet sparks crawl through its fur; faint runes glimmer.' : 'Its eyes catch a strange glimmer.');
   if (a.transformation > 1) say('transformation', 'neutral', 'Its fur ripples and its shape shifts.');
+  const extraLines = { swiftness: 'It darts about, leaving quick streaks behind it.', levitation: 'Its paws rise above the ground.', invisibility: 'Its coat fades into a wavering outline.', phasing: 'A spectral double flickers through its body.', temporal: 'Its movements repeat in slow and fast echoes.' };
+  for (const [k, line] of Object.entries(extraLines)) if (a[k] > 1) say(k, 'neutral', line);
   if (a.fire > 1) say('fire', a.fire > 18 ? 'bad' : 'neutral', a.fire > 18 ? 'It yelps; its fur smoulders and singes.' : 'It pants in a warm glow.');
   if (a.frost > 1) say('frost', a.frost > 18 ? 'bad' : 'neutral', a.frost > 18 ? 'Frost rimes its whiskers; icicles hang from its chin and it shivers.' : 'It shivers; frost feathers its whiskers.');
   if (a.acid > 1) say('acidity', a.acid > 12 ? 'bad' : 'neutral', a.acid > 12 ? 'It squeals: the fur burns away in raw patches.' : 'It scratches at a stinging patch of fur.');

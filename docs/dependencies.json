@@ -1,6 +1,6 @@
 {
-  "modules": 148,
-  "edges": 593,
+  "modules": 159,
+  "edges": 642,
   "cycles": [],
   "layers": {
     "alchemy": {
@@ -10,16 +10,16 @@
       "simulation": 7,
       "reactions": 7,
       "alchemy": 10,
-      "core": 11,
-      "visual": 1,
-      "materials": 3
+      "core": 12,
+      "materials": 5,
+      "visual": 1
     },
     "main.js": {
       "ui": 2
     },
     "materials": {
+      "core": 7,
       "visual": 3,
-      "core": 6,
       "alchemy": 2
     },
     "reactions": {
@@ -34,9 +34,9 @@
       "visual": 14,
       "materials": 2,
       "simulation": 4,
+      "game": 6,
       "studio": 6,
-      "alchemy": 3,
-      "game": 3
+      "alchemy": 3
     },
     "simulation": {
       "reactions": 10,
@@ -47,30 +47,31 @@
     },
     "studio": {
       "visual": 23,
+      "game": 4,
+      "alchemy": 2,
       "core": 3,
       "simulation": 3,
       "ui": 3,
       "materials": 3,
-      "rendering": 3,
-      "game": 2,
-      "alchemy": 1
+      "rendering": 3
     },
     "ui": {
       "studio": 6,
       "audio": 10,
-      "game": 54,
-      "materials": 3,
+      "game": 57,
+      "materials": 5,
       "core": 7,
       "simulation": 9,
       "reactions": 3,
-      "rendering": 20,
+      "rendering": 23,
       "alchemy": 11,
       "visual": 2
     },
     "visual": {
       "materials": 2,
-      "core": 12,
-      "studio": 6
+      "core": 14,
+      "studio": 6,
+      "game": 1
     }
   },
   "graph": {
@@ -88,6 +89,7 @@
       "src/simulation/constants.js",
       "src/reactions/species.js"
     ],
+    "src/game/biomes.js": [],
     "src/game/colony.js": [
       "src/alchemy/effects.js",
       "src/core/rng.js",
@@ -125,14 +127,22 @@
       "src/game/colony.js",
       "src/game/kinds.js"
     ],
+    "src/game/garden.js": [
+      "src/materials/rarity.js",
+      "src/game/gathering.js",
+      "src/game/travel.js"
+    ],
     "src/game/gathering.js": [
       "src/core/rng.js",
-      "src/visual/taxonomy.js"
+      "src/visual/taxonomy.js",
+      "src/game/biomes.js"
     ],
     "src/game/journal.js": [],
     "src/game/kinds.js": [
-      "src/core/rng.js"
+      "src/core/rng.js",
+      "src/game/native-species.js"
     ],
+    "src/game/legacy-materials.js": [],
     "src/game/measure.js": [
       "src/reactions/species.js",
       "src/simulation/constants.js",
@@ -141,6 +151,7 @@
       "src/alchemy/effects.js"
     ],
     "src/game/mechanics.js": [],
+    "src/game/native-species.js": [],
     "src/game/patrons.js": [],
     "src/game/persistence.js": [
       "src/game/state.js"
@@ -171,7 +182,16 @@
       "src/materials/remains.js",
       "src/game/patrons.js",
       "src/game/commissions.js",
-      "src/game/recipes.js"
+      "src/game/recipes.js",
+      "src/game/legacy-materials.js",
+      "src/game/biomes.js",
+      "src/game/travel.js",
+      "src/game/garden.js"
+    ],
+    "src/game/travel.js": [
+      "src/core/rng.js",
+      "src/materials/rarity.js",
+      "src/game/biomes.js"
     ],
     "src/game/vial.js": [
       "src/simulation/world.js",
@@ -183,11 +203,16 @@
     "src/game/wild-rabbits.js": [
       "src/core/rng.js",
       "src/game/colony.js",
-      "src/game/kinds.js"
+      "src/game/kinds.js",
+      "src/game/native-species.js"
     ],
     "src/main.js": [
       "src/ui/app.js",
       "src/ui/textures.js"
+    ],
+    "src/materials/catalog.js": [
+      "src/core/rng.js",
+      "src/materials/rarity.js"
     ],
     "src/materials/generator.js": [
       "src/visual/identity.js",
@@ -224,7 +249,9 @@
       "src/materials/schema.js",
       "src/alchemy/effects.js",
       "src/materials/profiles.js",
-      "src/visual/identity.js"
+      "src/visual/identity.js",
+      "src/materials/catalog.js",
+      "src/materials/rarity.js"
     ],
     "src/reactions/compatibility.js": [],
     "src/reactions/diffusion.js": [
@@ -263,6 +290,9 @@
     "src/rendering/effects.js": [
       "src/rendering/art.js"
     ],
+    "src/rendering/exotic-interactions.js": [
+      "src/game/biomes.js"
+    ],
     "src/rendering/fluid.js": [
       "src/studio/material-runtime.js",
       "src/simulation/constants.js",
@@ -279,7 +309,11 @@
       "src/rendering/rabbit.js",
       "src/game/kinds.js",
       "src/visual/env/pens.js",
-      "src/rendering/pen-anim.js"
+      "src/rendering/pen-anim.js",
+      "src/game/native-species.js"
+    ],
+    "src/rendering/native-creatures.js": [
+      "src/game/native-species.js"
     ],
     "src/rendering/pen-anim.js": [],
     "src/rendering/portraits.js": [
@@ -298,7 +332,8 @@
       "src/rendering/art.js",
       "src/game/colony.js",
       "src/game/kinds.js",
-      "src/rendering/punch.js"
+      "src/rendering/punch.js",
+      "src/rendering/native-creatures.js"
     ],
     "src/rendering/ragdoll.js": [],
     "src/rendering/renderer.js": [
@@ -414,7 +449,11 @@
       "src/visual/color.js",
       "src/studio/model.js"
     ],
-    "src/studio/domain-model.js": [],
+    "src/studio/domain-model.js": [
+      "src/game/biomes.js",
+      "src/alchemy/effects.js",
+      "src/game/kinds.js"
+    ],
     "src/studio/engine.js": [
       "src/core/rng.js",
       "src/visual/geometry.js",
@@ -515,7 +554,8 @@
       "src/ui/panels.js",
       "src/core/rng.js",
       "src/game/experiments.js",
-      "src/game/gathering.js"
+      "src/game/gathering.js",
+      "src/game/biomes.js"
     ],
     "src/ui/dom.js": [
       "src/ui/icons.js",
@@ -561,6 +601,7 @@
       "src/ui/views/wilds.js",
       "src/ui/views/trials.js",
       "src/ui/views/book.js",
+      "src/ui/views/garden.js",
       "src/game/customers.js"
     ],
     "src/ui/menu.js": [
@@ -638,6 +679,13 @@
       "src/ui/panels.js",
       "src/game/customers.js"
     ],
+    "src/ui/views/garden.js": [
+      "src/ui/dom.js",
+      "src/rendering/species-sprites.js",
+      "src/rendering/wild-scene.js",
+      "src/game/garden.js",
+      "src/materials/rarity.js"
+    ],
     "src/ui/views/hutch.js": [
       "src/game/experiments.js",
       "src/game/kinds.js",
@@ -684,7 +732,10 @@
       "src/game/wild-rabbits.js",
       "src/rendering/rabbit.js",
       "src/game/colony.js",
-      "src/game/kinds.js"
+      "src/game/kinds.js",
+      "src/game/travel.js",
+      "src/materials/rarity.js",
+      "src/rendering/exotic-interactions.js"
     ],
     "src/visual/atlas-contract.js": [
       "src/materials/rarity.js"
@@ -718,6 +769,16 @@
       "src/visual/color.js",
       "src/visual/geometry.js"
     ],
+    "src/visual/env/exotic.js": [
+      "src/core/rng.js",
+      "src/visual/env/paint.js",
+      "src/visual/env/side.js",
+      "src/visual/env/cave.js",
+      "src/visual/env/kit.js",
+      "src/visual/env/trees.js",
+      "src/visual/noise.js",
+      "src/visual/env/objects.js"
+    ],
     "src/visual/env/flourish.js": [
       "src/visual/noise.js",
       "src/visual/env/side.js"
@@ -733,6 +794,12 @@
       "src/visual/env/objects.js",
       "src/visual/env/trees.js",
       "src/visual/noise.js"
+    ],
+    "src/visual/env/garden.js": [
+      "src/core/rng.js",
+      "src/visual/env/paint.js",
+      "src/visual/env/side.js",
+      "src/visual/env/cave.js"
     ],
     "src/visual/env/grade.js": [],
     "src/visual/env/kit.js": [
@@ -793,7 +860,8 @@
       "src/visual/env/stone.js",
       "src/visual/noise.js",
       "src/visual/color.js",
-      "src/core/rng.js"
+      "src/core/rng.js",
+      "src/game/native-species.js"
     ],
     "src/visual/env/quarry.js": [
       "src/visual/env/paint.js",
@@ -829,7 +897,9 @@
       "src/visual/env/quarry.js",
       "src/visual/env/moonfen.js",
       "src/visual/env/crags.js",
-      "src/visual/env/netherwood.js"
+      "src/visual/env/netherwood.js",
+      "src/visual/env/garden.js",
+      "src/visual/env/exotic.js"
     ],
     "src/visual/env/side.js": [
       "src/visual/noise.js",

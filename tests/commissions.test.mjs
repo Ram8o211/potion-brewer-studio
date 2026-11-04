@@ -1,3 +1,4 @@
+import { collectedShop } from './game-fixtures.mjs';
 // Commission rules: concentration targets by tier, the 1.2 % purity rule,
 // coherent requests, only accessible ingredients and equipment, arcane
 // activation that is genuinely needed, and real-simulation brews of the
@@ -20,7 +21,7 @@ import { isAwakenedId } from '../src/alchemy/arcane.js';
 /** A shop at a rank that owns everything that rank may buy (but the first pot). */
 function shopAt(seed, rank) {
   const st = GameState.create(seed, { tutorial: false });
-  st.reputation = RANKS[rank].rep;
+  st.reputation = RANKS[rank].rep; collectedShop(st);
   st.equipment = EQUIPMENT.filter((e) => e.rank <= rank && e.category !== 'vessel').map((e) => e.id).concat(['pot']);
   return st;
 }
@@ -125,7 +126,7 @@ test('hidden plans brew to full quality in the real simulation, awakening orders
     const ev = evaluatePotion(com, m);
     assert.ok(ev.quality >= 0.85, `${com.style} (tier ${com.tier}${com.activation ? ', awakened' : ''}) brewed to ${ev.quality.toFixed(2)}: ${ev.rows.filter((r) => r.score < 1).map((r) => r.req.key + ' ' + r.text).join(', ')}`);
     const purity = com.requirements.find((r) => r.key === 'purity');
-    if (purity) assert.ok(strongestUnwanted(m.effects, purity.exclude).value < 1.6, 'unwanted effects stay near or under the limit');
+    if (purity) assert.ok(strongestUnwanted(m.effects, purity.exclude).value < 1.6, `${st.seed}/${com.style}: unwanted ${JSON.stringify(strongestUnwanted(m.effects, purity.exclude))}`);
   }
 });
 
@@ -141,7 +142,7 @@ test('the purity rule scores what the customer did not ask for, alkaline include
 
 test('an explicitly requested technique retries unsuitable plans instead of silently dropping it', () => {
   const state = GameState.create('integration-1', { tutorial: false });
-  state.reputation = 70;
+  state.reputation = 70; collectedShop(state);
   const commission = generateCommission(state.commissionContext(), new Rng('ui-tech'), { tier: 2, techniques: ['strong'] });
   assert.ok(commission, 'a feasible requested technique is generated');
   assert.ok(commission.techniques.includes('strong'));

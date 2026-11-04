@@ -16,6 +16,8 @@ import { completeMaterial } from './schema.js';
 import { EFFECT_INDEX } from '../alchemy/effects.js';
 import { arcaneProfile } from './profiles.js';
 import { identityOf } from '../visual/identity.js';
+import { CATALOG_SPECS, fixedProfile } from './catalog.js';
+import { RARITIES } from './rarity.js';
 
 /** @typedef {import('./schema.js').MaterialDef} MaterialDef */
 
@@ -33,7 +35,7 @@ import { identityOf } from '../visual/identity.js';
  * `steep` is how its magic is drawn into a liquid (the extract keeps every
  * effect of the raw ingredient, in the same proportions).
  */
-export const WILD_SPECS = [
+export const WILD_SPECS = /** @type {any[]} */ ([
   // Whisperwood (forest)
   { key: 'ironroot', noun: 'Ironroot', shape: 'root', region: 'forest', rank: 0, buy: 1, hue: [28, 0.45, 0.42], form: 'solid', density: 1.05, hardness: 0.5, sol: 0.12, solT: 0.0022,
     fx: { strength: 26, frost: 9 }, arc: [560, 3], price: 9, gather: 'dig', lore: 'A knotted woodland root that carries strength — and a cold, earthy chill that needs something fiery to cancel it. Crush or grind it; it gives up far more when steeped in hot water.' },
@@ -262,7 +264,26 @@ export const WILD_SPECS = [
     fx: { transformation: 18, vitality: 8, frost: 6 }, arc: [450, 3], price: 18, gather: 'pick',
     steep: { name: 'Ghost Plum Syrup', into: 'water', lo: [20, 25], hi: [50, 55] },
     lore: 'Small blue-white plums glowing in the Netherwood’s boughs. They change what they touch and mend a little, with a chill.' },
-];
+]);
+
+// Preserve historic IDs, but give every current species a fixed quality.
+// Old saved definitions are archived by the v7 migration before this catalog
+// is installed, so an existing bottle keeps its exact source properties.
+for (const s of CATALOG_SPECS) {
+  const old = WILD_SPECS.find((x) => x.key === s.key);
+  if (old) { const fx = old.fx; Object.assign(old, s, { fx }); } else WILD_SPECS.push(s);
+}
+for (const s of WILD_SPECS) {
+  s.rarity ||= s.rare ? 'uncommon' : 'common';
+  s.dominant ||= Object.entries(s.fx).sort((a, b) => Math.abs(Number(b[1])) - Math.abs(Number(a[1])))[0][0];
+  if (!['moonfen', 'skyshard', 'morphgrove', 'veil', 'ghostglass', 'chronoglass'].includes(s.region) && s.dominant === 'transformation') s.dominant = 'swiftness';
+  const original = s.fx;
+  const source = Object.fromEntries(Object.entries(original).map(([k, v]) => [k === 'transformation' && s.dominant === 'swiftness' ? 'swiftness' : k, v]));
+  s.fx = fixedProfile(s.key, s.rarity, s.dominant, source);
+  s.rare = ['rare', 'unique', 'legendary'].includes(s.rarity);
+}
+const NORMAL_SPECS = WILD_SPECS.slice();
+for (const s of NORMAL_SPECS) WILD_SPECS.push({ ...s, key: s.key + '@arcane', baseKey: s.key, noun: 'Arcane ' + s.noun, arcaneVariant: true });
 
 /** @type {Record<string, typeof WILD_SPECS[number]>} */
 export const WILD_BY_KEY = Object.fromEntries(WILD_SPECS.map((s) => [s.key, s]));
@@ -272,7 +293,7 @@ const PREFIX = ['Moss', 'Moon', 'Dusk', 'Ember', 'Witch', 'Frost', 'Star', 'Thor
 const r2 = (v) => Math.round(v * 100) / 100;
 
 /** Version of the wild profiles (effects, thresholds, extracts). */
-export const WILD_FX_VERSION = 4;
+export const WILD_FX_VERSION = 5;
 
 /**
  * Generate this world's wild materials, their reactions and the resonance laws.
@@ -292,18 +313,18 @@ export function generateWild(seed, base) {
   /** @type {Record<string, string>} */
   const ids = {};
   for (const s of WILD_SPECS) {
-    rng = s.late ? lateRng : mainRng;
+    rng = new Rng('species-v1:' + (s.baseKey || s.key));
     const id = 'wild-' + s.key;
     const [h, sat, l] = s.hue;
     const color = hslToRgb((h + rng.range(-8, 8) + 360) % 360, Math.min(1, sat * rng.range(0.9, 1.1)), Math.min(0.92, l * rng.range(0.94, 1.06)));
     let name = '';
     const prefixes = PREFIX.filter((w) => !s.noun.includes(w));
     for (let tries = 0; tries < 12 && (!name || used.has(name)); tries++) name = `${rng.pick(prefixes)} ${s.noun}`;
-    if (used.has(name)) name = s.noun;
+    name = s.noun;
     used.add(name);
     /** @type {Record<string, number>} */
     const fx = {};
-    for (const [k, v] of Object.entries(s.fx)) fx[k] = Math.round(v * rng.range(0.9, 1.1) * 10) / 10;
+    for (const [k, v] of Object.entries(s.fx)) fx[k] = Number(v);
     const m = completeMaterial({
       id, name, archetype: 'wild', form: /** @type {any} */ (s.form), color, tint: 0.75, opacity: 1,
       density: r2(s.density * rng.range(0.97, 1.03)), compat: s.compat ? s.compat.slice() : [r2(rng.range(0.8, 0.84)), r2(rng.range(0.12, 0.16))],
@@ -316,14 +337,19 @@ export function generateWild(seed, base) {
     const mm = /** @type {any} */ (m);
     mm.effects = fx;
     // a few delicate ingredients carry no magic that can awaken (arc: null)
-    if (s.arc) mm.arcane = arcaneProfile(seed, id, s.arc[0], s.arc[1]);
+    mm.arcaneVariant = !!s.arcaneVariant;
+    mm.speciesId = s.baseKey || s.key;
+    mm.rarity = s.rarity;
+    mm.dominant = s.dominant;
+    mm.cultivation = s.cultivation || (['crystal', 'shard', 'stone', 'nugget', 'shell', 'icicle'].includes(s.shape) ? 'mineral' : ['mushroom', 'bracket', 'truffle'].includes(s.shape) ? 'fungal' : 'soil');
+    if (s.arcaneVariant) mm.arcane = { thr: s.arc?.[0] ?? 300, gain: s.arc?.[1] ?? 2.5 };
     mm.fxv = WILD_FX_VERSION;
     mm.econd = s.econd ?? 0.04;
     mm.charge = s.charge ?? 0;
     mm.wild = { key: s.key, shape: s.shape, region: s.region, rank: s.rank, rare: !!s.rare, gatherOnly: s.buy === null, gather: s.gather || 'pick', dusk: !!s.dusk, dawn: !!s.dawn };
     if (s.form === 'solid') mm.crushable = true;
     // its visual identity in this world: what its plant, icon and pieces are drawn from (visual/)
-    mm.vis = identityOf(mm, seed);
+    mm.vis = identityOf(mm, 'catalog-v1');
     materials.push(m);
     ids[s.key] = id;
   }
@@ -354,7 +380,10 @@ export function generateWild(seed, base) {
     mm.econd = 0.12;
     mm.charge = 0;
     mm.effects = fx;
-    mm.arcane = { ...(/** @type {any} */ (src).arcane) };
+    mm.arcaneVariant = !!src.arcaneVariant;
+    mm.speciesId = src.speciesId;
+    mm.rarity = src.rarity;
+    mm.arcane = src.arcaneVariant ? { ...src.arcane } : undefined;
     mm.fxv = WILD_FX_VERSION;
     materials.push(m);
     return m;

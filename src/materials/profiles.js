@@ -109,6 +109,7 @@ export function jitter(seed, id, salt, amp) {
  * @param {string} seed
  */
 export function applyProfile(m, seed) {
+  if (m.legacy || m.speciesId) return m;
   const role = roleOf(m.id);
   const known = ROLE_EFFECTS[role];
   if (!m.effects || (known && m.fxv !== FX_VERSION && !m.wild && !role.startsWith('wild-'))) {
@@ -138,6 +139,9 @@ export function applyProfile(m, seed) {
     m.econd = el[0];
     m.charge = el[1];
   }
+  // Prepared laboratory reagents are explicit Arcane materials. The campaign
+  // uses the separate ordinary/Arcane wild catalog instead of these reagents.
+  if (!m.wild && m.arcane && m.arcaneVariant === undefined) m.arcaneVariant = true;
   return m;
 }
 

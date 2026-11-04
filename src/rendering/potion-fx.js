@@ -43,6 +43,7 @@ const MAX = 2400;
 const DENSITY = {
   vitality: 22, strength: 12, love: 30, arcana: 34, transformation: 18,
   fire: 34, frost: 32, acidity: 40, toxicity: 12, death: 22,
+  swiftness: 28, levitation: 26, invisibility: 28, phasing: 28, temporal: 26,
 };
 /** Most particles of one effect. */
 const CAP = 360;
@@ -59,6 +60,11 @@ const RAMP = {
   acidity: [[0.34, 0.5, 0.06], [0.58, 0.8, 0.12], [0.8, 0.95, 0.3], [0.94, 1, 0.55], [1, 1, 0.85]],
   toxicity: [[0.12, 0.26, 0.07], [0.26, 0.5, 0.12], [0.45, 0.76, 0.22], [0.66, 0.92, 0.36], [0.6, 0.32, 0.7]],
   death: [[0.06, 0.03, 0.1], [0.2, 0.1, 0.3], [0.42, 0.3, 0.6], [0.7, 0.6, 0.92], [0.9, 0.88, 1]],
+  swiftness: [[0.1, 0.28, 0.25], [0.18, 0.59, 0.48], [0.43, 0.9, 0.68], [0.76, 1, 0.82], [0.94, 1, 0.95]],
+  levitation: [[0.13, 0.27, 0.52], [0.28, 0.58, 0.83], [0.49, 0.82, 1], [0.76, 0.94, 1], [0.94, 0.99, 1]],
+  invisibility: [[0.17, 0.1, 0.3], [0.38, 0.24, 0.57], [0.65, 0.49, 0.85], [0.87, 0.78, 1], [0.99, 0.97, 1]],
+  phasing: [[0.05, 0.24, 0.32], [0.11, 0.52, 0.61], [0.28, 0.86, 0.89], [0.69, 0.98, 0.97], [0.93, 1, 1]],
+  temporal: [[0.32, 0.15, 0.12], [0.68, 0.36, 0.18], [0.94, 0.66, 0.3], [1, 0.88, 0.58], [1, 0.97, 0.87]],
 };
 const P = EFFECTS.map((e) => RAMP[e.key] || [e.color, e.color, e.color, e.color, WHITE]);
 const FIRE_RAMP = RAMP.fire.slice().reverse(); // white-hot first, smoke last
@@ -212,6 +218,11 @@ export class PotionParticles {
       case K.acidity: life = 1.2 + r * 1.2; this.vy[i] = -22 - r * 18; break;
       case K.toxicity: life = 2.5 + r * 2; this.vy[i] = r < 0.25 ? -3 : -5 - r * 4; break;
       case K.death: life = 3 + r * 2; this.vy[i] = r < 0.4 ? -4 - r * 3 : 3 + r * 2; break;
+      case K.swiftness: life = 1.5 + r; this.vx[i] = 28 + r * 18; this.vy[i] = -4; break;
+      case K.levitation: life = 3 + r * 2; this.vy[i] = -12 - r * 6; break;
+      case K.invisibility: life = 2 + r * 2; this.vx[i] = -8 + r * 16; this.vy[i] = -4; break;
+      case K.phasing: life = 3 + r * 2; this.vx[i] = Math.sin(r * 20) * 12; this.vy[i] = 4; break;
+      case K.temporal: life = 4; this.vx[i] = Math.cos(r * 20) * 6; this.vy[i] = -2; break;
     }
     this.life[i] = life;
     // the first swarm of a brew is already under way
@@ -407,6 +418,33 @@ export class PotionParticles {
     // a slow shimmer of its own
     const sh = Math.sin(time * (2 + v * 3) + v * 60);
     switch (e) {
+      case K.swiftness: {
+        for (let j = 0; j < 5; j++) { px(-j, 0, j === 0 ? WHITE : C[2], fade * (1 - j / 6)); px(-j, 1, C[1], fade * 0.6); }
+        break;
+      }
+      case K.levitation: {
+        const beat = Math.sin(time * 4 + v * 30) * 0.5 + 0.5;
+        mote(0, 0, WHITE, C[2], fade, 0.8);
+        for (let j = -2; j <= 2; j++) { px(j, 2 + Math.abs(j), C[2], fade); px(j, 5 + Math.abs(j), C[3], fade * beat); }
+        break;
+      }
+      case K.invisibility: {
+        const a = fade * (0.5 + 0.5 * Math.sin(time * 6 + v * 40) ** 2);
+        mote(0, 0, C[4], C[1], a, 0.7);
+        for (const [x, y] of [[-2, -1], [-1, -2], [1, -2], [2, -1], [2, 1], [1, 2], [-1, 2], [-2, 1]]) px(x, y, C[3], a);
+        break;
+      }
+      case K.phasing: {
+        const shift = Math.round(Math.sin(time * 4 + v * 15) * 3);
+        blob(2, C[1], C[4], C[2], fade * 0.8, 0.6);
+        for (let j = -2; j <= 2; j++) { px(j + shift, -3, C[3], fade); px(-j - shift, 3, C[2], fade * 0.6); }
+        break;
+      }
+      case K.temporal: {
+        const turn = time * 3 + v * 20;
+        for (let j = 0; j < 10; j++) { const a = turn + j * 0.628; px(Math.round(Math.cos(a) * 3), Math.round(Math.sin(a) * 3), j % 3 ? C[1] : WHITE, fade); }
+        px(0, 0, C[3], fade); px(0, -1, C[4], fade); break;
+      }
       case K.vitality: {
         if (v < 0.35) {
           // a quick spark of life darting up

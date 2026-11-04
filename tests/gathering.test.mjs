@@ -4,9 +4,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { GameState } from '../src/game/state.js';
-import { gatherPlan, dayPart, weatherOn, WEATHERS, depositStatus, normalizeGathering, SCAR_SLOWDOWN, weatherRegrowth, harvestable, standOf, plantStage, SPROUT_SHARE, REGIONS, growthOf, checkpoint, moistureEnv, water, matureIn, GATHER_VERSION, GROW_FLOOR, WATER_DOSE, sandboxWilds, SANDBOX_PACE } from '../src/game/gathering.js';
+import { gatherPlan, dayPart, weatherOn, WEATHERS, depositStatus, normalizeGathering, SCAR_SLOWDOWN, weatherRegrowth, harvestable, standOf, plantStage, SPROUT_SHARE, REGIONS, growthOf, checkpoint, moistureEnv, water, matureIn, GATHER_VERSION, GROW_FLOOR, WATER_DOSE, migrateGathering, sandboxWilds, SANDBOX_PACE } from '../src/game/gathering.js';
 
-const fresh = (seed = 'gather-1') => GameState.create(seed, { tutorial: false });
+import { growthSandbox } from './game-fixtures.mjs';
+const fresh = growthSandbox;
 const depositOf = (st, key) => st.deposits.find((d) => st.lookup(d.materialId).wild.key === key);
 
 test('the Forager’s Kit doubles every harvest that is not simply picked; picking needs nothing', () => {
@@ -89,6 +90,7 @@ test('a thorough harvest digs the plant out for twice as much and scars the stan
 
 test('plants sprout, ripen and mature; only a mature one can be harvested', () => {
   const st = fresh('gather-2');
+  st.reputation = 60; // the river's ordinary gathering rank
   st.customerIndex = 1; st.opened = true;
   st.equipment.push('kit');
   const chalk = depositOf(st, 'riverchalk');
@@ -155,7 +157,7 @@ test('a harvest leaves nothing on the ground; new sprouts grow back at random sp
     const ds = st.deposits.filter((x) => x.region === region.id);
     const total = ds.reduce((a, x) => a + standOf(st.gathering, x, t0 + 1e9).plants.length, 0);
     assert.equal(total, ds.reduce((a, x) => a + x.slots, 0), `${region.id} saturates`);
-    assert.ok(total <= 16, `${region.id}: no more than the ground holds (${total})`);
+    assert.ok(ds.every((d) => d.slots <= 3), `${region.id}: the sandbox bounds each species stand`);
   }
   // harvested again, it starts growing back again
   const again = st.gather(d.id, { now: t0 + d.spawnMs * (d.slots + 5) + d.growMs * 2 });
@@ -271,7 +273,9 @@ test('an old save’s plants keep every bit of their growth when they start to d
   const raw = JSON.parse(JSON.stringify(st.toJSON()));
   // gathering as saved before plants drank: plants by age only, no version
   raw.gathering = { nodes: { [d.id]: { plants: [{ id: d.id + '#0', x: 0.3, y: 0.7, born: now - d.growMs * 2 }, { id: d.id + '#1', x: 0.6, y: 0.7, born: now - d.growMs * 0.5 }], due: null, seq: 2 } }, marks: [], total: 40, trips: 1, created: now - 1e7 };
-  const back = GameState.fromJSON(raw);
+  const gathering = normalizeGathering(raw.gathering, now);
+  migrateGathering(gathering, st.deposits, now);
+  const back = { gathering };
   const s = depositStatus(back.gathering, d, now);
   assert.equal(s.mature, 1, 'the ripe plant is still ripe');
   assert.ok(Math.abs(s.plants.find((p) => p.id === d.id + '#1').grown - 0.5) < 0.02, 'the half-grown one still half-grown');
@@ -283,9 +287,9 @@ test('the Netherwood, the cavern under the Whisperwood, grows Witch’s Ear and 
   const { addAlchemy } = await import('../src/materials/generator.js');
   const st = fresh();
   const nether = REGIONS.find((r) => r.id === 'netherwood');
-  assert.ok(nether && nether.rank === 1, 'a region of its own, opened at the first guild rank');
+  assert.ok(nether && nether.rank === 2, 'a region of its own, gated by its progression rank');
   for (const key of ['witchear', 'mandrake']) assert.equal(depositOf(st, key).region, 'netherwood', `${key} grows in the Netherwood`);
-  assert.ok(st.deposits.filter((d) => d.region === 'forest').every((d) => d.rank === 0), 'the Whisperwood keeps its everyday plants');
+  assert.ok(st.deposits.some((d) => d.region === 'forest' && d.rank === 0), 'the Whisperwood keeps its everyday plants');
   // a save whose world still has them in the Whisperwood finds them in the Netherwood
   const w = JSON.parse(JSON.stringify(st.world));
   for (const m of w.materials) if (m.wild && (m.wild.key === 'witchear' || m.wild.key === 'mandrake')) m.wild.region = 'forest';

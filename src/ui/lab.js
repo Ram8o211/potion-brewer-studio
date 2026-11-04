@@ -47,6 +47,7 @@ import { CounterView } from './views/counter.js';
 import { WildsView } from './views/wilds.js';
 import { TrialsView } from './views/trials.js';
 import { BookView } from './views/book.js';
+import { GardenView } from './views/garden.js';
 import { shortName } from '../game/customers.js';
 
 const REQ_ICON = { temperature: 'thermo', quantity: 'flask', purity: 'pure' };
@@ -62,6 +63,7 @@ export const VIEWS = [
   { id: 'counter', label: 'Counter', icon: 'stall', key: 'c' },
   { id: 'brew', label: 'Brew', icon: 'cauldron', key: 'v' },
   { id: 'wilds', label: 'Wilds', icon: 'tree', key: 'w' },
+  { id: 'garden', label: 'Garden', icon: 'leaf', key: 'g' },
   { id: 'trials', label: 'Trials', icon: 'dropper', key: 't' },
   { id: 'book', label: 'Book', icon: 'book', key: 'j' },
 ];
@@ -303,8 +305,8 @@ export class LabScreen {
     this.brewView = h('section', { class: 'view view-brew', 'data-view': 'brew' },
       this.sandbox ? null : this.strip, this.stageEl, this.controls, this.toolbar, this.shelfWrap);
     // ---- other rooms
-    this.views = { counter: new CounterView(this), wilds: new WildsView(this), trials: new TrialsView(this), book: new BookView(this) };
-    this.viewsEl = h('div', { class: 'views' }, this.views.counter.el, this.brewView, this.views.wilds.el, this.views.trials.el, this.views.book.el);
+    this.views = { counter: new CounterView(this), wilds: new WildsView(this), garden: new GardenView(this), trials: new TrialsView(this), book: new BookView(this) };
+    this.viewsEl = h('div', { class: 'views' }, this.views.counter.el, this.brewView, this.views.wilds.el, this.views.garden.el, this.views.trials.el, this.views.book.el);
     // ---- tab bar
     this.tabEls = {};
     this.tabbar = h('nav', { class: 'tabbar frame', 'aria-label': 'Rooms' });
@@ -2088,6 +2090,7 @@ export class LabScreen {
   save() {
     if (this.artPreview) return;
     if (this.saveBlocked) return;
+    this.views?.wilds.checkpointWildlife();
     if (this.sandbox) {
       saveJSON(KEYS.sandbox, { seed: this.state.seed, cauldron: snapshotSim(this.sim, this.cap.size), trials: this.state.trials });
       return;

@@ -7,14 +7,11 @@ import { composeScene } from '../src/visual/env/scene.js';
 import { penOf, PEN_KINDS } from '../src/visual/env/pens.js';
 import { Pixels } from '../src/visual/pixels.js';
 import { encodePng } from './lib/png.mjs';
+import { BIOMES } from '../src/game/biomes.js';
 
 const out = path.resolve(process.argv[2] || 'test-results/environment-gallery');
 const seed = process.argv[3] || 'reference-garden';
-const regions = [
-  ['meadow', 'Sunlit Meadow'], ['forest', 'Whisperwood'],
-  ['netherwood', 'Netherwood'], ['river', 'Willow Bank'],
-  ['quarry', 'Ironstone Quarry'], ['moonfen', 'Moonfen'], ['crags', 'Ember Crags'],
-];
+const regions = BIOMES.map((b) => [b.id, b.name]);
 fs.mkdirSync(out, { recursive: true });
 
 function png(file, pix, scale = 2) {

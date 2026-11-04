@@ -52,6 +52,12 @@
  * @property {boolean} [crushable]
  * @property {{thr:number, gain:number, awake?:boolean}} [arcane] arcane activation threshold (−1000…1000, see alchemy/arcane.js) and gain
  * @property {boolean} [awakened]      the awakened form of a magical material
+ * @property {boolean} [arcaneVariant] only explicitly Arcane matter can awaken
+ * @property {string} [speciesId] permanent ingredient species, independent of variant
+ * @property {string} [rarity] intrinsic magical quality
+ * @property {string} [dominant] principal magical effect
+ * @property {string} [cultivation] soil, fungal or mineral growing structure
+ * @property {boolean} [legacy] archived pre-overhaul material definition
  * @property {string} [base]           base material id of an awakened form
  * @property {number} [fxv]            version of the effect profile it carries
  * @property {string} [shape]          solid template name (shapes.js) for materials without a wild shape
