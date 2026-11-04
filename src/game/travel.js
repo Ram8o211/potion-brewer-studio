@@ -27,6 +27,15 @@ export function spendTraveller(t, now = Date.now()) {
   t.balance--; return true;
 }
 
+/** Roll once per settled sale; the saved follow-up owns the one-use boundary. */
+export function awardTravellerGift(t, worldSeed, saleId, now = Date.now()) {
+  settleTraveller(t, now);
+  if (t.balance >= TRAVEL.capacity || hashString(`${worldSeed}:traveller-gift-v1:${saleId}`) / 4294967296 >= TRAVEL.excellentGiftChance) return false;
+  t.balance++;
+  if (t.balance === TRAVEL.capacity) t.last = Math.max(t.last, validTime(now) ? now : t.last);
+  return true;
+}
+
 /** A saved roster is immutable for its generation, including on later rank-ups. */
 export function makeBiomeInstance(world, lookup, region, revision, rank) {
   const seed = `${world.seed}:biome-v1:${region}:${revision}`, rng = new Rng(seed), biome = BIOME_BY_ID[region];

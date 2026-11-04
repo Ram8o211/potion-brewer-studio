@@ -130,12 +130,12 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
 
 .views { grid-area: views; position: relative; min-height: 0; min-width: 0; overflow: hidden; }
 .view { position: absolute; inset: 0; display: none; overflow-y: auto; overflow-x: hidden; padding: 6px 8px 10px; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
-.lab[data-view=counter] .view-counter, .lab[data-view=wilds] .view-wilds, .lab[data-view=trials] .view-trials, .lab[data-view=book] .view-book { display: block; animation: viewin .14s ease-out; }
+.lab[data-view=counter] .view-counter, .lab[data-view=wilds] .view-wilds, .lab[data-view=garden] .view-garden, .lab[data-view=trials] .view-trials, .lab[data-view=book] .view-book { display: block; animation: viewin .14s ease-out; }
 .lab[data-view=brew] .view-brew { display: grid; }
 @keyframes viewin { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 .view > .card:first-child { margin-top: 2px; }
-.view-counter, .view-wilds, .view-trials, .view-book { max-width: 100%; }
-.view-counter > *, .view-wilds > *, .view-trials > *, .view-book > * { max-width: 760px; margin-left: auto; margin-right: auto; }
+.view-counter, .view-wilds, .view-garden, .view-trials, .view-book { max-width: 100%; }
+.view-counter > *, .view-wilds > *, .view-garden > *, .view-trials > *, .view-book > * { max-width: 760px; margin-left: auto; margin-right: auto; }
 
 /* bottom tab bar */
 .tabbar { grid-area: tabs; display: flex; align-items: stretch; gap: 2px; padding: 3px 4px calc(3px + var(--safe-bottom)); z-index: 4; }
@@ -194,7 +194,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
 .garden-scene { display: block; width: 100%; max-height: 180px; object-fit: cover; image-rendering: pixelated; border: 2px solid #695332; }
 .garden-heading { margin: 10px 0; }.garden-heading h2 { font-size: 18px; margin: 0; }
 .garden-plots { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 10px; }
-.garden-plot { min-height: 155px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 5px; padding: 8px; color: inherit; font: inherit; cursor: pointer; }
+.garden-plot { min-height: 155px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 5px; padding: 8px; color: var(--ink); font: inherit; cursor: pointer; }
 .garden-plot.selected { outline: 2px solid #daa94b; outline-offset: 1px; }.garden-plot canvas { max-width: 72px; max-height: 68px; image-rendering: pixelated; }
 .garden-plot progress { width: 90%; height: 9px; accent-color: #66864d; }.plot-empty { color: #68543d; padding: 20px 0; }
 .garden-controls { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
@@ -549,7 +549,7 @@ canvas.scene { display: block; flex: none; max-width: none; aspect-ratio: 16 / 9
   .toolbar .tools .btn { padding: 4px 10px; flex-direction: row; gap: 6px; }
   .toolbar .tools .btn .lbl { display: inline; font-size: var(--fs-s); }
   .subjects { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .view-counter > *, .view-wilds > *, .view-trials > *, .view-book > * { max-width: 900px; }
+  .view-counter > *, .view-wilds > *, .view-garden > *, .view-trials > *, .view-book > * { max-width: 900px; }
   /* the wilds: scene beside the deposit list (only the list scrolls) */
   .lab[data-view=wilds] .view-wilds { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(320px, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: 0 14px; overflow: hidden; }
   .view-wilds > * { max-width: none; margin-left: 0; margin-right: 0; }

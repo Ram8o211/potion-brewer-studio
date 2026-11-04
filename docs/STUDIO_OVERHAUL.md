@@ -44,9 +44,18 @@ potencies before extraction and dilution, not guaranteed measured concentrations
 The potion saturation/opposition laws still decide the final effect. Full
 constraints are executable in `src/materials/rarity.js`.
 
+### Final verification on 4 November 2026
+
+Corrected the invalid-rarity fixture's tuple type so this foundation branch
+passes independently of later milestones. `npm run check` passes TypeScript,
+all **245 unit tests**, production bundling and ZIP packaging. The committed
+bundle and service worker now include the terrain and bottling changes.
+All **10 desktop and portrait-phone layout tests** pass in Chromium 141,
+covering the menu, brewing controls, every room, sandbox and overlays.
+
 ## Milestone 2 — species, travel, cultivation and native ecosystems
 
-Implemented on `overhaul/02-species-arcane`, stacked on the foundation draft
+Implemented on `overhaul/02-species-arcane`, based on the merged foundation
 PR #9. The checkpoint includes the previously uncommitted work and its repaired
 integration. Source changes and the production package are kept together.
 
@@ -107,10 +116,26 @@ white fruit and its green leaves need not have the same dominant colour.
 The cold-composition timing check allows concurrent-suite contention; standalone
 composition timings are recorded by the gallery generator.
 
-The portrait browser smoke test was attempted, but Chromium exits with
-`SIGSEGV` before a page can be created. The separate cloud browser cannot reach
-this workspace's local HTTP server. Live UI/touch, sustained frame timing and
-physical Android checks therefore remain unverified.
+The original cached Chromium was truncated. A fresh pinned Chromium 141 now
+launches correctly. Finalization also repairs the Garden room's missing display
+rule and parchment contrast, enables regeneration as soon as a Traveller Coin
+recharges, connects excellent-customer coin gifts to one-use saved follow-ups,
+and removes regrowth advice from finite campaign harvesting.
+
+`npm run check` now passes **263 unit tests**, TypeScript and production/ZIP
+packaging. All **16 desktop and portrait-phone layout/ecology browser tests**
+pass, including a real pointer harvest, garden planting/watering/harvesting,
+save/reload, finite wildlife and resource depletion, coin recharge/regeneration,
+and all six exotic interactions. Physical Android and sustained frame timing
+remain separate release acceptance work.
+
+The complete first-commission phone flow also passes: pour, crush, stir, steep,
+trial, bottle, label, negotiate, sell and save/replay the recipe. Seven production
+browser checks pass for offline game and Studio use, repository sub-paths,
+isolated service-worker scopes, stale-tab saves and cache updates after redeploy.
+The garden flow passes again after the final contrast correction.
+An [actual portrait garden capture](screenshots/overhaul/garden-phone.png)
+records the final interface.
 
 Actual runtime-renderer previews:
 
@@ -135,14 +160,15 @@ not been silently treated as production sprite atlases.
 | --- | --- |
 | 2. Fixed catalogue and Arcane-only transitions | Implemented; tested |
 | 3. Authored PNG families, seed/growth assets, atlas loading and studio inspection | Next; pending |
-| 4. Twelve biomes, unlocks, Traveller Coins, finite populations | Implemented; browser QA pending |
+| 4. Twelve biomes, unlocks, Traveller Coins, finite populations | Implemented; desktop/portrait browser flows pass |
 | 5. Garden and propagation economy | Implemented; further visual polish pending |
-| 6. Exotic terrain and touch signatures | Implemented; live touch/art review pending |
+| 6. Exotic terrain and touch signatures | Implemented; all six controls pass desktop/portrait browser checks; final art review pending |
 | 7. Native creatures, domestic habitats, appended effect channels | Implemented; further art/animation polish pending |
 | 8. Real-time customer patience, optional multi-day commissions and progression tuning | New effect requests integrated; timers and commission scheduling pending |
-| 9. Contextual tutorial and compact portrait interfaces | Garden entry and Wilds captions integrated; tutorial rewrite and portrait QA pending |
+| 9. Contextual tutorial and compact portrait interfaces | Garden entry and Wilds captions integrated; room layout checks pass; tutorial rewrite pending |
 | 10. Whole-flow QA, optimization, platform packaging and release checklist | Unit/build verification complete for this checkpoint; remaining release work pending |
 
-Do not merge or publish automatically. Draft review is the current delivery
-boundary. No physical Android performance, Steam compatibility, store approval
-or completed overhaul is implied by passing these checks.
+The two existing pull requests are finalized under the user's explicit
+request of 4 November 2026. Their completion does not complete the later overhaul
+milestones or imply physical Android performance, Steam compatibility or store
+approval. Platform publication remains separate from repository integration.

@@ -534,7 +534,7 @@ export function gatherPlan(st, d, m, opts = {}) {
   if (weather.id === 'heat' && (FLOWER_SHAPES.has(shape))) factors.push({ why: 'lush in the heat', f: 1.25 });
   if (weather.id === 'heat' && shape === 'moss') factors.push({ why: 'dried out in the heat', f: 0.5 });
   if (weather.id === 'storm') factors.push({ why: 'wind scatters it', f: 0.75 });
-  if (opts.thorough) factors.push({ why: 'thorough: the stand will sprout slowly', f: 2 });
+  if (opts.thorough) factors.push({ why: d.finite ? 'thorough: takes the whole specimen' : 'thorough: the stand will sprout slowly', f: 2 });
   const f = factors.reduce((a, x) => a * x.f, 1);
   const take = Math.max(5, Math.floor((d.take * f) / 5) * 5);
   // how much of what is cut becomes usable (the rest is spoiled by hand, out

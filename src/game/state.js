@@ -22,7 +22,7 @@ import { techniqueById, migrateTechniques } from './commissions.js';
 import { migrateRecipe } from './recipes.js';
 import { archiveLegacyMaterials } from './legacy-materials.js';
 import { BIOMES, biomeUnlocked, refreshBiomeUnlocks } from './biomes.js';
-import { normalizeTraveller, settleTraveller, spendTraveller, makeBiomeInstance, seedDrop, TRAVEL } from './travel.js';
+import { normalizeTraveller, settleTraveller, spendTraveller, awardTravellerGift, makeBiomeInstance, seedDrop } from './travel.js';
 import { normalizeGarden, settleGarden, plantSeed as gardenPlant, waterPlot, harvestGarden, FACILITIES, GARDEN } from './garden.js';
 
 export const SAVE_VERSION = 8;
@@ -1061,6 +1061,10 @@ export class GameState {
       const hist = this.history.find((x) => x.saleId === sale.id);
       if (hist && hist.quality === null) { hist.quality = sale.quality; hist.stars = sale.stars ?? null; }
       events.push(...this._verdict(sale.quality, !!sale.perfect, !!sale.grand));
+      if (f.kind === 'praise' && sale.quality >= 0.85 && awardTravellerGift(this.traveller, this.seed, sale.id)) {
+        r.text += ' They also give you a Traveller Coin.';
+        events.push({ type: 'traveller-gift' });
+      }
       // a technique that worked for a paying customer is mastered: the guild takes note
       if (sale.quality >= 0.85) for (const t of sale.techniques || []) {
         const T = techniqueById(t);

@@ -21590,7 +21590,7 @@ if (weather.id === 'frost' && (shape === 'cap' || shape === 'toadstool' || shape
 if (weather.id === 'heat' && (FLOWER_SHAPES.has(shape))) factors.push({ why: 'lush in the heat', f: 1.25 });
 if (weather.id === 'heat' && shape === 'moss') factors.push({ why: 'dried out in the heat', f: 0.5 });
 if (weather.id === 'storm') factors.push({ why: 'wind scatters it', f: 0.75 });
-if (opts.thorough) factors.push({ why: 'thorough: the stand will sprout slowly', f: 2 });
+if (opts.thorough) factors.push({ why: d.finite ? 'thorough: takes the whole specimen' : 'thorough: the stand will sprout slowly', f: 2 });
 const f = factors.reduce((a, x) => a * x.f, 1);
 const take = Math.max(5, Math.floor((d.take * f) / 5) * 5);
 const eff = factors.filter((x) => x.why !== 'satchel' && !x.why.startsWith('thorough')).reduce((a, x) => a * x.f, 1);
@@ -22772,6 +22772,13 @@ if (t.balance < 1) return false;
 if (t.balance === TRAVEL.capacity) t.last = Math.max(t.last, Number.isFinite(now) ? now : t.last);
 t.balance--; return true;
 }
+function awardTravellerGift(t, worldSeed, saleId, now = Date.now()) {
+settleTraveller(t, now);
+if (t.balance >= TRAVEL.capacity || hashString(`${worldSeed}:traveller-gift-v1:${saleId}`) / 4294967296 >= TRAVEL.excellentGiftChance) return false;
+t.balance++;
+if (t.balance === TRAVEL.capacity) t.last = Math.max(t.last, validTime(now) ? now : t.last);
+return true;
+}
 function makeBiomeInstance(world, lookup, region, revision, rank) {
 const seed = `${world.seed}:biome-v1:${region}:${revision}`, rng = new Rng(seed), biome = BIOME_BY_ID[region];
 const pool = (world.wild || []).map(lookup).filter((m) => m?.wild?.region === region && !m.arcaneVariant && (m.wild.rank || 0) <= rank);
@@ -22798,7 +22805,7 @@ function seedDrop(worldSeed, event, material, garden = false) {
 const p = (RARITIES[material.rarity]?.seedChance || 0) * (material.arcaneVariant ? TRAVEL.arcaneSeedFactor : 1) * (garden ? 0.5 : 1);
 return hashString(`${worldSeed}:seed-v1:${event}:${material.id}`) / 4294967296 < p;
 }
-return { TRAVEL, ARCANE_FREQUENCY, createTraveller, normalizeTraveller, settleTraveller, spendTraveller, makeBiomeInstance, seedDrop };
+return { TRAVEL, ARCANE_FREQUENCY, createTraveller, normalizeTraveller, settleTraveller, spendTraveller, awardTravellerGift, makeBiomeInstance, seedDrop };
 })();
 // src/game/garden.js
 const __m130 = (() => {
@@ -22902,7 +22909,7 @@ const { techniqueById, migrateTechniques } = __m114;
 const { migrateRecipe } = __m127;
 const { archiveLegacyMaterials } = __m128;
 const { BIOMES, biomeUnlocked, refreshBiomeUnlocks } = __m4;
-const { normalizeTraveller, settleTraveller, spendTraveller, makeBiomeInstance, seedDrop, TRAVEL } = __m129;
+const { normalizeTraveller, settleTraveller, spendTraveller, awardTravellerGift, makeBiomeInstance, seedDrop } = __m129;
 const { normalizeGarden, settleGarden, plantSeed: gardenPlant, waterPlot, harvestGarden, FACILITIES, GARDEN } = __m130;
 const SAVE_VERSION = 8;
 const PURGE_PRICE = 8;
@@ -23651,6 +23658,10 @@ sale.outcome = { kind: f.kind, action, ...r };
 const hist = this.history.find((x) => x.saleId === sale.id);
 if (hist && hist.quality === null) { hist.quality = sale.quality; hist.stars = sale.stars ?? null; }
 events.push(...this._verdict(sale.quality, !!sale.perfect, !!sale.grand));
+if (f.kind === 'praise' && sale.quality >= 0.85 && awardTravellerGift(this.traveller, this.seed, sale.id)) {
+r.text += ' They also give you a Traveller Coin.';
+events.push({ type: 'traveller-gift' });
+}
 if (sale.quality >= 0.85) for (const t of sale.techniques || []) {
 const T = techniqueById(t);
 if (!T) continue;
@@ -27241,7 +27252,7 @@ h('div', { class: 'row wrap sky-row' },
 icon(part === 'dawn' ? 'sun' : part === 'dusk' ? 'wisp' : 'sun', 'sm'), h('b', { text: lab.sandbox ? 'Any hour' : DAY_PART_NAME[part] }),
 lab.sandbox ? null : h('span', { class: 'muted', text: part === 'dawn' ? '(until you open the shop)' : part === 'dusk' ? '(after the last customer, until you close)' : '(the shop is open)' }),
 h('span', { class: 'spacer' }), icon(weather.icon, 'sm'), h('b', { text: lab.sandbox ? '' : weather.name })),
-lab.sandbox || weather.id === 'clear' ? null : h('div', { class: 'muted', text: weather.desc }),
+lab.sandbox || weather.id === 'clear' ? null : h('div', { class: 'muted', text: !lab.sandbox && weather.id === 'rain' ? 'Rain wets the living growth. Harvested specimens stay depleted until this biome is regenerated.' : !lab.sandbox && weather.id === 'storm' ? 'Wind scatters a quarter of every outdoor harvest. Depleted mineral seams remain empty.' : weather.desc }),
 h('div', { class: 'row wrap seg tap-mode' }, h('span', { text: 'Tap to:' }),
 btn('Harvest', () => { this.mode = 'harvest'; audio.play('click'); this.refresh(); }, { cls: 'small' + (this.mode === 'harvest' ? ' active' : ''), icon: 'rose', act: 'mode-harvest' }),
 lab.sandbox ? btn('Water', () => { this.mode = 'water'; audio.play('click'); this.refresh(); }, { cls: 'small' + (this.mode === 'water' ? ' active' : ''), icon: 'drop', act: 'mode-water' }) : null,
@@ -27379,6 +27390,7 @@ const r = st.gather(d.id, { thorough: this.thorough && !lab.sandbox, ...(lab.san
 if (!r.ok) {
 audio.play('error');
 const why = r.reason === 'full' ? `Your shelves are full of ${m.name}.` : r.reason === 'locked' ? 'You may not gather here yet.'
+: d.finite && r.reason === 'depleted' ? 'This generation is depleted. Spend a Traveller Coin to regenerate the biome, or cultivate propagation materials in your garden.'
 : r.reason === 'growing' ? `Still growing — only a mature plant can be harvested. This one matures in ${formatWait(r.nextIn || 60000)}.`
 : d.botanical ? `Nothing is mature yet. The next plant matures in ${formatWait(r.nextIn || 60000)}.`
 : `Nothing to be found here yet. The next one turns up in ${formatWait(r.nextIn || 60000)}.`;
@@ -28210,6 +28222,9 @@ tick() {
 const lab = this.lab, st = lab.state;
 if (!this.rows) return;
 const now = Date.now();
+const balance = st.traveller.balance;
+settleTraveller(st.traveller, now);
+if (balance !== st.traveller.balance) { this.refresh(); return; }
 for (const d of this.deposits()) {
 const row = this.rows[d.id];
 const plan = gatherPlan(st, d, st.lookup(d.materialId), { thorough: this.thorough });
@@ -32129,7 +32144,9 @@ audio.play('glass');
 panels.showAnalysis(this, m, this.recipeDraft(m, null, null), `Measuring vial · ${m.ml} ml from the tap`);
 }
 announce(e) {
-if (e.type === 'achievement') {
+if (e.type === 'traveller-gift') {
+this.views.wilds.refresh();
+} else if (e.type === 'achievement') {
 toast(`Achievement: ${e.name}`, `${e.desc} (+${e.reward} coins)`, 'star', 4200);
 audio.play('fanfare');
 } else if (e.type === 'technique') {

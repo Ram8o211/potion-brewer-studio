@@ -1345,7 +1345,9 @@ export class LabScreen {
   }
 
   announce(e) {
-    if (e.type === 'achievement') {
+    if (e.type === 'traveller-gift') {
+      this.views.wilds.refresh();
+    } else if (e.type === 'achievement') {
       toast(`Achievement: ${e.name}`, `${e.desc} (+${e.reward} coins)`, 'star', 4200);
       audio.play('fanfare');
     } else if (e.type === 'technique') {

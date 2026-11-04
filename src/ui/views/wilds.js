@@ -337,7 +337,7 @@ export class WildsView {
         icon(part === 'dawn' ? 'sun' : part === 'dusk' ? 'wisp' : 'sun', 'sm'), h('b', { text: lab.sandbox ? 'Any hour' : DAY_PART_NAME[part] }),
         lab.sandbox ? null : h('span', { class: 'muted', text: part === 'dawn' ? '(until you open the shop)' : part === 'dusk' ? '(after the last customer, until you close)' : '(the shop is open)' }),
         h('span', { class: 'spacer' }), icon(weather.icon, 'sm'), h('b', { text: lab.sandbox ? '' : weather.name })),
-      lab.sandbox || weather.id === 'clear' ? null : h('div', { class: 'muted', text: weather.desc }),
+      lab.sandbox || weather.id === 'clear' ? null : h('div', { class: 'muted', text: !lab.sandbox && weather.id === 'rain' ? 'Rain wets the living growth. Harvested specimens stay depleted until this biome is regenerated.' : !lab.sandbox && weather.id === 'storm' ? 'Wind scatters a quarter of every outdoor harvest. Depleted mineral seams remain empty.' : weather.desc }),
       h('div', { class: 'row wrap seg tap-mode' }, h('span', { text: 'Tap to:' }),
         btn('Harvest', () => { this.mode = 'harvest'; audio.play('click'); this.refresh(); }, { cls: 'small' + (this.mode === 'harvest' ? ' active' : ''), icon: 'rose', act: 'mode-harvest' }),
         lab.sandbox ? btn('Water', () => { this.mode = 'water'; audio.play('click'); this.refresh(); }, { cls: 'small' + (this.mode === 'water' ? ' active' : ''), icon: 'drop', act: 'mode-water' }) : null,
@@ -512,6 +512,7 @@ export class WildsView {
     if (!r.ok) {
       audio.play('error');
       const why = r.reason === 'full' ? `Your shelves are full of ${m.name}.` : r.reason === 'locked' ? 'You may not gather here yet.'
+        : d.finite && r.reason === 'depleted' ? 'This generation is depleted. Spend a Traveller Coin to regenerate the biome, or cultivate propagation materials in your garden.'
         : r.reason === 'growing' ? `Still growing — only a mature plant can be harvested. This one matures in ${formatWait(r.nextIn || 60000)}.`
         : d.botanical ? `Nothing is mature yet. The next plant matures in ${formatWait(r.nextIn || 60000)}.`
         : `Nothing to be found here yet. The next one turns up in ${formatWait(r.nextIn || 60000)}.`;
@@ -1637,6 +1638,9 @@ export class WildsView {
     const lab = this.lab, st = lab.state;
     if (!this.rows) return;
     const now = Date.now();
+    const balance = st.traveller.balance;
+    settleTraveller(st.traveller, now);
+    if (balance !== st.traveller.balance) { this.refresh(); return; }
     for (const d of this.deposits()) {
       const row = this.rows[d.id];
       const plan = gatherPlan(st, d, st.lookup(d.materialId), { thorough: this.thorough });

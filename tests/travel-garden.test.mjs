@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { GameState } from '../src/game/state.js';
 import { BIOMES } from '../src/game/biomes.js';
-import { createTraveller, settleTraveller, spendTraveller, TRAVEL, seedDrop, makeBiomeInstance } from '../src/game/travel.js';
+import { createTraveller, settleTraveller, spendTraveller, awardTravellerGift, TRAVEL, seedDrop, makeBiomeInstance } from '../src/game/travel.js';
 import { createGarden, gardenStatus, plantSeed, waterPlot, harvestGarden, settleGarden } from '../src/game/garden.js';
 import { createGathering, depositStatus, weatherRegrowth, newDayRegrowth, WEATHERS } from '../src/game/gathering.js';
 import { RARITIES } from '../src/materials/rarity.js';
@@ -44,6 +44,39 @@ test('regeneration spends exactly one coin and preserves inventory, seeds, garde
   assert.deepEqual(st.lookup(d.materialId).effects, profile);
   const a = makeBiomeInstance(st.world, st.lookup, 'forest', 12, 4), b = makeBiomeInstance(st.world, st.lookup, 'forest', 12, 4);
   assert.deepEqual(a, b); assert.notDeepEqual(a.roster, st.gathering.instances.forest.roster);
+});
+
+test('excellent customer gifts use a deterministic roll, preserve recharge progress and respect capacity', () => {
+  let gifts = 0, eligible = '';
+  for (let i = 0; i < 2000; i++) {
+    const t = { balance: 0, last: 1000 };
+    const won = awardTravellerGift(t, 'gift-shop', 'sale-' + i, 2000);
+    assert.equal(won, awardTravellerGift({ balance: 0, last: 1000 }, 'gift-shop', 'sale-' + i, 2000));
+    assert.equal(t.balance, won ? 1 : 0);
+    assert.equal(t.last, 1000, 'partial recharge progress survives a gift');
+    if (won) { gifts++; eligible = 'sale-' + i; }
+  }
+  assert.ok(Math.abs(gifts / 2000 - TRAVEL.excellentGiftChance) < 0.03);
+  const full = createTraveller(1000);
+  assert.equal(awardTravellerGift(full, 'gift-shop', eligible, 2000), false);
+  assert.equal(full.balance, TRAVEL.capacity);
+});
+
+test('praise grants a Traveller gift once and cannot grant it again after reloading', () => {
+  const st = GameState.create('gift-shop', { tutorial: false });
+  let saleId = '';
+  for (let i = 0; !saleId && i < 100; i++) if (awardTravellerGift({ balance: 0, last: Date.now() }, st.seed, 'sale-' + i)) saleId = 'sale-' + i;
+  assert.ok(saleId, 'fixture has a successful gift roll');
+  st.traveller.balance = 0;
+  st.sales.push({ id: saleId, quality: 0.95, repDelta: 0, techniques: [] });
+  st.followUps.push({ id: 'praise-gift', saleId, kind: 'praise', day: st.day, resolved: false, tip: 0 });
+  const result = st.settleFollowUp('praise-gift', 'thank');
+  assert.equal(st.traveller.balance, 1);
+  assert.match(result.text, /Traveller Coin/);
+  assert.ok(result.events.some((e) => e.type === 'traveller-gift'));
+  const back = GameState.fromJSON(JSON.parse(JSON.stringify(st.toJSON())));
+  assert.equal(back.settleFollowUp('praise-gift', 'thank'), null);
+  assert.equal(back.traveller.balance, 1);
 });
 
 test('finite wild plants never regrow through waiting, rain, shop days or watering', () => {
