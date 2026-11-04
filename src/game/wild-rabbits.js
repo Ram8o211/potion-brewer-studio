@@ -29,6 +29,7 @@
 import { Rng, hashString } from '../core/rng.js';
 import { rollLook } from './colony.js';
 import { pickKind, kindLook } from './kinds.js';
+import { NATIVE_SPECIES } from './native-species.js';
 
 /** Pull of gravity on a rabbit and on blood, scene pixels per second². */
 export const HOP_GRAVITY = 300, BLOOD_GRAVITY = 260;
@@ -104,6 +105,7 @@ export const GAITS = {
   // scurries in short dashes, stopping to sniff up on its hind legs; frightened, it bolts
   rat: { walk: [14, 22], run: [90, 110], walkT: [0.3, 1], hop: null, pHop: 0, flee: null, pFlee: 0, pWalk: 0.6, poses: [['rear', 40], ['eat', 30], [null, 30]], rest: [0.3, 1.5], climb: 3, alarm: 'run' },
 };
+for (const [id, n] of Object.entries(NATIVE_SPECIES)) if (!GAITS[id]) GAITS[id] = { ...GAITS[n.gait], ...(n.gait === 'dove' ? { fly: 0.35, rest: [0.4, 1.4] } : {}) };
 
 export class WildRabbit {
   /**
@@ -179,7 +181,7 @@ export class WildRabbit {
   /** Its pose as drawn: off the ground, striding, or what it does while resting. */
   get drawPose() {
     // a dove beats its wings in flight and spreads them to glide down
-    if (this.kind === 'dove' && this.fly > 0) return Math.floor(this.t * 9) & 1 ? 'fly1' : 'fly2';
+    if (GAITS[this.kind]?.fly && this.fly > 0) return Math.floor(this.t * 9) & 1 ? 'fly1' : 'fly2';
     if (this.kind === 'snail' && this.hide > 0 && this.running) return 'loaf';
     if (this.air) return 'hop';
     if (this.walking) return `walk${(Math.floor(this.stride / ({ cat: 2.2, fox: 2.2, deer: 2.6 }[this.kind] || 1.6)) % 4) + 1}`;
@@ -206,7 +208,7 @@ export class Warren {
   /**
    * The rabbits of a region.
    * @param {string} region @param {string} seed
-   * @param {{solid:Test, liquid:Test, W:number, H:number, spots:[number, number][], habitat?:[string, number][]}} scene its ground, the spots an animal may start on, and (optionally) which kinds live there
+   * @param {{solid:Test, liquid:Test, W:number, H:number, spots:[number, number][], habitat?:[string, number][], finite?:boolean}} scene its ground, the spots an animal may start on, and (optionally) which kinds live there
    */
   constructor(region, seed, scene) {
     this.region = region;
@@ -215,6 +217,7 @@ export class Warren {
     this.spots = scene.spots;
     /** which kinds live here, by weight (kinds.js HABITAT unless given) */
     this.habitat = scene.habitat || null;
+    this.finite = !!scene.finite;
     this.rng = new Rng(hashString(`warren:${seed}:${region}`));
     this.serial = 0;
     /** @type {WildRabbit[]} */
@@ -327,6 +330,38 @@ export class Warren {
   /** Take a rabbit out of the scene (caught, or its body carried off). @param {WildRabbit} r */
   remove(r) {
     this.rabbits = this.rabbits.filter((q) => q !== r);
+  }
+
+  /** Saved population, including wounds and deaths. Reloading never creates a new animal. */
+  snapshot() {
+    return { version: 1, serial: this.serial, rng: [this.rng.a, this.rng.b, this.rng.c, this.rng.d],
+      animals: this.rabbits.map((r) => ({ ...r, look: structuredClone(r.look), wounds: r.wounds.map((w) => w.slice()) })) };
+  }
+
+  /** Restore only identities from this generation; reject malformed values at the boundary. */
+  restore(raw) {
+    if (raw?.version !== 1 || !Array.isArray(raw.animals)) return false;
+    const valid = new Map(this.rabbits.map((r) => [r.id, r]));
+    const seen = new Set();
+    this.rabbits = raw.animals.slice(0, this.size).flatMap((s) => {
+      const r = valid.get(s?.id);
+      if (!r || seen.has(r.id) || s.kind !== r.kind) return [];
+      seen.add(r.id);
+      // Appearance and sex are already deterministically generated. Stored simulation
+      // values may change behaviour, never species identity or the population limit.
+      for (const k of ['x', 'y', 'vx', 'vy', 'rest', 'bleedT', 'downT', 'drip', 'spurt', 'react', 'walkT', 'walkV', 'stride', 'fly', 'flyY', 'flyV', 'hide', 't', 'from']) {
+        if (typeof s[k] === 'number' && Number.isFinite(s[k])) r[k] = Math.max(-10000, Math.min(10000, s[k]));
+      }
+      r.x = Math.max(4, Math.min(this.W - 4, r.x)); r.y = Math.max(4, Math.min(this.H - 2, r.y));
+      for (const k of ['air', 'alarm', 'down', 'dead']) r[k] = !!s[k];
+      r.hits = Math.max(0, Math.min(WILD_HP, Math.floor(s.hits) || 0));
+      r.face = s.face === -1 ? -1 : 1;
+      r.pose = [null, 'eat', 'rear', 'loaf'].includes(s.pose) ? s.pose : null;
+      r.wounds = Array.isArray(s.wounds) ? s.wounds.filter((w) => Array.isArray(w) && w.length === 2 && w.every(Number.isFinite)).slice(0, WILD_HP).map((w) => [Math.max(-20, Math.min(20, w[0])), Math.max(-24, Math.min(4, w[1]))]) : [];
+      return [r];
+    });
+    if (Array.isArray(raw.rng) && raw.rng.length === 4 && raw.rng.every(Number.isInteger)) [this.rng.a, this.rng.b, this.rng.c, this.rng.d] = raw.rng;
+    return true;
   }
 
   /**
@@ -562,10 +597,10 @@ export class Warren {
     for (const r of this.rabbits) this.move(r, dt);
     // a newcomer now and then, until the region holds its share of the living
     const live = this.rabbits.filter((r) => r.running).length;
-    if (live < this.size) { this.due -= dt; if (this.due <= 0) { this.add(true); this.due = RESPAWN; } }
+    if (!this.finite && live < this.size) { this.due -= dt; if (this.due <= 0) { this.add(true); this.due = RESPAWN; } }
     // and bodies beyond a few are left to the foxes
     const bodies = this.rabbits.filter((r) => r.dead);
-    if (bodies.length > 3) this.remove(bodies[0]);
+    if (!this.finite && bodies.length > 3) this.remove(bodies[0]);
     this.flow(dt);
   }
 

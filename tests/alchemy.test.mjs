@@ -109,7 +109,7 @@ test('extraction: a whole root does nothing; ground and stirred it releases its 
 test('effects interact only where the substances meet: fire and frost layers cancel once stirred together', () => {
   const s = sim([]);
   pour(s, R.essenceB, 24, { x: -0.8 }); // fire essence
-  pour(s, 'wild-frostcap', 6, { ground: true, x: 0.8 });
+  pour(s, 'wild-frostcap', Math.ceil(6 * 24 / lookup('wild-frostcap').effects.frost), { ground: true, x: 0.8 });
   pour(s, R.water, 20, { x: 0.8 });
   run(s, 2);
   // effect per particle averaged, before mixing

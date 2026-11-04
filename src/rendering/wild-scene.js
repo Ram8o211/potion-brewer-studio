@@ -426,7 +426,10 @@ export class PlantGround {
     for (const p of plants) out[p.id] = { x: p.x, y: p.y, mount: 'ground', flip: false, light: [1, 1, 1] };
     const here = new Set(plants.map((p) => p.id));
     for (const id of [...this.spots.keys()]) if (!here.has(id)) this.spots.delete(id);
-    const fresh = plants.filter((p) => !this.spots.has(p.id) && shapeOf(p));
+    const fresh = plants.filter((p) => !this.spots.has(p.id) && shapeOf(p)).sort((a, b) => {
+      const A = shapeOf(a), B = shapeOf(b);
+      return B.w * B.h - A.w * A.h || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+    });
     if (fresh.length) {
       const roomy = new Uint8Array(W * H), tight = new Uint8Array(W * H), free = new Uint8Array(W * H);
       const mark = (/** @type {{x:number, y:number, s:Silhouette}} */ q) => {

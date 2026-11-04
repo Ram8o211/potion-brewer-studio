@@ -14,6 +14,7 @@ import { GameState, migrate, SAVE_VERSION } from '../src/game/state.js';
 import { parseImport } from '../src/game/persistence.js';
 import { Rng } from '../src/core/rng.js';
 import { EFFECT_INDEX, NE } from '../src/alchemy/effects.js';
+import { validateRarity } from '../src/materials/rarity.js';
 
 test('worlds are deterministic per seed and differ between seeds', () => {
   const a = generateWorld('alpha-1'), b = generateWorld('alpha-1'), c = generateWorld('beta-2');
@@ -23,7 +24,7 @@ test('worlds are deterministic per seed and differ between seeds', () => {
   assert.notDeepEqual(a.reactions.map((r) => r.name), c.reactions.map((r) => r.name));
 });
 
-test('the shop stocks only plain solvents; every gathered ingredient is impure but can be balanced', () => {
+test('the shop stocks plain solvents and ingredients with valid fixed rarity and purity', () => {
   const PAIRS = new Set(['fire', 'frost', 'vitality', 'death', 'toxicity', 'acidity']);
   for (let k = 0; k < 25; k++) {
     const w = generateWorld('start-' + k);
@@ -38,13 +39,13 @@ test('the shop stocks only plain solvents; every gathered ingredient is impure b
       }
       assert.ok(m.wild, `${m.name} is a natural ingredient`);
       const fx = Object.entries(m.effects).filter(([, v]) => Math.abs(Number(v)) >= 1);
-      assert.ok(fx.length >= 2, `${m.name} carries several effects (${fx.map(([e]) => e).join(', ')})`);
+      assert.deepEqual(validateRarity(m), [], `${m.name}: quality follows its tier`);
       // the main effect may be anything; every side effect sits on an opposing pair
       const main = fx.reduce((a, b) => (Math.abs(Number(b[1])) > Math.abs(Number(a[1])) ? b : a));
-      for (const [e] of fx) if (e !== main[0] && !PAIRS.has(e)) assert.ok(['strength', 'love', 'arcana', 'transformation'].includes(e) && fx.length >= 3, `${m.name}: ${e} rides with another main effect`);
+      for (const [e] of fx) if (e !== main[0] && !PAIRS.has(e)) assert.ok(['strength', 'love', 'arcana', 'transformation', 'swiftness', 'levitation', 'invisibility', 'phasing', 'temporal'].includes(e), `${m.name}: registered secondary channel`);
       // and never both halves of one pair (it would cancel itself)
       const has = (e) => fx.some(([x]) => x === e);
-      assert.ok(!(has('fire') && has('frost')) && !(has('vitality') && (has('death') || has('toxicity'))), `${m.name} does not cancel itself`);
+      assert.ok(!(has('fire') && has('frost')) && !(has('vitality') && has('death')), `${m.name} does not carry both halves of a direct opposition`);
       assert.ok(m.density > 0.3 && m.density < 15, `${m.name} density ${m.density}`);
       assert.ok(m.price > 0);
     }

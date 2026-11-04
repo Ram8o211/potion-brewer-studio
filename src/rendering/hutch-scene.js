@@ -24,9 +24,11 @@ import { drawRabbit, rabbitAnchors, rabbitLevels, rabbitPace, RABBIT_W } from '.
 import { kindOf } from '../game/kinds.js';
 import { penOf } from '../visual/env/pens.js';
 import { drawPenAnim } from './pen-anim.js';
+import { NATIVE_SPECIES } from '../game/native-species.js';
 
 /** Walking speed in the hutch (px/s) of the kinds that walk rather than hop (rabbits, toads and ermines hop). */
 const WALKERS = { cat: 12, salamander: 5, deer: 10, badger: 8, dove: 8, fox: 14, snail: 1.5, rat: 16 };
+for (const [id, n] of Object.entries(NATIVE_SPECIES)) if (n.gait !== 'rabbit' && n.gait !== 'ermine') WALKERS[id] = WALKERS[n.gait] || 7;
 
 export const HUTCH_W = 224;
 export const HUTCH_H = 92;

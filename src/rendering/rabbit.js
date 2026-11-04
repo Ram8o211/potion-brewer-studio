@@ -35,6 +35,7 @@ import { PAL, makeCanvas } from './art.js';
 import { RABBIT_MARKS } from '../game/colony.js';
 import { KINDS } from '../game/kinds.js';
 import { punchSprite } from './punch.js';
+import { nativeBody } from './native-creatures.js';
 
 export const RABBIT_W = 48;
 export const RABBIT_H = 40;
@@ -290,7 +291,7 @@ export function rabbitPose(snap, want) {
 /** How fast a rabbit lives (bob, hops, behaviours): slowed by death, poison and age, quickened by vitality or fire. @param {any} snap */
 export function rabbitPace(snap) {
   const L = rabbitLevels(snap);
-  return (L.death >= 2 ? 0.5 : L.death === 1 ? 0.8 : 1) * (L.toxicity === 3 ? 0.6 : 1) * (snap && snap.stage === 'elder' ? 0.7 : 1) * (L.vitality === 3 || L.fire === 3 ? 1.6 : 1);
+  return (L.death >= 2 ? 0.5 : L.death === 1 ? 0.8 : 1) * (L.toxicity === 3 ? 0.6 : 1) * (snap && snap.stage === 'elder' ? 0.7 : 1) * (L.vitality === 3 || L.fire === 3 ? 1.6 : 1) * (1 + (L.swiftness || 0) * 0.35) / (1 + (L.temporal || 0) * 0.2);
 }
 
 // ------------------------------------------------------------------ anchors (pure geometry)
@@ -858,6 +859,7 @@ function spotsOn(a, seed, label, n, upper = false) {
  * @param {Pen} P @param {any} look @param {any} snap @param {RabbitAnchors} a @param {boolean} low quality 'low' skips the auras
  */
 function drawBody(P, look, snap, a, low) {
+  if (nativeBody(P, look, snap, a)) return;
   const L = rabbitLevels(snap), sc = scarsOf(snap);
   const dead = !snap || snap.alive === false, cause = dead ? (snap && snap.cause) || 'unknown' : null;
   let coat = rgbOf(look.coat, [0.93, 0.89, 0.82]);
@@ -1820,6 +1822,7 @@ function motion(look, snap, a, t, react, hop) {
   if (L.transformation === 3 && mod(t, 2.5) < 0.12) dx += 1;
   if (L.love === 3) dx += Math.round(Math.sin(t * 0.9) * 0.6);
   if (L.arcana === 3) dy -= 2 + (Math.sin(t * 1.5) > 0 ? 1 : 0);
+  if (L.levitation) dy -= 2 + L.levitation * 2 + Math.round(Math.sin(t * 2) * L.levitation);
   return { dx: dx + shake, dy };
 }
 
@@ -1952,6 +1955,10 @@ export function drawRabbit(ctx, look, snap, t, react = 0, opts = {}) {
     shadowP(sx0 + 2, a.feetY + 2, sx1 - sx0 - 4, 1, 'rgba(0,0,0,0.12)');
   }
   const factory = opts.factory || (typeof document !== 'undefined' ? makeCanvas : null);
+  const extraLevels = rabbitLevels(snap);
+  ctx.save();
+  if (snap.alive !== false && extraLevels.invisibility) ctx.globalAlpha *= Math.max(0.16, 1 - extraLevels.invisibility * 0.24 + Math.sin(time * 2) * 0.06);
+  if (snap.alive !== false && extraLevels.phasing) ctx.globalAlpha *= 0.65 + Math.sin(time * 4) * 0.22;
   if (opts.cache !== false && factory) {
     const sprite = spriteFor(look, snap, a.pose, low, factory, grass, opts.k || 1);
     if (mirror) {
@@ -1962,7 +1969,21 @@ export function drawRabbit(ctx, look, snap, t, react = 0, opts = {}) {
       ctx.restore();
     } else ctx.drawImage(sprite, fx + m.dx, fy + dy, RABBIT_W, RABBIT_H);
   } else drawBody(pen(ctx, fx, fy, m.dx, dy, mirror, clip), look, snap, a, low);
+  ctx.restore();
   drawFx(pen(ctx, fx, fy, m.dx, dy, mirror, clip), look, snap, a, time, rx, acted, low);
+  const extra = ['swiftness', 'levitation', 'invisibility', 'phasing', 'temporal'];
+  const colors = ['#d4ef78', '#8ce6ff', '#cdb9ef', '#63f5d2', '#ffd480'];
+  const P = pen(ctx, fx, fy, m.dx, dy, mirror, clip);
+  for (let k = 0; k < extra.length; k++) {
+    const level = snap.alive === false ? 0 : snap.lv?.[RABBIT_MARKS.indexOf(extra[k])] || 0;
+    for (let j = 0; j < level * 3; j++) {
+      const phase = time * (k === 4 ? -5 : k === 0 ? 18 : 4);
+      const x = 5 + mod(j * 7 + k * 3 + (k === 0 ? phase : Math.sin(phase + j) * 2), 35), y = 6 + mod(j * 5 + k * 4 - phase, 25);
+      P(x, y, k === 0 || k === 4 ? 2 + level : 1, 1, colors[k]);
+      if (k === 1) P(x, y + 1, 1, 2, colors[k]);
+      if (k === 2 || k === 3) P(x + level, y + 2, 1, 1, colors[k]);
+    }
+  }
   if (rx > 0 && opts.flash !== false) {
     ctx.fillStyle = `rgba(255,255,255,${(rx * 0.35).toFixed(3)})`;
     ctx.fillRect(fx, fy, RABBIT_W, RABBIT_H);

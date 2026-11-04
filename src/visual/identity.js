@@ -69,7 +69,7 @@ export function identityOf(m, origin) {
 export function attachVisuals(world) {
   for (const m of world.materials) {
     if (!m.wild || m.product) continue;
-    if (!validIdentity(m.vis)) m.vis = identityOf(m, world.seed);
+    if (!validIdentity(m.vis)) m.vis = identityOf(m, m.speciesId ? 'catalog-v1' : world.seed);
   }
   return world;
 }

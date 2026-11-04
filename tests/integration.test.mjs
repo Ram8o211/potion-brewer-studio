@@ -1,3 +1,4 @@
+import { collectedShop } from './game-fixtures.mjs';
 // How the systems fit together: legal purchasing and the natural-ingredient
 // market, commissions the shop can really supply (and a day that never
 // stalls), techniques that the real simulation decides, honest uncertainty
@@ -58,7 +59,7 @@ test('the market sells only solvents and the herbalist’s common herbs, never g
 test('commissions only need what the shop can gather, hold or legally buy today', () => {
   for (let k = 0; k < 10; k++) {
     const st = GameState.create(`supply-${k}`, { tutorial: false });
-    st.reputation = RANKS[k % 3].rep;
+    st.reputation = RANKS[k % 3].rep; collectedShop(st);
     st.coins = 30;
     const ctx = st.commissionContext();
     const com = generateCommission(ctx, new Rng(`s${k}`), { tier: k % 3 });
@@ -102,7 +103,7 @@ test('every technique can be asked for and changes the order; customers only ask
     for (let k = 0; k < 8 && !got; k++) {
       st = GameState.create(`tech-${t.id}-${k}`, { tutorial: false });
       const tier = Math.max(2, t.minTier);
-      st.reputation = RANKS[tier].rep;
+      st.reputation = RANKS[tier].rep; collectedShop(st);
       st.coins = 200;
       st.equipment.push('kit');
       const com = generateCommission(st.commissionContext(), new Rng(`t${k}`), { tier, techniques: [t.id] });
@@ -123,7 +124,7 @@ test('the simulation decides: whole herbs and an unsteeped brew miss an order th
   let st = null, com = null;
   for (let k = 0; k < 10 && !com; k++) {
     st = GameState.create(`phys-${k}`, { tutorial: false });
-    st.reputation = RANKS[1].rep;
+    st.reputation = RANKS[1].rep; collectedShop(st);
     st.equipment.push('kit');
     const c = generateCommission(st.commissionContext(), new Rng(`p${k}`), { tier: 1, techniques: [] });
     if (c && c.reference.steep && c.reference.crush) com = c;
@@ -149,7 +150,7 @@ test('boiling down with the lid off concentrates the brew as predicted, in the r
   let st = null, com = null, sim = null, ev = null;
   for (let k = 0; k < 24 && !com; k++) {
     st = GameState.create(`conc-${k}`, { tutorial: false });
-    st.reputation = RANKS[2].rep;
+    st.reputation = RANKS[2].rep; collectedShop(st);
     st.coins = 200;
     const c = generateCommission(st.commissionContext(), new Rng(`c${k}`), { tier: 2, techniques: ['strong'] });
     if (!c || !c.techniques.includes('strong')) continue;

@@ -38,7 +38,7 @@ import { PHASE } from '../src/simulation/constants.js';
 import { measureParticles } from '../src/game/measure.js';
 
 const might = completeMaterial({ id: 'cut-might', name: 'Might Draught', form: 'liquid', color: [0.9, 0.7, 0.3], compat: [0.84, 0.11], boil: 180, melt: -60 });
-Object.assign(might, { effects: { strength: 10 }, arcane: { thr: 300, gain: 3 } });
+Object.assign(might, { effects: { strength: 10 }, arcaneVariant: true, arcane: { thr: 300, gain: 3 } });
 
 test('a trace under the cut-off does not come back when it awakens', () => {
   const water = completeMaterial({ id: 'cut-water', name: 'Water', form: 'liquid', color: [0.5, 0.6, 0.9], compat: [0.84, 0.11] });

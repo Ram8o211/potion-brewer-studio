@@ -118,7 +118,7 @@ test('remains: once per body, real materials with hidden effects, never in theor
   }
   const bone = st.lookup(remainsId('r1', 'bone'));
   assert.ok(bone.effects.strength > 3, 'its strength lingers in the bones');
-  assert.ok(st.lookup(bone.id + '~a'), 'it can awaken like any magic');
+  assert.equal(st.lookup(bone.id + '~a'), undefined, 'ordinary remains do not acquire an Arcane transition');
   assert.equal(solidLook(bone), LOOK.BONE);
   assert.equal(chunkSize(bone), 11);
   assert.equal(st.processRemains('r1').ok, false, 'only once');

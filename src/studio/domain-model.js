@@ -1,8 +1,11 @@
 // Domain documents are visual-only. No densities, viscosities, reactions or saves.
-export const REGIONS = ['meadow', 'forest', 'river', 'quarry', 'moonfen', 'crags', 'netherwood'];
+import { BIOMES } from '../game/biomes.js';
+import { EFFECT_KEYS } from '../alchemy/effects.js';
+import { KIND_IDS } from '../game/kinds.js';
+export const REGIONS = [...BIOMES.map((b) => b.id), 'garden'];
 export const MATERIALS = ['liquid', 'powder', 'paste', 'solid', 'gas', 'frozen'];
-export const EFFECT_NAMES = ['vitality', 'strength', 'love', 'arcana', 'transformation', 'fire', 'frost', 'acidity', 'toxicity', 'death'];
-export const CREATURES = ['rabbit', 'cat', 'toad', 'salamander', 'deer', 'badger', 'dove', 'fox', 'ermine', 'snail', 'rat'];
+export const EFFECT_NAMES = EFFECT_KEYS;
+export const CREATURES = KIND_IDS;
 export const visualStyle = () => ({ tint: '#ffffff', mix: 0, opacity: 1, grain: 1, emission: 0, speed: 1 });
 export const creatureStyle = () => ({ body: 1, head: 1, ears: 1, legs: 1, tail: 1, coat: '#b19a7b', coat2: '#e7dfcd', recolor: false, pattern: '', speed: 1, poses: {} });
 export const environmentStyle = () => ({ strokes: [], objects: [], lights: [], tint: '#253f4c', mix: 0, density: 1, light: 1, atmosphere: 1 });

@@ -2,7 +2,7 @@
 // potency units before extraction, dilution, opposition and saturation.
 export const RARITY_KEYS = Object.freeze(['common', 'uncommon', 'rare', 'unique', 'legendary']);
 export const RARITIES = Object.freeze({
-  common: Object.freeze({ label: 'Common', magnitude: [16, 26], secondaryCount: [1, 2], secondaryRatio: [0.3, 0.75], spawnWeight: 70, specimens: [3, 6], seedChance: 0.35, value: 1, visual: 'natural', growthMs: 300000, rank: 0 }),
+  common: Object.freeze({ label: 'Common', magnitude: [16, 26], secondaryCount: [1, 2], secondaryRatio: [0.3, 0.75], spawnWeight: 70, specimens: [2, 3], seedChance: 0.35, value: 1, visual: 'natural', growthMs: 300000, rank: 0 }),
   uncommon: Object.freeze({ label: 'Uncommon', magnitude: [30, 40], secondaryCount: [1, 2], secondaryRatio: [0.08, 0.25], spawnWeight: 24, specimens: [2, 3], seedChance: 0.22, value: 1.8, visual: 'distinctive', growthMs: 720000, rank: 1 }),
   rare: Object.freeze({ label: 'Rare', magnitude: [50, 65], secondaryCount: [1, 1], secondaryRatio: [0.02, 0.06], spawnWeight: 5, specimens: [1, 2], seedChance: 0.1, value: 4, visual: 'complex', growthMs: 1800000, rank: 2 }),
   unique: Object.freeze({ label: 'Unique', magnitude: [80, 95], secondaryCount: [0, 0], secondaryRatio: [0, 0], spawnWeight: 0.9, specimens: [1, 1], seedChance: 0.04, value: 10, visual: 'singular', growthMs: 7200000, rank: 3 }),

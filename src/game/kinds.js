@@ -19,9 +19,10 @@
 // its other channels it is an ordinary animal, or a little less reliable.
 
 import { Rng } from '../core/rng.js';
+import { NATIVE_SPECIES } from './native-species.js';
 
 /**
- * @typedef {'rabbit'|'cat'|'toad'|'salamander'|'deer'|'badger'|'dove'|'fox'|'ermine'|'snail'|'rat'} AnimalKind
+ * @typedef {string} AnimalKind
  * @typedef {Object} KindDef
  * @property {AnimalKind} id
  * @property {string} noun        singular, lower case
@@ -98,6 +99,12 @@ export const KINDS = {
     lore: 'Rats all feel death alike, within about 1 %, and steadily: the surest measure of death. Healing takes them unevenly.',
   },
 };
+for (const [id, n] of Object.entries(NATIVE_SPECIES)) {
+  KINDS[id] = { id, noun: n.label.toLowerCase(), plural: n.plural, young: ['beetle', 'scarab', 'cavemoth', 'shroudmoth'].includes(id) ? 'larva' : 'young',
+    biasAll: RABBIT_SPREAD, bias: { [n.effect]: STEADY_SPREAD }, noise: { [n.effect]: STEADY_NOISE }, steady: n.effect,
+    lore: `${n.label} is native to ${n.biome}. Its steady channel is ${n.effect}.` };
+}
+KINDS.ermine = { ...KINDS.ermine, steady: 'swiftness', bias: { swiftness: STEADY_SPREAD }, noise: { swiftness: STEADY_NOISE } };
 export const KIND_IDS = /** @type {AnimalKind[]} */ (Object.keys(KINDS));
 
 /** The kind of an animal, from its look (or the animal itself). @param {any} o @returns {AnimalKind} */
@@ -140,6 +147,9 @@ export const HABITAT = {
   moonfen: [['rabbit', 1], ['toad', 3], ['salamander', 1], ['snail', 2], ['rat', 1], ['ermine', 1]],
   crags: [['rabbit', 1], ['cat', 1], ['salamander', 2], ['ermine', 2], ['dove', 1]],
 };
+// Earlier captured species remain valid colony animals. New wild generations
+// contain only the native species, rather than a random cross-biome menagerie.
+for (const [id, n] of Object.entries(NATIVE_SPECIES)) HABITAT[n.biome] = [[id, 1]];
 
 /** Pick a kind for a newcomer to a region. @param {string} region @param {Rng} rng @returns {AnimalKind} */
 export function pickKind(region, rng) {
@@ -158,6 +168,11 @@ const r2 = (v) => Math.round(v * 100) / 100;
 export function kindLook(kind, rng) {
   const seed = 1 + rng.int(0, 2147483000);
   const size = r2(Math.max(0.85, Math.min(1.15, 1 + 0.06 * rng.gauss())));
+  const native = NATIVE_SPECIES[kind];
+  if (native && !['fox', 'salamander'].includes(kind)) {
+    const factor = rng.range(0.9, 1.08), coat = native.color.map((c) => r2(Math.min(1, c * factor)));
+    return { kind, coat, coat2: coat.map((c) => Math.min(1, c + 0.22)), pattern: 'solid', ear: kind === 'hare' ? 'upright' : 'none', size, eye: 'dark', tail: 1, seed };
+  }
   if (kind === 'cat') {
     // tabbies, gingers, blacks, greys, a tuxedo now and then; green or amber eyes
     /** @type {[number[], number[], import('./colony.js').RabbitLook['pattern'], number][]} */

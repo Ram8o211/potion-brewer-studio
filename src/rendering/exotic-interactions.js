@@ -1,0 +1,83 @@
+import { BIOME_BY_ID } from '../game/biomes.js';
+
+export const FEATURE_HINTS = Object.freeze({
+  ripple: 'Touch the water to send moonlit ripples across it.',
+  spring: 'Push the small floating islands: they swing back into place.',
+  morph: 'Touch the living sprouts to change their shape.',
+  mist: 'Sweep the mist aside to reveal the ruins behind it.',
+  phase: 'Touch a ghostglass crystal to shift it out of phase.',
+  time: 'Swipe down to reverse the sandfalls, or up to accelerate them.',
+});
+
+function segmentDistance(x, y, x0, y0, x1, y1) {
+  const dx = x1 - x0, dy = y1 - y0, n = dx * dx + dy * dy;
+  const t = n ? Math.max(0, Math.min(1, ((x - x0) * dx + (y - y0) * dy) / n)) : 0;
+  return Math.hypot(x - x0 - dx * t, y - y0 - dy * t);
+}
+
+// Decorative physics only. Nothing here changes harvesting or brew physics.
+export class ExoticInteractions {
+  constructor(region, scene) {
+    this.kind = BIOME_BY_ID[region]?.interaction;
+    this.points = (scene.meta.interactionPoints || (scene.meta.glows || []).slice(0, 6)).map(([x, y]) => ({ x, y, dx: 0, dy: 0, vx: 0, vy: 0, touched: 0 }));
+    if (!this.points.length) this.points = [{ x: 190, y: 125, dx: 0, dy: 0, vx: 0, vy: 0, touched: 0 }];
+    this.ripples = []; this.clock = 0; this.reverse = 0; this.rate = 1;
+  }
+  push(x0, y0, x1, y1) {
+    if (!this.kind) return;
+    if (![x0, y0, x1, y1].every(Number.isFinite)) return;
+    const dx = Math.max(-35, Math.min(35, x1 - x0)), dy = Math.max(-35, Math.min(35, y1 - y0));
+    for (const p of this.points) if (segmentDistance(p.x + p.dx, p.y + p.dy, x0, y0, x1, y1) < 23) {
+      p.vx = Math.max(-140, Math.min(140, p.vx + (dx || 3) * 4)); p.vy = Math.max(-140, Math.min(140, p.vy + (dy || -5) * 4)); p.touched = 4;
+    }
+    if (this.kind === 'ripple' || this.kind === 'mist') { if (this.ripples.length >= 16) this.ripples.shift(); this.ripples.push({ x: x1, y: y1, age: 0 }); }
+    if (this.kind === 'time') { this.reverse = 4; this.rate = dy < -2 ? 3 : -2; }
+  }
+  /** Same interaction for a keyboard or assistive-technology user. */
+  activate() { const p = this.points[0]; this.push(p.x, p.y + 1, p.x, p.y); }
+  step(dt) {
+    if (!Number.isFinite(dt) || dt <= 0) return;
+    dt = Math.min(0.05, dt); this.clock += dt * (this.reverse > 0 ? this.rate : 1); this.reverse = Math.max(0, this.reverse - dt);
+    for (const p of this.points) {
+      p.vx += (-30 * p.dx - 6 * p.vx) * dt; p.vy += (-30 * p.dy - 6 * p.vy) * dt;
+      p.dx = Math.max(-24, Math.min(24, p.dx + p.vx * dt)); p.dy = Math.max(-18, Math.min(18, p.dy + p.vy * dt));
+      p.touched = Math.max(0, p.touched - dt);
+    }
+    for (const r of this.ripples) r.age += dt;
+    this.ripples = this.ripples.filter((r) => r.age < 3);
+  }
+  draw(ctx) {
+    if (!this.kind) return;
+    ctx.save();
+    const pixel = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), w, h); };
+    for (let i = 0; i < this.points.length; i++) {
+      const p = this.points[i], x = p.x + p.dx, y = p.y + p.dy;
+      if (this.kind === 'spring') {
+        for (let j = 0; j < 18; j++) {
+          const w = Math.max(1, Math.round(25 * (1 - j / 18)));
+          pixel(x - Math.floor(w / 2), y + j, w, 1, j < 2 ? '#71a34c' : j % 4 ? '#55607b' : '#8b95ac');
+          if (j > 3 && j % 3 === 0) pixel(x - w / 3, y + j, Math.max(1, w / 4 | 0), 1, '#41465c');
+        }
+        pixel(x - 12, y - 2, 24, 2, '#a4d56e'); pixel(x + 2, y - 7, 2, 5, '#8de3f8');
+      } else if (this.kind === 'morph') {
+        const changed = p.touched > 0;
+        for (let j = 0; j < 7; j++) pixel(x + Math.sin(j * (changed ? 2.4 : 0.9)) * (changed ? 8 : 4), y - j * 2, changed ? 5 : 3, 2, j % 2 ? '#d59aaf' : '#6fba87');
+      } else if (this.kind === 'phase') {
+        ctx.globalAlpha = p.touched > 0 ? 0.15 : 0.4 + 0.5 * Math.sin(this.clock * 0.7 + i) ** 2;
+        for (let j = 0; j < 15; j++) pixel(x - Math.min(j / 3, (15 - j) / 2), y - 15 + j, Math.max(1, Math.min(j / 1.5, 15 - j)), 1, j % 3 ? '#91e4f0' : '#d7f4ff');
+        ctx.globalAlpha = 1;
+      } else if (this.kind === 'time') {
+        for (let j = 0; j < 18; j++) pixel(x + Math.sin(j + i) * 2, y + ((j * 5 + this.clock * 24) % 55 + 55) % 55, 1, 2, this.reverse > 0 ? '#d0a4ef' : '#f5d18b');
+      }
+    }
+    if (this.kind === 'mist') for (let y = 38; y < 200; y += 4) for (let x = -7; x < 384; x += 7) {
+      if (this.ripples.some((r) => Math.hypot(x - r.x, y - r.y) < 38 * (1 - r.age / 3))) continue;
+      pixel(x + Math.sin(this.clock * 0.3 + y) * 7, y, 10, 3, '#a9b8bd45');
+    }
+    for (const r of this.ripples) if (this.kind === 'ripple') {
+      ctx.globalAlpha = 1 - r.age / 3;
+      for (let i = 0; i < 36; i++) { const a = i * Math.PI * 2 / 36; pixel(r.x + Math.cos(a) * r.age * 20, r.y + Math.sin(a) * r.age * 6, 2, 1, '#b2eaf4'); }
+    }
+    ctx.restore();
+  }
+}

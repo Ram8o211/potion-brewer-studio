@@ -56,7 +56,7 @@ test('brew room: cauldron, order, shelf, tools and tabs are all on screen', asyn
 test('every room fits the screen and its controls are touch sized', async ({ page }, info) => {
   const errors = watchErrors(page);
   await newGame(page, { tutorial: false, seed: 'rooms-fit-1' });
-  for (const room of ['counter', 'wilds', 'trials', 'book']) {
+  for (const room of ['counter', 'wilds', 'garden', 'trials', 'book']) {
     await page.click(`[data-act=tab-${room}]`);
     await expect(page.locator(`.view-${room}`)).toBeVisible();
     await page.waitForTimeout(250);
