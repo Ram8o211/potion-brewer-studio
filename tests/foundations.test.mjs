@@ -17,7 +17,8 @@ test('terrain follows every art pixel instead of snapping to texture cells', () 
 
 test('rarity rejects incorrect purity, missing side effects and overlapping legendary magnitude', () => {
   for (const [rarity, effects] of Object.entries({ common: { vitality: 18, frost: 11, toxicity: 8 }, uncommon: { vitality: 32, frost: 7, love: 4 }, rare: { vitality: 55, death: 3 }, unique: { fire: 85 }, legendary: { fire: 180 } })) assert.deepEqual(validateRarity({ rarity, effects }), []);
-  for (const [rarity, effects] of [['rare', { fire: 55 }], ['rare', { fire: 55, frost: 30 }], ['unique', { fire: 85, love: 1 }], ['legendary', { fire: 95 }]]) assert.ok(validateRarity({ rarity, effects }).length);
+  const invalid = /** @type {[string, Record<string, number>][]} */ ([['rare', { fire: 55 }], ['rare', { fire: 55, frost: 30 }], ['unique', { fire: 85, love: 1 }], ['legendary', { fire: 95 }]]);
+  for (const [rarity, effects] of invalid) assert.ok(validateRarity({ rarity, effects }).length);
   assert.ok(RARITIES.legendary.magnitude[0] > RARITIES.unique.magnitude[1] * 1.5);
 });
 

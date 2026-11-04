@@ -44,6 +44,15 @@ potencies before extraction and dilution, not guaranteed measured concentrations
 The potion saturation/opposition laws still decide the final effect. Full
 constraints are executable in `src/materials/rarity.js`.
 
+### Final verification on 4 November 2026
+
+Corrected the invalid-rarity fixture's tuple type so this foundation branch
+passes independently of later milestones. `npm run check` passes TypeScript,
+all **245 unit tests**, production bundling and ZIP packaging. The committed
+bundle and service worker now include the terrain and bottling changes.
+All **10 desktop and portrait-phone layout tests** pass in Chromium 141,
+covering the menu, brewing controls, every room, sandbox and overlays.
+
 ## Remaining milestones
 
 2. Fixed species catalog and Arcane-only transitions.
