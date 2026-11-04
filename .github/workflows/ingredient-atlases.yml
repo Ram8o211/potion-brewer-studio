@@ -1,0 +1,40 @@
+name: Export ingredient PNG atlases
+
+on:
+  push:
+    branches:
+      - assets/ingredient-atlases
+    paths:
+      - scripts/generate-ingredient-atlases.mjs
+      - src/materials/**
+      - src/visual/**
+      - .github/workflows/ingredient-atlases.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Generate transparent ingredient sheets
+        run: node scripts/generate-ingredient-atlases.mjs
+      - name: Validate sprite coordinates, PNG transparency and catalog coverage
+        run: node --test tests/ingredient-atlases.test.mjs
+      - name: Commit exported PNGs and manifests to the feature branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/ingredients/wilds-atlas.png assets/ingredients/icons-atlas.png assets/ingredients/wilds-atlas.json assets/ingredients/icons-atlas.json
+          if ! git diff --cached --quiet; then
+            git commit -m "assets: export native wilds and menu icon PNG atlases"
+            git push
+          fi
