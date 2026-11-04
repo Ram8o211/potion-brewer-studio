@@ -39,7 +39,7 @@ export function far(c, x, y, seed) {
  * @param {number} W @param {number} seed @param {{base:number, amp:number, freq?:number, step?:number}} o
  */
 export function heights(W, seed, o) {
-  const top = new Float32Array(W), step = o.step ?? 2, f = o.freq ?? 0.012;
+  const top = new Float32Array(W), step = o.step ?? 1, f = o.freq ?? 0.012;
   for (let x = 0; x < W; x++) top[x] = Math.round((o.base + (fbm1(x * f, seed, 3) - 0.5) * 2 * o.amp) / step) * step;
   return top;
 }
@@ -66,7 +66,9 @@ export function raise(top, x0, x1, y, slope = 4) {
  * @param {any} cv @param {Float32Array} top
  */
 export function fillSolid(cv, top) {
-  for (let x = 0; x < cv.W; x++) top[x] = snap(Math.round(top[snap(x)]));
+  // Geometry is sampled at every art pixel. Texture clusters may be coarser,
+  // but snapping geometry to their grid creates artificial rectangular stairs.
+  for (let x = 0; x < cv.W; x++) top[x] = Math.round(top[x]);
   cv.ground = top;
   for (let x = 0; x < cv.W; x++) for (let y = Math.max(0, Math.round(top[x])); y < cv.H; y++) cv.solid[y * cv.W + x] = 1;
 }
@@ -76,18 +78,18 @@ export function fillSolid(cv, top) {
  * carved out of it (v = 0: a cave pocket, marked as cave).
  */
 export function blob(cv, cx, cy, rx, ry, seed, v = 1, rough = 0.35) {
-  for (let Y = snap(Math.floor(cy - ry * 1.4)); Y <= Math.ceil(cy + ry * 1.4); Y += CELL) for (let X = snap(Math.floor(cx - rx * 1.4)); X <= Math.ceil(cx + rx * 1.4); X += CELL) {
-    // one square at a time, judged at its centre
-    const x = X + CELL / 2, y = Y + CELL / 2;
-    const e = (Math.abs(x - cx) / rx) ** 3 + (Math.abs(y - cy) / ry) ** 3 + (fbm2(x * 0.08, y * 0.12, seed, 2) - 0.5) * rough * 2;
-    if (e > 1) continue;
-    // a ledge has a level top: its upper third is cut flat
+  if (!(rx > 0 && ry > 0)) return;
+  const x0 = Math.max(0, Math.floor(cx - rx * 1.4)), x1 = Math.min(cv.W - 1, Math.ceil(cx + rx * 1.4));
+  const y0 = Math.max(0, Math.floor(cy - ry * 1.4)), y1 = Math.min(cv.H - 1, Math.ceil(cy + ry * 1.4));
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+    const u = (x + 0.5 - cx) / rx, w = (y + 0.5 - cy) / ry;
+    // Broad geological lobes, then small chips. No blur or fractional alpha.
+    const warp = (fbm2(x * 0.045, y * 0.065, seed, 2) - 0.5) * rough * 1.6;
+    const chip = (noise2(x * 0.28, y * 0.3, seed + 17) - 0.5) * rough * 0.22;
+    if (Math.abs(u) ** 2.6 + Math.abs(w) ** 2.3 + warp + chip > 1) continue;
     if (v && y < cy - ry * 0.55) continue;
-    for (let yy = Y; yy < Y + CELL; yy++) for (let xx = X; xx < X + CELL; xx++) {
-      if (xx < 0 || yy < 0 || xx >= cv.W || yy >= cv.H) continue;
-      const k = yy * cv.W + xx;
-      if (v) cv.solid[k] = 1; else if (cv.solid[k]) { cv.solid[k] = 0; cv.cave[k] = 1; }
-    }
+    const k = y * cv.W + x;
+    if (v) cv.solid[k] = 1; else if (cv.solid[k]) { cv.solid[k] = 0; cv.cave[k] = 1; }
   }
 }
 
@@ -143,7 +145,11 @@ export function paintTerrain(cv, o) {
       if (d >= ch && floors) {
         // (in the main ground the strata lie level with its surface, running on under the pillars that
         // stand on it; in a ledge they follow the ledge's own top)
-        const g = cv.ground ? Math.round(cv.ground[x]) : -1, e = g >= 0 && y >= g ? y - g - ch : d - ch;
+        const g = cv.ground ? Math.round(cv.ground[x]) : -1;
+        // Material seams meander independently of the contour. A one-pixel
+        // clustered transition replaces perfectly parallel stripes.
+        const seam = (noise2(x * 0.18, y * 0.15, o.seed + 81) - 0.5) * 1.8;
+        const e = (g >= 0 && y >= g ? y - g - ch : d - ch) + seam;
         for (let i = 0, top = 0; i < layers.length; top = floors[x * layers.length + i], i++) if (e >= 0 && e < floors[x * layers.length + i]) { li = i; into = e - top; thick = floors[x * layers.length + i] - top; break; }
       }
       // the crust's lower edge uneven: here and there it hangs a pixel or two into what lies under it, in drips two pixels wide
