@@ -118,7 +118,7 @@ function exportAtlas(kind) {
   };
   specs.forEach((s, i) => {
     const material = byKey.get(s.key);
-    const d = describe(material.vis);
+    const d = describe((/** @type {any} */ (material)).vis);
     const mount = mountOf(s.shape);
     const frame = kind === 'wilds'
       ? plantFrame(d, 2, { mount, k: 2, variant: 0 })
