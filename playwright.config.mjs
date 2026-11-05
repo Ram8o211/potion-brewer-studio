@@ -9,7 +9,8 @@ const phone = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isM
 
 export default defineConfig({
   testDir: 'tests/browser',
-  timeout: 180_000,
+  // Complete physical brewing and multi-room flows on software-rendered CI.
+  timeout: 300_000,
   expect: { timeout: 10_000 },
   fullyParallel: false,
   workers: 2,

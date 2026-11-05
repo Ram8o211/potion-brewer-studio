@@ -212,6 +212,7 @@ export class LabScreen {
     window.removeEventListener('pagehide', this.onUnload);
     window.removeEventListener('storage', this.onStorage);
     if (this.resizeObs) this.resizeObs.disconnect();
+    for (const view of Object.values(this.views)) if (view && 'dispose' in view && typeof view.dispose === 'function') view.dispose();
     if (this.tutorial) this.tutorial.stop();
     audio.update({ fire: 0, stir: 0, pour: 0, boil: 0, cold: 0 }, 0);
     this.el.remove();
@@ -1418,9 +1419,9 @@ export class LabScreen {
    */
   brewAdvice() {
     // read off the cauldron at most once a second (it scans every particle)
-    if (this._advice && this.time - this._advice.t < 1) return this._advice.list;
+    if (this._advice && this._advice.count === this.sim.p.count && this.time - this._advice.t < 1) return this._advice.list;
     const list = this.computeAdvice();
-    this._advice = { t: this.time, list };
+    this._advice = { t: this.time, count: this.sim.p.count, list };
     return list;
   }
 

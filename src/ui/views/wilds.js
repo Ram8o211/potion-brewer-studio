@@ -104,6 +104,8 @@ export class WildsView {
   /** @param {import('../lab.js').LabScreen} lab */
   constructor(lab) {
     this.lab = lab;
+    this.disposed = false;
+    /** @type {any} */ this.warmIdle = 0;
     this.el = h('section', { class: 'view view-wilds', 'data-view': 'wilds' });
     this.region = 'forest';
     this.time = 0;
@@ -165,6 +167,17 @@ export class WildsView {
     this.told = new Set();
     /** the pointer pressed on the scene: where it is, where it came down (sx, sy), how far it has gone (CSS px), and in watering mode where it last watered and how many drank @type {{id:number, type:string, x:number, y:number, cx:number, cy:number, sx:number, sy:number, dist:number, water:boolean, wx:number, wy:number, drank:number, near:boolean, pours:number}|null} */
     this.drag = null;
+  }
+
+  dispose() {
+    this.disposed = true;
+    clearTimeout(this.warmTimer); this.warmTimer = 0;
+    if (this.warmIdle) {
+      if (typeof cancelIdleCallback === 'function') cancelIdleCallback(this.warmIdle);
+      else clearTimeout(this.warmIdle);
+      this.warmIdle = 0;
+    }
+    this.crisp?.dispose();
   }
 
   build() {
@@ -277,16 +290,18 @@ export class WildsView {
    * travelling to them later only draws what is already made.
    */
   prewarm() {
-    if (this.warmTimer) return;
+    if (this.disposed || this.warmTimer || this.warmIdle) return;
     const st = this.lab.state, seed = st.seed;
     const todo = REGIONS.filter((r) => this.unlocked(r) && r.id !== this.region).map((r) => r.id);
     const idle = typeof requestIdleCallback === 'function' ? (fn) => requestIdleCallback(fn) : (fn) => setTimeout(fn, 50);
     const tick = () => {
       this.warmTimer = 0;
-      if (this.lab.state !== st || !todo.length) return;
+      if (this.disposed || this.lab.state !== st || !todo.length) return;
       // only while this room is shown and nobody is touching it
       if (this.lab.view !== 'wilds' || performance.now() - this.lastInput < 1500) { this.warmTimer = setTimeout(tick, 1500); return; }
-      idle(() => {
+      this.warmIdle = idle(() => {
+        this.warmIdle = 0;
+        if (this.disposed) return;
         if (this.lab.view !== 'wilds' || performance.now() - this.lastInput < 1500) { this.warmTimer = setTimeout(tick, 1500); return; }
         const region = /** @type {string} */ (todo.shift());
         sceneCanvas(region, st.sceneSeed(region));

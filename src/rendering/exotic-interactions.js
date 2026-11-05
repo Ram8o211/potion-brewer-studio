@@ -30,6 +30,12 @@ export class ExoticInteractions {
     this.islands = typeof document === 'undefined' || this.kind !== 'spring' ? [] : this.points.map((p, i) => islandPixels(Math.round(p.x * 31 + p.y * 17 + i)).toCanvas());
     this.morphArt = typeof document === 'undefined' || this.kind !== 'morph' ? [] : ['morphleaf', 'formblossom'].map((key) => ingredientAssetFrame(key, 'mature', 30)?.pix.toCanvas());
     this.phaseArt = typeof document === 'undefined' || this.kind !== 'phase' ? null : ingredientAssetFrame('ghostglass-coral', 'icon', 24)?.pix.toCanvas();
+    this.mist = null;
+    if (typeof document !== 'undefined' && this.kind === 'mist') {
+      const base = mistPixels().toCanvas(), layer = document.createElement('canvas');
+      layer.width = base.width; layer.height = base.height;
+      this.mist = { base, layer, ctx: layer.getContext('2d') };
+    }
   }
   push(x0, y0, x1, y1) {
     if (!this.kind) return;
@@ -81,9 +87,20 @@ export class ExoticInteractions {
         for (let j = 0; j < this.particleCount; j++) pixel(x + Math.sin(j + i) * 2, y + ((j * 5 + this.clock * 24) % 55 + 55) % 55, 1, 2, this.reverse > 0 ? '#d0a4ef' : '#f5d18b');
       }
     }
-    if (this.kind === 'mist') for (let y = 38; y < 200; y += 4) for (let x = -7; x < 384; x += 7) {
-      if (this.ripples.some((r) => Math.hypot(x - r.x, y - r.y) < 38 * (1 - r.age / 3))) continue;
-      pixel(x + Math.sin(this.clock * 0.3 + y) * 7, y, 10, 3, '#a9b8bd45');
+    if (this.mist) {
+      const m = this.mist, c = m.ctx;
+      c.globalCompositeOperation = 'source-over'; c.clearRect(0, 0, 96, 54);
+      const drift = Math.floor(this.clock * 0.4) % 96;
+      c.drawImage(m.base, drift, 0); c.drawImage(m.base, drift - 96, 0);
+      c.globalCompositeOperation = 'destination-out'; c.fillStyle = '#000';
+      for (const r of this.ripples) {
+        const radius = 9.5 * (1 - r.age / 3), cx = Math.round(r.x / 4), cy = Math.round(r.y / 4);
+        for (let y = -Math.floor(radius); y <= Math.floor(radius); y++) {
+          const half = Math.floor(Math.sqrt(Math.max(0, radius * radius - y * y)));
+          c.fillRect(cx - half, cy + y, half * 2 + 1, 1);
+        }
+      }
+      ctx.imageSmoothingEnabled = false; ctx.drawImage(m.layer, 0, 0, 384, 216);
     }
     for (const r of this.ripples) if (this.kind === 'ripple') {
       ctx.globalAlpha = 1 - r.age / 3;
@@ -91,6 +108,19 @@ export class ExoticInteractions {
     }
     ctx.restore();
   }
+}
+
+// Continuous alpha coverage avoids the dark gutters of a repeated rectangle
+// grid. Native pixel clouds are cached once; touches only erase small circles.
+function mistPixels() {
+  const p = new Pixels(96, 54);
+  for (let y = 0; y < p.h; y++) for (let x = 0; x < p.w; x++) {
+    const cloud = Math.sin(x * 0.08 + Math.sin(y * 0.1)) * 0.5 + Math.sin(y * 0.18 - x * 0.025) * 0.3;
+    const fade = Math.max(0, Math.min(1, (y - 5) / 8, (54 - y) / 6));
+    const alpha = Math.round((46 + cloud * 28) * fade);
+    p.set(x, y, ((alpha << 24) | 0x00bdB8a9) >>> 0);
+  }
+  return p;
 }
 
 // Native pixel stone clusters for moving islands, cached once instead of

@@ -60,7 +60,7 @@ test('sandbox wilds: shake, gather by tap, regrow at random spots; watering stay
   // the finger sets the scenery's hanging strands swinging (the trees and bushes behind stay put)
   const leaves = await page.evaluate(async () => {
     const S = await import(new URL('src/rendering/wild-scene.js', document.baseURI).href);
-    const st = window.__alchemist.screen.state, t = S.sceneTouch('meadow', st.seed);
+    const st = window.__alchemist.screen.state, t = S.sceneTouch('meadow', st.sceneSeed('meadow'));
     if (!t) return null;
     const ys = [];
     for (let g = 0; g < t.G; g++) if (t.hang[g] > 0) ys.push((t.box[g * 4 + 1] + t.box[g * 4 + 3]) / 2);
@@ -72,7 +72,7 @@ test('sandbox wilds: shake, gather by tap, regrow at random spots; watering stay
     await drag(page, row, 12);
     const moving = await page.evaluate(async () => {
       const S = await import(new URL('src/rendering/wild-scene.js', document.baseURI).href);
-      const t = S.sceneTouch('meadow', window.__alchemist.screen.state.seed);
+      const t = S.sceneTouch('meadow', window.__alchemist.screen.state.sceneSeed('meadow'));
       let n = 0;
       for (let g = 0; g < t.G; g++) if (t.moving(g)) n++;
       return n;
@@ -80,7 +80,7 @@ test('sandbox wilds: shake, gather by tap, regrow at random spots; watering stay
     expect(moving, 'the strands the finger went through are swinging').toBeGreaterThan(0);
     expect(await page.evaluate(async () => {
       const S = await import(new URL('src/rendering/wild-scene.js', document.baseURI).href);
-      const t = S.sceneTouch('meadow', window.__alchemist.screen.state.seed);
+      const t = S.sceneTouch('meadow', window.__alchemist.screen.state.sceneSeed('meadow'));
       let n = 0;
       for (let g = 0; g < t.G; g++) if (!(t.hang[g] > 0) && t.moving(g)) n++;
       return n;

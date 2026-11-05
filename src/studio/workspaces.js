@@ -282,7 +282,9 @@ export class DomainWorkspace {
         this.sceneSelection = { kind: hit.kind, index: hit.index };
         this.groupState.set(hit.kind === 'object' ? 'wilds-objects' : 'wilds-lights', true);
         const o = hit.kind === 'object' ? cfg.objects[hit.index] : cfg.lights[hit.index];
+        const bounds = this.canvas.getBoundingClientRect();
         this.sceneDrag = { ...hit, before: clone(s.project), pointerId: e.pointerId, x: p[0], y: p[1],
+          clientX: e.clientX, clientY: e.clientY, width: bounds.width, height: bounds.height,
           source: { x: o.x, y: o.y, scale: o.scale, radius: o.radius } };
         this.canvas.setPointerCapture(e.pointerId);
         this.draw(); return;
@@ -305,14 +307,15 @@ export class DomainWorkspace {
     this.canvas.onpointermove = (e) => {
       const d = this.sceneDrag;
       if (d && e.pointerId === d.pointerId) {
-        const p = point(e), o = d.kind === 'object' ? cfg.objects[d.index] : cfg.lights[d.index];
+        const dx = (e.clientX - d.clientX) * 384 / d.width, dy = (e.clientY - d.clientY) * 216 / d.height;
+        const o = d.kind === 'object' ? cfg.objects[d.index] : cfg.lights[d.index];
         if (!o) return;
         if (d.action === 'resize') {
-          if (d.kind === 'object') o.scale = Math.max(0.1, Math.min(2, Math.round((d.source.scale + (p[0] - d.x) / 20) * 10) / 10));
-          else o.radius = Math.max(2, Math.min(120, Math.round(d.source.radius + p[0] - d.x)));
+          if (d.kind === 'object') o.scale = Math.max(0.1, Math.min(2, Math.round((d.source.scale + dx / 20) * 10) / 10));
+          else o.radius = Math.max(2, Math.min(120, Math.round(d.source.radius + dx)));
         } else {
-          o.x = Math.max(0, Math.min(383, Math.round(d.source.x + p[0] - d.x)));
-          o.y = Math.max(0, Math.min(215, Math.round(d.source.y + p[1] - d.y)));
+          o.x = Math.max(0, Math.min(383, Math.round(d.source.x + dx)));
+          o.y = Math.max(0, Math.min(215, Math.round(d.source.y + dy)));
         }
         this.draw(); return;
       }
