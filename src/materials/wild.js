@@ -453,6 +453,9 @@ export function generateWild(seed, base) {
 
 /** Resonance templates (a acted on, b partner, c product). */
 const LAW_TEMPLATES = [
+  { id: 'tailwind', name: 'Tailwind', kind: 'catalyse', a: 'levitation', b: 'swiftness', k: [0.3, 0.5], lore: 'Swiftness carries levitation into a steadier ascent.' },
+  { id: 'deepveil', name: 'Deep Veil', kind: 'catalyse', a: 'invisibility', b: 'arcana', k: [0.25, 0.45], lore: 'Arcana strengthens a veil against the light.' },
+  { id: 'timeanchor', name: 'Temporal Anchor', kind: 'suppress', a: 'phasing', b: 'temporal', k: [0.4, 0.65], lore: 'A strong local flow of time anchors spectral matter.' },
   { id: 'forged', name: 'Forged Vigour', kind: 'catalyse', a: 'strength', b: 'fire', k: [0.45, 0.7], lore: 'A touch of fire tempers strength and makes it stronger.' },
   { id: 'blessed', name: 'Blessed Life', kind: 'catalyse', a: 'vitality', b: 'arcana', k: [0.4, 0.6], lore: 'Arcana amplifies healing.' },
   { id: 'enchant', name: 'Enchantment', kind: 'transmute', a: 'love', b: 'arcana', c: 'transformation', k: [0.5, 0.75], lore: 'Love and arcana together become transformation.' },

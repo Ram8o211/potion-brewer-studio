@@ -23,6 +23,7 @@ import { Rng, hashString } from '../core/rng.js';
 import { EFFECT_KEYS, EFFECT_INDEX, NE, EFFECT_BY_KEY } from '../alchemy/effects.js';
 import { evaluatePotion, strongestUnwanted, PROPERTY_LABELS } from './evaluate.js';
 import { PURITY_LIMIT } from './requests.js';
+import { serviceStatus } from './orders.js';
 import { summarize, evidenceRank, EVIDENCE_TEXT } from './experiments.js';
 
 /**
@@ -370,7 +371,7 @@ export function openNegotiation(com, vial, label, rank) {
   const tr = trustReport(com, label, rank);
   const trust = tr.trust;
   const qty = Math.min(1, vial.ml / com.bottleMl);
-  const reservation = Math.round(com.budget * Math.pow(fit, 1.3) * trust * Math.pow(qty, 1.4) * rng.range(0.92, 1.08) * 10) / 10;
+  const reservation = Math.round(com.budget * serviceStatus(com).payment * Math.pow(fit, 1.3) * trust * Math.pow(qty, 1.4) * rng.range(0.92, 1.08) * 10) / 10;
   const offer = Math.round(reservation * (0.58 + 0.27 * (1 - persona.haggle)) * 10) / 10;
   // why they value it as they do, in their terms (never the hidden price)
   const misses = fitEv.rows.filter((r) => r.score < 0.999).map((r) => r.req.key);

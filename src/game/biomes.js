@@ -1,3 +1,4 @@
+import { EXOTIC_EFFECTS } from '../alchemy/effects.js';
 // Stable world identities; generation instances live in the save, never here.
 export const BIOMES = [
   { id: 'forest', name: 'Whisperwood', category: 'natural', dominant: 'vitality', creature: 'fox', rank: 0, sales: 0, sky: [0.36, 0.52, 0.42], desc: 'Old oaks, healing herbs and silver leaves.' },
@@ -14,6 +15,14 @@ export const BIOMES = [
   { id: 'chronoglass', name: 'Chronoglass Wastes', category: 'exotic', dominant: 'temporal', creature: 'scarab', rank: 4, sales: 36, sky: [0.56, 0.35, 0.5], desc: 'Broken arches and sandfalls outside ordinary time.', interaction: 'time' },
 ].map((b) => Object.freeze({ ...b, magical: b.category === 'exotic' }));
 export const BIOME_BY_ID = Object.fromEntries(BIOMES.map((b) => [b.id, b]));
+/** Minority exotic channels in Natural ecology belong to late exploration.
+ * Keep their fixed profiles, including older owned finds, instead of rerolling
+ * effects when the player gains rank. */
+export function ingredientRank(m) {
+  const base = m?.wild?.rank || 0;
+  const exotic = EXOTIC_EFFECTS.some((k) => Math.abs(m?.effects?.[k] || 0) > 0);
+  return Math.max(base, exotic ? 3 : 0);
+}
 export function biomeUnlocked(st, id) {
   const b = BIOME_BY_ID[id];
   return !!b && (id === 'forest' || !!st.unlockedBiomes?.includes(id) || (st.rank >= b.rank && (st.stats?.served || 0) >= b.sales));

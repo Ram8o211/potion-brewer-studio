@@ -4,6 +4,8 @@ import { fillSolid, blob } from '../src/visual/env/side.js';
 import { Canvas } from '../src/visual/env/paint.js';
 import { RARITIES, validateRarity } from '../src/materials/rarity.js';
 import { validateAtlas } from '../src/visual/atlas-contract.js';
+import { generateLaws } from '../src/materials/wild.js';
+import { interact, NE } from '../src/alchemy/effects.js';
 
 test('terrain follows every art pixel instead of snapping to texture cells', () => {
   const cv = new Canvas(1, 32, 32), top = Float32Array.from({ length: 32 }, (_, x) => 4 + x * 0.5);
@@ -13,6 +15,18 @@ test('terrain follows every art pixel instead of snapping to texture cells', () 
   blob(a, 31, 32, 24, 20, 42); blob(b, 31, 32, 24, 20, 42);
   assert.deepEqual(a.solid, b.solid);
   assert.ok(a.solid.some((v, k) => v && !a.solid[k + 1]), 'pixel boundaries are retained');
+});
+
+test('seeded Exotic resonances actually change the carried effect channels', () => {
+  for (const id of ['tailwind', 'deepveil', 'timeanchor']) {
+    let law;
+    for (let i = 0; i < 100 && !law; i++) law = generateLaws('exotic-law-' + i).find((x) => x.id === id);
+    assert.ok(law, id + ' is part of the generated world ecology');
+    const values = new Array(NE).fill(0); values[law.a] = 10; values[law.b] = 10;
+    const ordinary = values.slice(), resonant = values.slice(); interact(ordinary, []); interact(resonant, [law]);
+    assert.ok(law.kind === 'suppress' ? resonant[law.a] < ordinary[law.a] : resonant[law.a] > ordinary[law.a]);
+    for (let i = 0; i < NE; i++) if (i !== law.a) assert.equal(resonant[i], ordinary[i], 'unrelated channels are not granted');
+  }
 });
 
 test('rarity rejects incorrect purity, missing side effects and overlapping legendary magnitude', () => {

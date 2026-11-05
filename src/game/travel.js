@@ -1,6 +1,6 @@
 import { Rng, hashString } from '../core/rng.js';
-import { RARITIES } from '../materials/rarity.js';
-import { BIOME_BY_ID } from './biomes.js';
+import { RARITIES, RARITY_KEYS } from '../materials/rarity.js';
+import { BIOME_BY_ID, ingredientRank } from './biomes.js';
 
 export const TRAVEL = Object.freeze({ capacity: 3, initial: 3, rechargeMs: 25 * 60000, excellentGiftChance: 0.18, arcaneSeedFactor: 0.35 });
 export const ARCANE_FREQUENCY = Object.freeze({ common: 0.06, uncommon: 0.04, rare: 0.025, unique: 0.01, legendary: 0.004 });
@@ -39,11 +39,18 @@ export function awardTravellerGift(t, worldSeed, saleId, now = Date.now()) {
 /** A saved roster is immutable for its generation, including on later rank-ups. */
 export function makeBiomeInstance(world, lookup, region, revision, rank) {
   const seed = `${world.seed}:biome-v1:${region}:${revision}`, rng = new Rng(seed), biome = BIOME_BY_ID[region];
-  const pool = (world.wild || []).map(lookup).filter((m) => m?.wild?.region === region && !m.arcaneVariant && (m.wild.rank || 0) <= rank);
-  const chosen = [], candidates = pool.slice();
-  while (chosen.length < Math.min(6, pool.length) && candidates.length) {
-    const m = rng.weighted(candidates, candidates.map((m) => RARITIES[m.rarity]?.spawnWeight * (m.dominant === biome.dominant ? 8 : 1) || 1));
-    candidates.splice(candidates.indexOf(m), 1); chosen.push(m);
+  const pool = (world.wild || []).map(lookup).filter((m) => m?.wild?.region === region && !m.arcaneVariant && ingredientRank(m) <= rank);
+  // Independent weighted draws keep the configured rarity probabilities.
+  // Sampling without replacement forced rare species into small biome pools.
+  const chosen = [], draws = new Map();
+  for (let i = 0; i < Math.min(6, pool.length); i++) {
+    const tiers = RARITY_KEYS.filter((r) => pool.some((m) => m.rarity === r));
+    if (!tiers.length) break;
+    const tier = rng.weighted(tiers, tiers.map((r) => RARITIES[r].spawnWeight));
+    const eligible = pool.filter((m) => m.rarity === tier);
+    const m = rng.weighted(eligible, eligible.map((m) => m.dominant === biome.dominant ? 8 : 1));
+    draws.set(m.id, (draws.get(m.id) || 0) + 1);
+    if (!chosen.includes(m)) chosen.push(m);
   }
   if (region === 'forest' && revision === 0) {
     const leaf = lookup('wild-silverleaf');
@@ -52,7 +59,7 @@ export function makeBiomeInstance(world, lookup, region, revision, rank) {
   const roster = [];
   for (const m of chosen) {
     const r = RARITIES[m.rarity] || RARITIES.common;
-    roster.push({ id: m.id, count: rng.int(r.specimens[0], r.specimens[1]) });
+    roster.push({ id: m.id, count: Math.min(6, rng.int(r.specimens[0], r.specimens[1]) * (draws.get(m.id) || 1)) });
     const chance = ARCANE_FREQUENCY[m.rarity] * (biome.category === 'exotic' ? 1.5 : 1);
     if (rng.chance(chance) && lookup(m.id + '@arcane')) roster.push({ id: m.id + '@arcane', count: 1 });
   }
