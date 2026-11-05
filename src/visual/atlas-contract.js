@@ -16,6 +16,10 @@ export function validateAtlas(atlas) {
     if (!GROWTH_STAGES.includes(f.stage) && f.stage !== 'icon') errors.push(id + ': invalid stage');
     if (r.length !== 4 || !r.every(Number.isInteger) || r[0] < 0 || r[1] < 0 || r[2] <= 0 || r[3] <= 0 || r[0] + r[2] > atlas.width || r[1] + r[3] > atlas.height) errors.push(id + ': frame out of bounds');
     if (!Array.isArray(f.pivot) || f.pivot.length !== 2 || f.pivot.some((v) => !Number.isFinite(v) || v < 0 || v > 1)) errors.push(id + ': invalid pivot');
+    if (atlas.libraryVersion >= 2) {
+      if (f.asset !== id || !f.biome || !f.material || f.atlas !== atlas.image) errors.push(id + ': broken asset reference');
+      if (!Array.isArray(f.nativeResolution) || f.nativeResolution[0] !== r[2] || f.nativeResolution[1] !== r[3]) errors.push(id + ': invalid native resolution');
+    }
     const key = `${f.species}:${f.arcane}:${f.stage}`;
     if (seen.has(key)) errors.push(id + ': duplicate identity');
     seen.add(key);

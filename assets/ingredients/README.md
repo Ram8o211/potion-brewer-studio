@@ -1,36 +1,62 @@
-# Potion Brewer Studio — Ingredient Atlases
+# Ingredient artwork
 
-Two **transparent RGBA PNG sprite atlases**, generated directly from the game's native Noita-style procedural ingredient renderer, plus machine-readable JSON frame maps:
+Gameplay consumes the twelve PNG/JSON pairs in **biomes/**, indexed by
+**manifest.json**. There are 177 permanent ordinary species and 177 Arcane
+counterparts. Each has a native 64 × 64 icon and five growth frames: seed
+(propagation), sprout, young, developing and mature, totaling **2,124 frames**.
+The atlas sizes vary with biome population; no atlas exceeds 864 × 1512.
+All exports are lossless RGBA PNGs with transparent backgrounds and four-pixel
+padding. Geometry is rasterized at native resolution, not interpolated from
+small icons. No painted backgrounds or rarity borders are baked into sprites.
 
-| Asset | Purpose | Contents |
-| --- | --- | --- |
-| wilds-atlas.png + wilds-atlas.json | Mature wild plants, mushrooms, hanging fruits, minerals, crystals and other deposits, with their natural mounting orientation | One normal and one Arcane wild appearance per species |
-| icons-atlas.png + icons-atlas.json | Isolated ingredient icons for inventory, book, market and garden menus | The exact icon silhouette and palette already used by the game |
+## Editable masters
 
-Both PNGs are **3456 × 3840 pixels**, contain **354 separate 192 × 192 transparent RGBA cells** (177 catalog/legacy species plus 177 Arcane counterparts), and have **no painted background, text labels, grid, cards, or shadows outside the actual rendered sprite**. Sprite edges use nearest-neighbour integer scaling. A source sprite is cropped to its nontransparent bounds, uniformly scaled, and fitted into its cell with padding. Both atlases use the same sprite ordering.
+`art/ingredients/<biome>.json` stores each frame as an explicit palette and
+run-length encoded pixel raster (`width`, `height`, `palette`, `runs`). Runs
+are `[paletteIndex, count, ...]` in row-major order. Edit these pixels to author
+species art; ordinary and Arcane masters are independently editable. Frame IDs
+are stable species keys with `@arcane` for the variant. The exporter preserves
+these source edits by default:
 
-### Coordinates and identity
+```sh
+npm run assets:export
+npm run assets:validate
+```
 
-Each JSON manifest conforms to src/visual/atlas-contract.js. Its frames object is keyed by the actual material ID, for example wild-silverleaf and wild-silverleaf@arcane. The species field is the invariant unawakened species key; arcane distinguishes the counterpart. Use rect: [x, y, width, height] to crop the sprite; artRect is the artwork's placement inside the cell. Pivot expresses the ground, ceiling or wall attachment point for wilds (icons are centered). Rarity, biome, shape and name come from the live materials catalog.
+`node scripts/generate-ingredient-library.mjs --reauthor` deliberately replaces
+masters using the offline family/geometry authoring tools; do not run it over
+uncommitted art edits. Native icons use the family geometry at 64 pixels.
+Propagation forms distinguish seeds, spores and mineral fragments. Arcane
+markings are actual contained veins and runes on the base anatomy, rather than
+an effect applied while drawing the game.
 
-For Canvas2D, set imageSmoothingEnabled = false before drawing:
+## Frame contract and loading
 
-~~~js
-const f = atlas.frames[material.id];
-context.drawImage(image, ...f.rect, destinationX, destinationY, spriteWidth, spriteHeight);
-~~~
+Every frame contains `asset`, `species`, `material`, `rarity`, `arcane`, `biome`,
+`atlas`, `rect`, `pivot`, `nativeResolution`, `stage`, `shape` and `name`.
+`src/visual/atlas-contract.js` checks bounds, identity, pivot, overlaps and links.
+`src/rendering/ingredient-loader.js` loads only needed biome PNGs, checks their
+dimensions and registers their pixels in `src/visual/ingredient-assets.js`.
+Frame lookup uses species/stage IDs, never scattered frame indices. Startup
+loads unlocked biomes and any still-locked biome needed by owned items. A new
+Exotic biome's assets load on travel. Offline production precaches the files
+without decoding every image into memory at startup.
 
-The **wilds** images are mature snapshot assets (stage: mature); growth animations, other procedural mounting variants and world-specific editor overrides continue to be handled by plantFrame() at runtime. Icons are generated with iconFrame() — not painted approximations — so menu sprites match the same materials.
+Inventory uses the master icon. The physical cauldron fragments sample that
+same master, with cached nearest-neighbor scaling and rotation. The wilds and
+garden use the same fixed species' growth family. Size, placement, rotation and
+mount can vary without regenerating an ingredient's palette or anatomy.
+The Studio previews these runtime frames and metadata and supports explicit
+component-graph overrides. Dynamic remains and legacy art retain compatibility.
 
-### Rebuild and validation
+## Earlier overview exports
 
-From the repository root:
+`icons-atlas.*` and `wilds-atlas.*` are the earlier 192-pixel-cell overview
+exports, retained for existing links/tools. Their frame keys are material IDs,
+and both contain 354 ordinary/Arcane entries. They are **not** the gameplay
+loader's source. `scripts/generate-ingredient-atlases.mjs` rebuilds them separately.
+The per-biome library and editable masters are the current asset contract.
 
-~~~sh
-node scripts/generate-ingredient-atlases.mjs
-node --test tests/ingredient-atlases.test.mjs
-~~~
-
-No native graphics libraries, external fonts or network access are required; only Node.js and the existing game modules. An associated GitHub workflow regenerates and commits atlas PNGs and JSON files when the exporter changes on its work branch. The PNG encoder emits standard 8-bit RGBA with alpha channel, PNG filter 0 and lossless zlib compression.
-
-**Art direction:** Small, crisp, textured pixels are deliberate. Never add checkerboard backgrounds to the PNGs; display a checkerboard only in a preview UI if alpha needs to be demonstrated.
+The supplied image references guide silhouette, biome palettes and clarity.
+Further hand-art review is a release gate; native PNGs and automated validation
+alone do not certify reference-level commercial polish.

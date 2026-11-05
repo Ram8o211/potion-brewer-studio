@@ -1,7 +1,7 @@
 {
   "name": "alchemists-shop",
   "version": "2.3.0",
-  "description": "The Alchemist's Shop — a physics-driven potion brewing browser game.",
+  "description": "The Alchemist's Shop \u2014 a physics-driven potion brewing browser game.",
   "private": true,
   "type": "module",
   "scripts": {
@@ -12,7 +12,9 @@
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json",
     "build": "node scripts/build.mjs",
     "bench": "node scripts/bench.mjs",
-    "check": "npm run typecheck && npm test && npm run build"
+    "check": "npm run typecheck && npm test && npm run build",
+    "assets:export": "node scripts/generate-ingredient-library.mjs",
+    "assets:validate": "node --test tests/ingredient-atlases.test.mjs tests/ingredient-library.test.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.56.1",
