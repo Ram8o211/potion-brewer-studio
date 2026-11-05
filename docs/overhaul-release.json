@@ -1,0 +1,214 @@
+{
+  "name": "alchemists-shop",
+  "version": "2.4.0",
+  "build": "2.4.0-4da271b436",
+  "modules": 160,
+  "files": [
+    {
+      "path": "app.4a9618e5ac.js",
+      "bytes": 1712169,
+      "sha256": "4a9618e5acb5935e48685164335ce72d88362c815e543025b1364e355f28b037"
+    },
+    {
+      "path": "assets/fonts/alchemist-pixel.ttf",
+      "bytes": 14856,
+      "sha256": "e02b89b22b8242c5f46935ab7d76d3cc9f9a62223bb3da77877a3bef60d3e6b7"
+    },
+    {
+      "path": "assets/icons/icon-192.png",
+      "bytes": 929,
+      "sha256": "17ec63c221ee91cd8bec98c5ea293e5c82d60070cb5a60874b62a93189f5bc03"
+    },
+    {
+      "path": "assets/icons/icon-512.png",
+      "bytes": 3958,
+      "sha256": "a1257642d444aa1506f09cd53c0211f04aae808ec69d5a4e82a2eaa0ccf1cfba"
+    },
+    {
+      "path": "assets/ingredients/README.md",
+      "bytes": 3369,
+      "sha256": "f29fc204f56feee4d7934dec444468a4dfe5ed5c6e4355069c26aee045d53cd7"
+    },
+    {
+      "path": "assets/ingredients/biomes/chronoglass.json",
+      "bytes": 40063,
+      "sha256": "b7b047ebaa5ba572d96043669ec3329826225efd0e954a5ac867fe4bb42c07e0"
+    },
+    {
+      "path": "assets/ingredients/biomes/chronoglass.png",
+      "bytes": 42170,
+      "sha256": "6262b4e45f308d0b16c8b88e58be477dd89d02048ae310a7eb0ac6e0c287e25a"
+    },
+    {
+      "path": "assets/ingredients/biomes/crags.json",
+      "bytes": 53892,
+      "sha256": "f4a2a837c47d4bcb2fc433a039b3ddf059506c15285a99ea54ccd956f4a61f73"
+    },
+    {
+      "path": "assets/ingredients/biomes/crags.png",
+      "bytes": 53234,
+      "sha256": "88c0e22b9a6ace992db95f85939aaadf3e10e1c5fdd58edc9d40bf70970002f0"
+    },
+    {
+      "path": "assets/ingredients/biomes/forest.json",
+      "bytes": 65159,
+      "sha256": "2f921887c5ac815af2110ba8371cc4a45372c443c200e90748e459f986c1d9ff"
+    },
+    {
+      "path": "assets/ingredients/biomes/forest.png",
+      "bytes": 68184,
+      "sha256": "d0b47df6bd94ddfc029816ad5bc341a7e7552f719bafe30e08655fb484b3fba8"
+    },
+    {
+      "path": "assets/ingredients/biomes/ghostglass.json",
+      "bytes": 40997,
+      "sha256": "863d7ae4eba8b9a986ba3f95904de3d3b2bf1524fb121ba45e9269d88faddcba"
+    },
+    {
+      "path": "assets/ingredients/biomes/ghostglass.png",
+      "bytes": 40039,
+      "sha256": "5ff0cadf88268b41c8b320c745854880eb276ee95fdef632a4a87bee45891e8d"
+    },
+    {
+      "path": "assets/ingredients/biomes/meadow.json",
+      "bytes": 79515,
+      "sha256": "7149e0444754a4c5977242c2d716c22b66dae096e593d8cce4058c4ae38d12ee"
+    },
+    {
+      "path": "assets/ingredients/biomes/meadow.png",
+      "bytes": 89732,
+      "sha256": "3e9f6ad3028d7c3a30f7bfbbaaee123b81f5750e6d147d92945d243ba1e06ba1"
+    },
+    {
+      "path": "assets/ingredients/biomes/moonfen.json",
+      "bytes": 75862,
+      "sha256": "b1cd96e10a0156e682f7f13ad7b55563ac8030f1843e4c8fea6175be205770df"
+    },
+    {
+      "path": "assets/ingredients/biomes/moonfen.png",
+      "bytes": 85295,
+      "sha256": "fa8b79fad00f166a6290ab12004ec825db9854b51971a28a2b7054084db814f9"
+    },
+    {
+      "path": "assets/ingredients/biomes/morphgrove.json",
+      "bytes": 39821,
+      "sha256": "6fcba87e0dd1c65ae142d25aca0cff9d711316e7427c89ea4221303efdbbc33f"
+    },
+    {
+      "path": "assets/ingredients/biomes/morphgrove.png",
+      "bytes": 41351,
+      "sha256": "876f15e8b393e32ec1204e8bfcc273405dbdb068345c4f9e28b24b2bcca4579e"
+    },
+    {
+      "path": "assets/ingredients/biomes/netherwood.json",
+      "bytes": 73953,
+      "sha256": "8e4090145f8f40b4405d1e3f45d186a5e40d7228b43d4b6ed69bf3d7354c7c8e"
+    },
+    {
+      "path": "assets/ingredients/biomes/netherwood.png",
+      "bytes": 74248,
+      "sha256": "2b67a831ae41d48e009d2b27ec4f7a240de6f53a7295efbe9d535d94cff282c7"
+    },
+    {
+      "path": "assets/ingredients/biomes/quarry.json",
+      "bytes": 63287,
+      "sha256": "eae590772797f36163e194d0ba9fec7ac97641f4c42b0cad16a92fc59022b7d9"
+    },
+    {
+      "path": "assets/ingredients/biomes/quarry.png",
+      "bytes": 67432,
+      "sha256": "fb8a9a8d3a8ea009cf74ba49757ea420196a642398624190b8cd70c79616a775"
+    },
+    {
+      "path": "assets/ingredients/biomes/river.json",
+      "bytes": 72023,
+      "sha256": "3337fd95cbfa5f62c19031e1573ec4601ef51c0c4cc28727f5b5375371a74a65"
+    },
+    {
+      "path": "assets/ingredients/biomes/river.png",
+      "bytes": 73575,
+      "sha256": "9dfb4a8e7e90249f15432188daec041298e08ebbd9be62b111cbe7d4f70056ed"
+    },
+    {
+      "path": "assets/ingredients/biomes/skyshard.json",
+      "bytes": 39145,
+      "sha256": "7644c787fb956456f03b6b89c34faa90845fbd1a3ef5060f17def375aefae59f"
+    },
+    {
+      "path": "assets/ingredients/biomes/skyshard.png",
+      "bytes": 41818,
+      "sha256": "05d20cc1559d810bef558d98d792d0c9efc5c8c2c2de968ea8f634721bad487c"
+    },
+    {
+      "path": "assets/ingredients/biomes/veil.json",
+      "bytes": 38177,
+      "sha256": "ee7ea040fdc77a734318ef9a6f1fa3211cb4148a11c5cb536702233e90012ec4"
+    },
+    {
+      "path": "assets/ingredients/biomes/veil.png",
+      "bytes": 42652,
+      "sha256": "a31ef9b3534935cf93e08dcac68d11ab3d96f298906abc5d0237734f35568039"
+    },
+    {
+      "path": "assets/ingredients/icons-atlas.json",
+      "bytes": 205030,
+      "sha256": "360ca34748a4ea7358a64368b13ea499c880a6527eee759df416820897676e4c"
+    },
+    {
+      "path": "assets/ingredients/icons-atlas.png",
+      "bytes": 433970,
+      "sha256": "7db447e047264b0c540932d914df1fb339c2f7b4f4ef62b8aa3db9113d65c832"
+    },
+    {
+      "path": "assets/ingredients/manifest.json",
+      "bytes": 1928,
+      "sha256": "e1cd32390d212080501c6de0b731de6004f229df1d70b0cdeeb3dd89d4ef44dc"
+    },
+    {
+      "path": "assets/ingredients/wilds-atlas.json",
+      "bytes": 206225,
+      "sha256": "11a3427f764a5444fa984c5aaf94f0304d8737bed0a85eba0bddb64ff67e42e4"
+    },
+    {
+      "path": "assets/ingredients/wilds-atlas.png",
+      "bytes": 483181,
+      "sha256": "79ebde3b47aeece8e690f24e6c073dc88bcdcb48d574760e119a81d4c47395d9"
+    },
+    {
+      "path": "build-info.json",
+      "bytes": 118,
+      "sha256": "d1bca5ad3828452f41c4a75cc21aa99f78d5fbf271634363dcaefe991787d26e"
+    },
+    {
+      "path": "index.html",
+      "bytes": 1268,
+      "sha256": "833a8627c29f9debe6e723d2ea6648bc5f4c87e78c4b06d7af4fe36cfc1e6d1c"
+    },
+    {
+      "path": "manifest.webmanifest",
+      "bytes": 579,
+      "sha256": "66fb1285994aa5d3365d42d4904f377a75d855393e096cdf9d7696aa2c7ae724"
+    },
+    {
+      "path": "studio-worker.js",
+      "bytes": 267543,
+      "sha256": "a02802f2c25d8b75bdd701100f1936ed5d858cbac46286ad91e2685856c577e1"
+    },
+    {
+      "path": "styles/main.785b4f68dc.css",
+      "bytes": 78475,
+      "sha256": "785b4f68dc5eedbb6887270851d62bd8cbadd60fb41274a6d7d35d1c27d938aa"
+    },
+    {
+      "path": "sw.js",
+      "bytes": 3462,
+      "sha256": "79b1fb8f55178fa5aef62964cd688880d57c92866aaff2c7eb666dc38e84aaa7"
+    }
+  ],
+  "artifact": "release/alchemists-shop-2.4.0-web.zip",
+  "bytes": 2076714,
+  "sha256": "4969540117bd57c527b59de07fad2402fc17810c1ed5d60d6af36856998736e0",
+  "archivePrefix": "alchemists-shop/",
+  "archiveMatchesDist": true,
+  "previousReleasePreserved": "release/alchemists-shop-2.3.0-web.zip"
+}

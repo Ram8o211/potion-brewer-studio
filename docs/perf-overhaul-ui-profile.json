@@ -1,0 +1,133 @@
+{
+  "recordedAt": "2026-11-05T20:39:32.031122+00:00",
+  "command": "PW_CHROMIUM=/usr/bin/chromium node scripts/overhaul-evidence.mjs",
+  "scene": "Whisperwood, sandbox experiment, development server",
+  "method": "Chromium DevTools CPU self time, nominal 2.5-second sample; software rendering. This is a hot-function summary, not a frame-time benchmark.",
+  "hotFunctions": [
+    {
+      "function": "(program)",
+      "file": "",
+      "selfMs": 4001.802
+    },
+    {
+      "function": "texImage2D",
+      "file": "",
+      "selfMs": 176.393
+    },
+    {
+      "function": "drawPlant",
+      "file": "http://localhost:5173/src/ui/views/wilds.js",
+      "selfMs": 16.192
+    },
+    {
+      "function": "step",
+      "file": "http://localhost:5173/src/reactions/reactions.js",
+      "selfMs": 13.331
+    },
+    {
+      "function": "windAt",
+      "file": "http://localhost:5173/src/rendering/wild-scene.js",
+      "selfMs": 11.707
+    },
+    {
+      "function": "loop",
+      "file": "http://localhost:5173/src/ui/lab.js",
+      "selfMs": 10.81
+    },
+    {
+      "function": "drawImage",
+      "file": "",
+      "selfMs": 10.774
+    },
+    {
+      "function": "advance",
+      "file": "http://localhost:5173/src/simulation/world.js",
+      "selfMs": 8.681
+    },
+    {
+      "function": "swayPixels",
+      "file": "http://localhost:5173/src/rendering/wild-scene.js",
+      "selfMs": 7.254
+    },
+    {
+      "function": "sceneFrame",
+      "file": "http://localhost:5173/src/rendering/wild-scene.js",
+      "selfMs": 7.125
+    },
+    {
+      "function": "rows",
+      "file": "http://localhost:5173/src/ui/views/wilds.js",
+      "selfMs": 6.575
+    },
+    {
+      "function": "update",
+      "file": "http://localhost:5173/src/audio/audio.js",
+      "selfMs": 5.813
+    },
+    {
+      "function": "drawSoil",
+      "file": "http://localhost:5173/src/ui/views/wilds.js",
+      "selfMs": 5.109
+    },
+    {
+      "function": "fillRect",
+      "file": "",
+      "selfMs": 4.821
+    },
+    {
+      "function": "plantFrameOf",
+      "file": "http://localhost:5173/src/rendering/species-sprites.js",
+      "selfMs": 3.658
+    },
+    {
+      "function": "createOscillator",
+      "file": "",
+      "selfMs": 2.592
+    },
+    {
+      "function": "drawImage",
+      "file": "",
+      "selfMs": 2.411
+    },
+    {
+      "function": "settleTraveller",
+      "file": "http://localhost:5173/src/game/travel.js",
+      "selfMs": 2.264
+    },
+    {
+      "function": "(idle)",
+      "file": "",
+      "selfMs": 2.243
+    },
+    {
+      "function": "frame",
+      "file": "http://localhost:5173/src/ui/views/wilds.js",
+      "selfMs": 1.517
+    },
+    {
+      "function": "present",
+      "file": "http://localhost:5173/src/rendering/crisp.js",
+      "selfMs": 1.191
+    },
+    {
+      "function": "frame",
+      "file": "http://localhost:5173/src/ui/lab.js",
+      "selfMs": 1.188
+    },
+    {
+      "function": "emitColour",
+      "file": "http://localhost:5173/src/rendering/species-sprites.js",
+      "selfMs": 1.187
+    },
+    {
+      "function": "rnd",
+      "file": "http://localhost:5173/src/rendering/wild-scene.js",
+      "selfMs": 1.131
+    },
+    {
+      "function": "fillRect",
+      "file": "",
+      "selfMs": 1.13
+    }
+  ]
+}

@@ -1,0 +1,508 @@
+{
+  "machine": {
+    "cpus": "INTEL(R) XEON(R) PLATINUM 8573C",
+    "cores": 5,
+    "node": "v24.22.1",
+    "platform": "linux x64"
+  },
+  "baseline": {
+    "revision": "180c7dc351024a88309a66433c17005941a88e15",
+    "date": "2026-11-05T14:15:07.327Z",
+    "command": "npm run bench -- --physics",
+    "scope": "Node physics and systems only; no same-session browser baseline was measured."
+  },
+  "measurementPasses": [
+    {
+      "date": "2026-11-05T20:07:07.761Z",
+      "command": "PW_CHROMIUM=/usr/bin/chromium npm run bench",
+      "areas": [
+        "physics",
+        "systems",
+        "browser.frames"
+      ],
+      "note": "Full isolated run before the Veil fog and screen-disposal corrections. Brew/colony frame paths were unchanged by those corrections."
+    },
+    {
+      "date": "2026-11-05T20:44:22.604Z",
+      "command": "PW_CHROMIUM=/usr/bin/chromium npm run bench -- --memory",
+      "areas": [
+        "browser.memory"
+      ],
+      "note": "Memory-only follow-up on the final corrected build. Other measurements above retain their full-run date."
+    }
+  ],
+  "caveats": [
+    "Single-run timings reflect JIT, scheduling and software-rendering variability. The solver was retained; do not attribute all timing differences to this change.",
+    "Cloud Chromium with 4x CPU throttling is phone emulation, not physical Android. No 60 FPS or store-readiness claim.",
+    "90 seconds and ten menu trips are bounded checks, not proof of indefinite memory stability."
+  ],
+  "physicsSteps": [
+    {
+      "scenario": "pot: tonic 60",
+      "beforeMsPerStep": 0.473,
+      "afterMsPerStep": 0.154,
+      "deltaMsPerStep": -0.319,
+      "changePercent": -67.4
+    },
+    {
+      "scenario": "pot: brew 150",
+      "beforeMsPerStep": 1.024,
+      "afterMsPerStep": 0.373,
+      "deltaMsPerStep": -0.651,
+      "changePercent": -63.6
+    },
+    {
+      "scenario": "pot: full 300",
+      "beforeMsPerStep": 1.296,
+      "afterMsPerStep": 0.759,
+      "deltaMsPerStep": -0.537,
+      "changePercent": -41.4
+    },
+    {
+      "scenario": "pot: stirred infusion 200",
+      "beforeMsPerStep": 2.697,
+      "afterMsPerStep": 0.511,
+      "deltaMsPerStep": -2.186,
+      "changePercent": -81.1
+    },
+    {
+      "scenario": "copper: full 440",
+      "beforeMsPerStep": 1.358,
+      "afterMsPerStep": 1.09,
+      "deltaMsPerStep": -0.268,
+      "changePercent": -19.7
+    },
+    {
+      "scenario": "grand: 3 layers 600",
+      "beforeMsPerStep": 2.355,
+      "afterMsPerStep": 2.093,
+      "deltaMsPerStep": -0.262,
+      "changePercent": -11.1
+    },
+    {
+      "scenario": "grand: boiling 400 (lid on)",
+      "beforeMsPerStep": 1.163,
+      "afterMsPerStep": 0.719,
+      "deltaMsPerStep": -0.444,
+      "changePercent": -38.2
+    },
+    {
+      "scenario": "water 300",
+      "beforeMsPerStep": 0.862,
+      "afterMsPerStep": 0.919,
+      "deltaMsPerStep": 0.057,
+      "changePercent": 6.6
+    },
+    {
+      "scenario": "water 900",
+      "beforeMsPerStep": 2.469,
+      "afterMsPerStep": 2.881,
+      "deltaMsPerStep": 0.412,
+      "changePercent": 16.7
+    },
+    {
+      "scenario": "water 1400",
+      "beforeMsPerStep": 9.667,
+      "afterMsPerStep": 3.788,
+      "deltaMsPerStep": -5.879,
+      "changePercent": -60.8
+    },
+    {
+      "scenario": "3 liquid layers 900",
+      "beforeMsPerStep": 4.703,
+      "afterMsPerStep": 2.877,
+      "deltaMsPerStep": -1.826,
+      "changePercent": -38.8
+    },
+    {
+      "scenario": "sand pile 600",
+      "beforeMsPerStep": 1.544,
+      "afterMsPerStep": 0.927,
+      "deltaMsPerStep": -0.617,
+      "changePercent": -40.0
+    },
+    {
+      "scenario": "dough 600 (stirred)",
+      "beforeMsPerStep": 2.726,
+      "afterMsPerStep": 1.874,
+      "deltaMsPerStep": -0.852,
+      "changePercent": -31.3
+    },
+    {
+      "scenario": "boiling water 600 (lid on)",
+      "beforeMsPerStep": 0.977,
+      "afterMsPerStep": 0.679,
+      "deltaMsPerStep": -0.298,
+      "changePercent": -30.5
+    },
+    {
+      "scenario": "frozen block 500",
+      "beforeMsPerStep": 1.521,
+      "afterMsPerStep": 1.271,
+      "deltaMsPerStep": -0.25,
+      "changePercent": -16.4
+    }
+  ],
+  "arcane": {
+    "before": {
+      "particles": 150,
+      "awakenedParticleVolumes": 73,
+      "onsetSimSeconds": 8.9,
+      "msPerStepBefore": 0.415,
+      "msPerStepAwakening": 0.693,
+      "msPerStepAfter": 0.651
+    },
+    "after": {
+      "particles": 150,
+      "awakenedParticleVolumes": 73,
+      "onsetSimSeconds": 8.9,
+      "msPerStepBefore": 0.492,
+      "msPerStepAwakening": 0.815,
+      "msPerStepAfter": 0.761
+    }
+  },
+  "colony": {
+    "before": {
+      "days": 365,
+      "doses": 730,
+      "born": 34,
+      "processed": 22,
+      "buried": 22,
+      "maxAlive": 10,
+      "living": 8,
+      "memorial": 44,
+      "materials": 803,
+      "msPerNight": 0.202,
+      "msPerDose": 0.187,
+      "saveBytesStart": 976743,
+      "saveBytesEnd": 1339684,
+      "saveMs": 56.3,
+      "loadMs": 82.7
+    },
+    "after": {
+      "days": 365,
+      "doses": 730,
+      "born": 29,
+      "processed": 20,
+      "buried": 19,
+      "maxAlive": 10,
+      "living": 8,
+      "memorial": 39,
+      "materials": 798,
+      "msPerNight": 0.231,
+      "msPerDose": 0.207,
+      "saveBytesStart": 976783,
+      "saveBytesEnd": 1329537,
+      "saveMs": 68.9,
+      "loadMs": 55.9
+    }
+  },
+  "memory": {
+    "beforeCleanup": {
+      "soak": [
+        {
+          "t": 0,
+          "mb": 9.26
+        },
+        {
+          "t": 30,
+          "mb": 10.19
+        },
+        {
+          "t": 60,
+          "mb": 10.1
+        },
+        {
+          "t": 90,
+          "mb": 10.14
+        }
+      ],
+      "particlesAtEnd": 450,
+      "screenTrips": [
+        {
+          "trip": 1,
+          "mb": 11.51
+        },
+        {
+          "trip": 10,
+          "mb": 22.97
+        }
+      ]
+    },
+    "afterCleanup": {
+      "soak": [
+        {
+          "t": 0,
+          "mb": 9.43
+        },
+        {
+          "t": 30,
+          "mb": 10.79
+        },
+        {
+          "t": 60,
+          "mb": 10.82
+        },
+        {
+          "t": 90,
+          "mb": 10.76
+        }
+      ],
+      "particlesAtEnd": 450,
+      "screenTrips": [
+        {
+          "trip": 1,
+          "mb": 10.59
+        },
+        {
+          "trip": 10,
+          "mb": 12.42
+        }
+      ]
+    },
+    "tripGrowthBeforeMB": 11.46,
+    "tripGrowthAfterMB": 1.83,
+    "strictLifecycleRegression": {
+      "menuTrips": 3,
+      "remainingLabScreens": 1,
+      "profiles": [
+        "desktop",
+        "phone-portrait"
+      ]
+    }
+  },
+  "browserFrames": [
+    {
+      "profile": "desktop 1440\u00d7900",
+      "preset": "auto",
+      "target": 60,
+      "frames": 120,
+      "fps": 19.3,
+      "intervalP50": 16.7,
+      "intervalP95": 200.1,
+      "intervalP99": 650,
+      "workP50": 8.7,
+      "workP95": 52.6,
+      "physMs": 2.5,
+      "renderMs": 6.94,
+      "stepMs": 0.71,
+      "particles": 60,
+      "simRate": 0.4,
+      "quality": "high"
+    },
+    {
+      "profile": "desktop 1440\u00d7900",
+      "preset": "auto",
+      "target": 150,
+      "frames": 300,
+      "fps": 50,
+      "intervalP50": 16.7,
+      "intervalP95": 33.4,
+      "intervalP99": 83.4,
+      "workP50": 8.9,
+      "workP95": 25.9,
+      "physMs": 2.44,
+      "renderMs": 11.42,
+      "stepMs": 1.07,
+      "particles": 150,
+      "simRate": 0.96,
+      "quality": "high"
+    },
+    {
+      "profile": "desktop 1440\u00d7900",
+      "preset": "auto",
+      "target": 300,
+      "frames": 230,
+      "fps": 38.23,
+      "intervalP50": 16.7,
+      "intervalP95": 66.6,
+      "intervalP99": 100,
+      "workP50": 14.2,
+      "workP95": 34.7,
+      "physMs": 5.92,
+      "renderMs": 7.7,
+      "stepMs": 2.05,
+      "particles": 300,
+      "simRate": 0.88,
+      "quality": "low"
+    },
+    {
+      "profile": "desktop 1440\u00d7900",
+      "preset": "auto",
+      "target": 600,
+      "frames": 205,
+      "fps": 33.98,
+      "intervalP50": 33.3,
+      "intervalP95": 66.6,
+      "intervalP99": 83.3,
+      "workP50": 21,
+      "workP95": 37.6,
+      "physMs": 6.43,
+      "renderMs": 9.27,
+      "stepMs": 2.43,
+      "particles": 600,
+      "simRate": 0.81,
+      "quality": "low"
+    },
+    {
+      "profile": "phone 390\u00d7844 @2x, CPU \u00d74 throttle",
+      "preset": "auto",
+      "target": 60,
+      "frames": 127,
+      "fps": 17.48,
+      "intervalP50": 33.4,
+      "intervalP95": 200,
+      "intervalP99": 316.7,
+      "workP50": 26,
+      "workP95": 188,
+      "physMs": 10.41,
+      "renderMs": 109.66,
+      "stepMs": 4.27,
+      "particles": 60,
+      "simRate": 0.44,
+      "quality": "high"
+    },
+    {
+      "profile": "phone 390\u00d7844 @2x, CPU \u00d74 throttle",
+      "preset": "auto",
+      "target": 150,
+      "frames": 135,
+      "fps": 16.81,
+      "intervalP50": 50,
+      "intervalP95": 100,
+      "intervalP99": 116.8,
+      "workP50": 36.1,
+      "workP95": 65.8,
+      "physMs": 5.81,
+      "renderMs": 34.89,
+      "stepMs": 5.42,
+      "particles": 150,
+      "simRate": 0.14,
+      "quality": "high"
+    },
+    {
+      "profile": "phone 390\u00d7844 @2x, CPU \u00d74 throttle",
+      "preset": "auto",
+      "target": 300,
+      "frames": 83,
+      "fps": 10.4,
+      "intervalP50": 83.3,
+      "intervalP95": 200,
+      "intervalP99": 316.6,
+      "workP50": 64.7,
+      "workP95": 185.6,
+      "physMs": 10.63,
+      "renderMs": 69.76,
+      "stepMs": 9.66,
+      "particles": 300,
+      "simRate": 0.09,
+      "quality": "high"
+    },
+    {
+      "profile": "phone 390\u00d7844 @2x, CPU \u00d74 throttle",
+      "preset": "auto",
+      "target": 600,
+      "frames": 54,
+      "fps": 6.69,
+      "intervalP50": 133.4,
+      "intervalP95": 216.6,
+      "intervalP99": 316.7,
+      "workP50": 110.7,
+      "workP95": 185.5,
+      "physMs": 14.24,
+      "renderMs": 100.14,
+      "stepMs": 12.24,
+      "particles": 600,
+      "simRate": 0.06,
+      "quality": "high"
+    },
+    {
+      "profile": "phone 390\u00d7844 @2x, CPU \u00d74 throttle",
+      "preset": "high",
+      "target": 300,
+      "frames": 57,
+      "fps": 7.05,
+      "intervalP50": 100,
+      "intervalP95": 416.7,
+      "intervalP99": 966.6,
+      "workP50": 74.5,
+      "workP95": 220.9,
+      "physMs": 10.87,
+      "renderMs": 71.81,
+      "stepMs": 11.04,
+      "particles": 300,
+      "simRate": 0.06,
+      "quality": "high"
+    },
+    {
+      "profile": "phone 390\u00d7844 @2x, CPU \u00d74 throttle",
+      "preset": "medium",
+      "target": 300,
+      "frames": 201,
+      "fps": 25.02,
+      "intervalP50": 33.4,
+      "intervalP95": 66.7,
+      "intervalP99": 83.3,
+      "workP50": 26.7,
+      "workP95": 52.6,
+      "physMs": 7.03,
+      "renderMs": 21.27,
+      "stepMs": 6.58,
+      "particles": 300,
+      "simRate": 0.27,
+      "quality": "medium"
+    },
+    {
+      "profile": "phone 390\u00d7844 @2x, CPU \u00d74 throttle",
+      "preset": "low",
+      "target": 300,
+      "frames": 119,
+      "fps": 14.66,
+      "intervalP50": 50,
+      "intervalP95": 183.4,
+      "intervalP99": 250,
+      "workP50": 28.5,
+      "workP95": 57.3,
+      "physMs": 10.1,
+      "renderMs": 15.29,
+      "stepMs": 6.89,
+      "particles": 300,
+      "simRate": 0.13,
+      "quality": "low"
+    },
+    {
+      "profile": "desktop 1440\u00d7900",
+      "preset": "auto",
+      "target": 0,
+      "scene": "hutch, 10 rabbits",
+      "frames": 72,
+      "fps": 12,
+      "intervalP50": 83.3,
+      "intervalP95": 133.3,
+      "intervalP99": 166.6,
+      "workP50": 4.2,
+      "workP95": 12.9,
+      "physMs": 1.25,
+      "renderMs": 0.38,
+      "stepMs": 0.18,
+      "particles": 0
+    },
+    {
+      "profile": "phone 390\u00d7844 @2x, CPU \u00d74 throttle",
+      "preset": "auto",
+      "target": 0,
+      "scene": "hutch, 10 rabbits",
+      "frames": 30,
+      "fps": 2.87,
+      "intervalP50": 166.6,
+      "intervalP95": 1700,
+      "intervalP99": 2399.8,
+      "workP50": 26.6,
+      "workP95": 122.5,
+      "physMs": 7.27,
+      "renderMs": 1.78,
+      "stepMs": 0.9,
+      "particles": 0
+    }
+  ]
+}

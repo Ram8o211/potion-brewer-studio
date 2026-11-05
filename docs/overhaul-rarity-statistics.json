@@ -1,0 +1,19 @@
+{
+  "seed": "rarity-statistical-audit",
+  "generations": 4000,
+  "drawsPerGeneration": 6,
+  "presence": {
+    "common": 4000,
+    "uncommon": 3258,
+    "rare": 1037,
+    "unique": 201,
+    "legendary": 18
+  },
+  "expectedPresenceProbability": {
+    "common": 0.999271,
+    "uncommon": 0.807300071424,
+    "rare": 0.2649081093750002,
+    "unique": 0.052799481938762605,
+    "legendary": 0.0059850199850060015
+  }
+}

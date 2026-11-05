@@ -1,0 +1,210 @@
+{
+  "date": "2026-11-05T14:15:07.327Z",
+  "machine": {
+    "cpus": "INTEL(R) XEON(R) PLATINUM 8573C",
+    "cores": 5,
+    "node": "v24.22.1",
+    "platform": "linux x64"
+  },
+  "revision": "180c7dc351024a88309a66433c17005941a88e15",
+  "command": "npm run bench -- --physics",
+  "note": "Same-session Node baseline before the overhaul. Browser fields merged by the old benchmark writer were excluded because they were not measured by this command.",
+  "physics": {
+    "steps": [
+      {
+        "scenario": "pot: tonic 60",
+        "vessel": "pot",
+        "particles": 60,
+        "gas": 0,
+        "msPerStep": 0.473,
+        "msPerFrame60": 0.945,
+        "assayMs": 0.53
+      },
+      {
+        "scenario": "pot: brew 150",
+        "vessel": "pot",
+        "particles": 150,
+        "gas": 0,
+        "msPerStep": 1.024,
+        "msPerFrame60": 2.048,
+        "assayMs": 0.664
+      },
+      {
+        "scenario": "pot: full 300",
+        "vessel": "pot",
+        "particles": 293,
+        "gas": 0,
+        "msPerStep": 1.296,
+        "msPerFrame60": 2.592,
+        "assayMs": 0.232
+      },
+      {
+        "scenario": "pot: stirred infusion 200",
+        "vessel": "pot",
+        "particles": 200,
+        "gas": 0,
+        "msPerStep": 2.697,
+        "msPerFrame60": 5.393,
+        "assayMs": 0.306
+      },
+      {
+        "scenario": "copper: full 440",
+        "vessel": "copper",
+        "particles": 413,
+        "gas": 0,
+        "msPerStep": 1.358,
+        "msPerFrame60": 2.716,
+        "assayMs": 0.142
+      },
+      {
+        "scenario": "grand: 3 layers 600",
+        "vessel": "grand",
+        "particles": 546,
+        "gas": 0,
+        "msPerStep": 2.355,
+        "msPerFrame60": 4.709,
+        "assayMs": 0.677
+      },
+      {
+        "scenario": "grand: boiling 400 (lid on)",
+        "vessel": "grand",
+        "particles": 400,
+        "gas": 393,
+        "msPerStep": 1.163,
+        "msPerFrame60": 2.326,
+        "assayMs": 0.061
+      },
+      {
+        "scenario": "water 300",
+        "vessel": "small",
+        "particles": 300,
+        "gas": 0,
+        "msPerStep": 0.862,
+        "msPerFrame60": 1.724,
+        "assayMs": 0.173
+      },
+      {
+        "scenario": "water 900",
+        "vessel": "medium",
+        "particles": 900,
+        "gas": 0,
+        "msPerStep": 2.469,
+        "msPerFrame60": 4.938,
+        "assayMs": 0.425
+      },
+      {
+        "scenario": "water 1400",
+        "vessel": "large",
+        "particles": 1400,
+        "gas": 0,
+        "msPerStep": 9.667,
+        "msPerFrame60": 19.334,
+        "assayMs": 22.684
+      },
+      {
+        "scenario": "3 liquid layers 900",
+        "vessel": "medium",
+        "particles": 900,
+        "gas": 0,
+        "msPerStep": 4.703,
+        "msPerFrame60": 9.405,
+        "assayMs": 0.882
+      },
+      {
+        "scenario": "sand pile 600",
+        "vessel": "medium",
+        "particles": 600,
+        "gas": 0,
+        "msPerStep": 1.544,
+        "msPerFrame60": 3.088,
+        "assayMs": 0.663
+      },
+      {
+        "scenario": "dough 600 (stirred)",
+        "vessel": "medium",
+        "particles": 600,
+        "gas": 0,
+        "msPerStep": 2.726,
+        "msPerFrame60": 5.451,
+        "assayMs": 0.316
+      },
+      {
+        "scenario": "boiling water 600 (lid on)",
+        "vessel": "medium",
+        "particles": 600,
+        "gas": 586,
+        "msPerStep": 0.977,
+        "msPerFrame60": 1.954,
+        "assayMs": 0.082
+      },
+      {
+        "scenario": "frozen block 500",
+        "vessel": "medium",
+        "particles": 500,
+        "gas": 0,
+        "msPerStep": 1.521,
+        "msPerFrame60": 3.042,
+        "assayMs": 0.336
+      }
+    ],
+    "brews": [
+      {
+        "style": "strength",
+        "simSeconds": 53.9,
+        "wallSeconds": 2.03
+      },
+      {
+        "style": "love",
+        "simSeconds": 54.2,
+        "wallSeconds": 3.01
+      },
+      {
+        "style": "love",
+        "simSeconds": 55.7,
+        "wallSeconds": 3.46
+      },
+      {
+        "style": "expedition",
+        "simSeconds": 55.7,
+        "wallSeconds": 2.73
+      },
+      {
+        "style": "change+strong",
+        "simSeconds": 220.3,
+        "wallSeconds": 11.05
+      },
+      {
+        "style": "healing",
+        "simSeconds": 53.8,
+        "wallSeconds": 1.4
+      }
+    ]
+  },
+  "systems": {
+    "arcane": {
+      "particles": 150,
+      "awakenedParticleVolumes": 73,
+      "onsetSimSeconds": 8.9,
+      "msPerStepBefore": 0.415,
+      "msPerStepAwakening": 0.693,
+      "msPerStepAfter": 0.651
+    },
+    "colony": {
+      "days": 365,
+      "doses": 730,
+      "born": 34,
+      "processed": 22,
+      "buried": 22,
+      "maxAlive": 10,
+      "living": 8,
+      "memorial": 44,
+      "materials": 803,
+      "msPerNight": 0.202,
+      "msPerDose": 0.187,
+      "saveBytesStart": 976743,
+      "saveBytesEnd": 1339684,
+      "saveMs": 56.3,
+      "loadMs": 82.7
+    }
+  }
+}

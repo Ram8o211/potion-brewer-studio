@@ -1,6 +1,6 @@
 {
-  "modules": 159,
-  "edges": 642,
+  "modules": 162,
+  "edges": 668,
   "cycles": [],
   "layers": {
     "alchemy": {
@@ -9,7 +9,7 @@
     "game": {
       "simulation": 7,
       "reactions": 7,
-      "alchemy": 10,
+      "alchemy": 11,
       "core": 12,
       "materials": 5,
       "visual": 1
@@ -31,11 +31,11 @@
     "rendering": {
       "core": 7,
       "reactions": 2,
-      "visual": 14,
+      "visual": 18,
       "materials": 2,
       "simulation": 4,
       "game": 6,
-      "studio": 6,
+      "studio": 7,
       "alchemy": 3
     },
     "simulation": {
@@ -46,31 +46,31 @@
       "visual": 1
     },
     "studio": {
-      "visual": 23,
-      "game": 4,
+      "visual": 25,
+      "game": 5,
       "alchemy": 2,
       "core": 3,
       "simulation": 3,
       "ui": 3,
       "materials": 3,
-      "rendering": 3
+      "rendering": 5
     },
     "ui": {
       "studio": 6,
       "audio": 10,
-      "game": 57,
-      "materials": 5,
+      "game": 59,
+      "materials": 8,
       "core": 7,
+      "rendering": 25,
       "simulation": 9,
       "reactions": 3,
-      "rendering": 23,
       "alchemy": 11,
       "visual": 2
     },
     "visual": {
       "materials": 2,
       "core": 14,
-      "studio": 6,
+      "studio": 7,
       "game": 1
     }
   },
@@ -89,7 +89,9 @@
       "src/simulation/constants.js",
       "src/reactions/species.js"
     ],
-    "src/game/biomes.js": [],
+    "src/game/biomes.js": [
+      "src/alchemy/effects.js"
+    ],
     "src/game/colony.js": [
       "src/alchemy/effects.js",
       "src/core/rng.js",
@@ -100,6 +102,7 @@
       "src/alchemy/effects.js",
       "src/game/evaluate.js",
       "src/game/requests.js",
+      "src/game/orders.js",
       "src/game/experiments.js"
     ],
     "src/game/commissions.js": [
@@ -152,6 +155,7 @@
     ],
     "src/game/mechanics.js": [],
     "src/game/native-species.js": [],
+    "src/game/orders.js": [],
     "src/game/patrons.js": [],
     "src/game/persistence.js": [
       "src/game/state.js"
@@ -184,6 +188,8 @@
       "src/game/commissions.js",
       "src/game/recipes.js",
       "src/game/legacy-materials.js",
+      "src/game/orders.js",
+      "src/game/evaluate.js",
       "src/game/biomes.js",
       "src/game/travel.js",
       "src/game/garden.js"
@@ -291,7 +297,10 @@
       "src/rendering/art.js"
     ],
     "src/rendering/exotic-interactions.js": [
-      "src/game/biomes.js"
+      "src/game/biomes.js",
+      "src/studio/direction.js",
+      "src/visual/pixels.js",
+      "src/visual/ingredient-assets.js"
     ],
     "src/rendering/fluid.js": [
       "src/studio/material-runtime.js",
@@ -311,6 +320,9 @@
       "src/visual/env/pens.js",
       "src/rendering/pen-anim.js",
       "src/game/native-species.js"
+    ],
+    "src/rendering/ingredient-loader.js": [
+      "src/visual/ingredient-assets.js"
     ],
     "src/rendering/native-creatures.js": [
       "src/game/native-species.js"
@@ -356,7 +368,8 @@
       "src/rendering/scenes.js",
       "src/visual/growth.js",
       "src/core/rng.js",
-      "src/visual/style.js"
+      "src/visual/style.js",
+      "src/visual/ingredient-assets.js"
     ],
     "src/rendering/wild-scene.js": [
       "src/studio/direction.js",
@@ -535,7 +548,12 @@
       "src/alchemy/effects.js",
       "src/ui/icons.js",
       "src/studio/interface-runtime.js",
-      "src/studio/pixels.js"
+      "src/studio/pixels.js",
+      "src/rendering/ingredient-loader.js",
+      "src/visual/ingredient-assets.js",
+      "src/visual/ingredient-assets.js",
+      "src/rendering/exotic-interactions.js",
+      "src/game/biomes.js"
     ],
     "src/ui/app.js": [
       "src/studio/model.js",
@@ -555,7 +573,8 @@
       "src/core/rng.js",
       "src/game/experiments.js",
       "src/game/gathering.js",
-      "src/game/biomes.js"
+      "src/game/biomes.js",
+      "src/rendering/ingredient-loader.js"
     ],
     "src/ui/dom.js": [
       "src/ui/icons.js",
@@ -576,6 +595,7 @@
       "src/rendering/portraits.js",
       "src/rendering/art.js",
       "src/rendering/species-sprites.js",
+      "src/materials/rarity.js",
       "src/game/measure.js",
       "src/game/evaluate.js",
       "src/game/journal.js",
@@ -631,6 +651,7 @@
       "src/game/persistence.js",
       "src/audio/audio.js",
       "src/alchemy/arcane.js",
+      "src/materials/rarity.js",
       "src/game/colony.js"
     ],
     "src/ui/textures.js": [
@@ -660,10 +681,12 @@
       "src/ui/panels.js",
       "src/game/experiments.js",
       "src/alchemy/effects.js",
-      "src/core/color.js"
+      "src/core/color.js",
+      "src/materials/rarity.js"
     ],
     "src/ui/views/counter.js": [
       "src/ui/dom.js",
+      "src/game/orders.js",
       "src/ui/icons.js",
       "src/rendering/portraits.js",
       "src/rendering/renderer.js",
@@ -734,8 +757,10 @@
       "src/game/colony.js",
       "src/game/kinds.js",
       "src/game/travel.js",
+      "src/game/native-species.js",
       "src/materials/rarity.js",
-      "src/rendering/exotic-interactions.js"
+      "src/rendering/exotic-interactions.js",
+      "src/rendering/ingredient-loader.js"
     ],
     "src/visual/atlas-contract.js": [
       "src/materials/rarity.js"
@@ -977,6 +1002,10 @@
     "src/visual/identity.js": [
       "src/core/rng.js"
     ],
+    "src/visual/ingredient-assets.js": [
+      "src/visual/pixels.js",
+      "src/visual/atlas-contract.js"
+    ],
     "src/visual/noise.js": [],
     "src/visual/pieces.js": [
       "src/studio/direction.js",
@@ -984,7 +1013,8 @@
       "src/core/color.js",
       "src/visual/identity.js",
       "src/visual/descriptor.js",
-      "src/visual/render.js"
+      "src/visual/render.js",
+      "src/visual/ingredient-assets.js"
     ],
     "src/visual/pixels.js": [],
     "src/visual/raster.js": [
@@ -995,12 +1025,14 @@
     ],
     "src/visual/render.js": [
       "src/studio/asset-runtime.js",
+      "src/studio/direction.js",
       "src/visual/families/index.js",
       "src/visual/raster.js",
       "src/visual/pixels.js",
       "src/visual/style.js",
       "src/visual/growth.js",
-      "src/visual/noise.js"
+      "src/visual/noise.js",
+      "src/visual/ingredient-assets.js"
     ],
     "src/visual/style.js": [
       "src/visual/pixels.js"
