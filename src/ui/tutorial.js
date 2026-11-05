@@ -18,6 +18,7 @@ export class Tutorial {
     this.box = null;
     this.target = null;
     this.flags = {};
+    this.replay = !!lab.state.tutorial.replay;
   }
 
   /**
@@ -52,54 +53,50 @@ export class Tutorial {
     const inView = (id) => () => lab.view === id;
     const rabbitTested = () => st.trials.records.some((r) => r.subjectId === 'rabbit' && r.batchId === st.batch.id);
     const who = st.current && st.current.customer ? shortName(st.current.customer.name) : 'the customer';
-    return [
-      // ---- the shop
-      { text: 'Welcome to your shop, alchemist! This tour shows every part of it while you brew your first order. Follow the glowing outline: do what it asks, or press Next.', button: 'Let’s begin' },
-      { text: 'The top bar: ☰ opens the menu (how to play, settings, this tour). Then your coins, your rank (its bar fills with reputation), the day and which customer of the day this is. Shop sells ingredients and equipment.', target: () => lab.topbar, button: 'Next' },
-      { text: 'Five rooms along the edge: Counter (customers), Brew (the cauldron), Wilds (gathering), Trials (testing on rabbits) and Book (recipes and notes). A red mark means something is waiting there.', target: () => lab.tabbar, button: 'Next' },
-      { text: 'A customer is waiting. Open the Counter.', target: tab('counter'), done: inView('counter') },
-      { text: 'The order: every line must be met — the effect and its strength, purity (no other effect above a limit) and the quantity. “?” means not tested yet. Advice buys a hint; Decline sends a customer away.', target: q('.customer-card .reqs'), button: 'Next' },
-      { text: 'Let’s brew it. Press “Brew it”.', target: () => lab.el.querySelector('[data-act=go-brew]') || tab('brew')(), done: inView('brew') },
-      // ---- the first brew
-      { text: 'The order strip stays above the cauldron: each chip fills as the brew meets that line of the order. Tap the strip to go back to the Counter.', target: () => lab.strip, button: 'Next' },
-      { text: `Tap the jar of ${water.name} on the shelf to pick it up. The small number on a jar is how many ml you have.`, target: () => lab.jarEls[R.water] && lab.jarEls[R.water].el, done: () => lab.selected === R.water },
-      { text: 'Pour about 110 ml: tap 100, then 25. You can also hold your finger in the cauldron to pour freely, or drag a jar onto it.', target: () => lab.doseEl, done: () => poured(R.water) >= 95 },
-      { text: `Now pick up the ${leaf.name}. Tip: long-press (or right-click) any jar to read what it does — this one heals, but leaves a frosty bite.`, target: () => lab.jarEls[H.healer] && lab.jarEls[H.healer].el, done: () => lab.selected === H.healer },
-      { text: 'Pour 50 ml. The leaves go in whole — and whole leaves give up almost nothing, so you will crush them in a moment.', target: () => lab.doseEl, done: () => poured(H.healer) >= 45 && !lab.sim.emitter.pouring },
-      { text: `Nothing that grows is pure, but opposites cancel: fire–frost, life–death, acid–alkali. Pick up the ${sun.name}: its fire cancels the leaf’s frost.`, target: () => lab.jarEls[H.warmer] && lab.jarEls[H.warmer].el, done: () => lab.selected === H.warmer },
-      { text: 'Pour 25 ml — half as much as the leaf, so fire and frost balance out.', target: () => lab.doseEl, done: () => poured(H.warmer) >= 20 && !lab.sim.emitter.pouring },
-      { text: 'Now choose Crush (the pestle) and drag it back and forth over the leaves at the bottom of the pot. Only crushed herbs give up their magic — nothing is ground for you.', target: () => lab.toolBtns.pestle, done: () => wholeSolids() <= 3 || (lab.tool === 'pestle' && (lab.sim.tool.stirDistance - (this.flags.crush0 ?? (this.flags.crush0 = lab.sim.tool.stirDistance))) > 25) },
-      { text: 'Choose Stir and drag circles through the brew: stirring spreads the magic evenly. (Auto, further along, stirs for you while you hold it.)', target: () => lab.toolBtns.spoon, done: () => (lab.sim.tool.stirDistance - (this.flags.stir0 ?? (this.flags.stir0 = lab.sim.tool.stirDistance))) > 12 || lab.sim.tool.auto || brewT() >= 40 },
-      { text: 'Herbs steep only when warm. Slide the fire control right (left cools) and bring the brew to about 60 °C. The lid keeps steam in; with the lid off, boiling makes a brew smaller and stronger.', target: () => lab.controls, done: () => brewT() >= 50 },
-      { text: 'The other tools: Crush (whole herbs, stones, ice), Inspect (tap a spot to read it), Sample (what a bottle would hold), 1× (speeds up time), Empty. Tap the ml · °C readout over the cauldron to see what is inside.', target: () => lab.toolbar, button: 'Next' },
-      // ---- the trial
-      { text: 'Does it really heal? What a mixture does is unknown until it is tested. Open the Trials room.', target: tab('trials'), done: inView('trials') },
-      { text: 'Choose a rabbit (tap it) and press Give — or drag the dropper onto it. The dose is real potion from the cauldron’s tap.', target: () => document.querySelector('[data-act=test-rabbit]') || lab.views.trials.hutch.el, done: rabbitTested },
-      { text: 'The result: each effect the rabbit showed, with a ± margin. One reading is a rough guess; a second rabbit narrows it most — and demanding customers insist on that.', target: q('.estimate-card'), button: 'Next' },
-      { text: 'Look after your rabbits here: buy, feed, breed, and purge one to wash a potion out. Too much of an effect can make a rabbit sick, wild or dead — every rabbit has its own hidden limits.', target: q('.hutch-manage'), button: 'Next' },
-      { text: 'Back to the cauldron.', target: tab('brew'), done: inView('brew') },
-      // ---- selling
-      { text: 'Press Bottle and choose 100 ml (the order’s quantity). A bottle goes to the counter, or onto your potion shelves for later.', target: () => lab.bottleFab, done: () => this.flags.bottled },
-      { text: `Your vial is on the counter, labelled from your trial. Press “Sell to ${who}”, agree on a price, then save the recipe to your book.`, target: () => document.querySelector('[data-act=serve]') || tab('counter')(), done: () => this.flags.sold },
-      { text: 'Splendid — your first sale! The customer comes back tomorrow: pleased, or with a complaint you can refund, dispute with your trial records, or refuse. The potion shelves below keep sealed bottles for later customers.', target: () => lab.el.querySelector('.view-counter .shelf-card') || tab('counter')(), button: 'Next' },
-      // ---- the rest of the shop
-      { text: 'Ingredients run out. Open the Wilds to gather more.', target: tab('wilds'), done: inView('wilds') },
-      { text: 'Slide a finger across a mature plant in the picture to shake it: its fruit or bloom falls to the ground, and a tap on it gathers it. Each ingredient is listed below once you have gathered it. Plants grow from sprout to ripe to mature; only mature ones can be harvested, and new sprouts come up until the ground is full. Thorough digs a plant out for twice as much, but its kind sprouts slowly. Some flowers open only at dawn or at dusk. New regions open as your rank rises.', target: q('.view-wilds .deposits'), button: 'Next' },
-      { text: 'Now open the Book.', target: tab('book'), done: inView('book') },
-      { text: 'The Book keeps your recipes (Prepare pours one again), every trial, the laws of magic you discover, all ingredients, your journal, awards and sales.', target: q('.book-tabs'), button: 'Next' },
-      { text: 'The Shop sells ingredients, buys your surplus, and offers equipment: each piece lets you do something new (deep cold, a stirrer, a bigger cauldron, more shelves…).', target: q('[data-act=shop]'), button: 'Next' },
-      { text: 'That is a day: at dawn gather in the Wilds, then open the door at the Counter; brew, test, bottle and sell; when the last customer has gone, close the shop. ☰ → How to play explains everything in detail. Good luck!', target: tab('counter'), button: 'Run my shop!' },
+    const arcaneId = H.healer + '@arcane';
+    const hasFox = () => st.colony.rabbits.some((r) => r.look?.kind === 'fox' && r.alive !== false);
+    const steps = [
+      { text: 'Welcome to Potion Brewer Studio. Explore, cultivate, experiment and run your own shop. This tour is skippable and can be replayed from the menu.', button: 'Let’s begin' },
+      { text: 'The rooms share one world: Counter, Brew, Wilds, Garden, Trials and Book. Your first customer waits patiently during this tour.', target: () => lab.tabbar, button: 'Next' },
+      { text: 'Start in Whisperwood. Open the Wilds.', target: tab('wilds'), done: inView('wilds') },
+      { text: 'Gather Silverleaf: swipe a mature plant, then tap what falls, or use its Gather control. Your first harvest guarantees a garden seed.', target: q('.view-wilds .deposits'), done: () => st.garden.unlocked },
+      { text: 'The fox is Whisperwood’s native animal. Use “Welcome fox” for this first encounter; it goes to its own woodland pen.', target: q('[data-act=tutorial-fox]'), done: hasFox },
+      { text: 'Open your personal Garden. Wild plants do not grow back: seeds let you cultivate selected discoveries at home.', target: tab('garden'), done: inView('garden') },
+      { text: 'Select an empty soil bed, choose Silverleaf and Plant. A seed always preserves its species, rarity and Arcane status.', target: q('[data-act=garden-plant]'), done: () => st.garden.plots.some((p) => p.crop) },
+      { text: 'Water the crop. Moist soil speeds growth. This demonstration crop matures quickly; you never have to wait through a normal growing cycle in the tour.', target: q('[data-act=garden-water]'), done: () => st.garden.plots.some((p) => p.crop && p.crop.w > 0.5) },
+      { text: 'Your crop will continue growing while you brew. Higher rarities take longer and fungi, minerals, exotic and Arcane species need suitable beds.', target: q('.garden-plots'), button: 'Next' },
+      { text: 'Open Brew for an Arcane practice batch. Only ingredients marked Arcane can awaken; ordinary ingredients keep their normal effects at every temperature.', target: tab('brew'), done: inView('brew') },
+      { text: 'Select water and add 100 ml. The dose buttons are below the shelf; dragging a jar or holding inside the cauldron also pours.', target: () => lab.doseEl, done: () => poured(R.water) >= 95 },
+      { text: 'Select Arcane Silverleaf and pour 25 ml. This introductory portion is guaranteed; Arcane is a variant, not a sixth rarity.', target: () => lab.jarEls[arcaneId]?.el, done: () => poured(arcaneId) >= 20 && !lab.sim.emitter.pouring },
+      { text: 'Crush the leaves, stir and heat to 60 °C. Only the effects carried by the Arcane material amplify. Ordinary matter in a mixture does not gain eligibility.', target: () => lab.controls, done: () => { const awake = Object.keys(lab.sim.inventory()).some((id) => id.endsWith('~a') && st.lookup(id)?.speciesId === 'silverleaf'); if (awake) { st.tutorial.arcane = true; return true; } return false; } },
+      { text: 'Awakening persists after cooling and bottling. Cold Arcane ingredients use negative thresholds; a blend weights only its Arcane ingredients. Empty this practice batch before the customer’s tonic.', target: q('[data-act=empty]'), done: () => lab.sim.p.count === 0 },
+      { text: 'Open the Counter and read the first order: healing, a small bottle, and a reasonable limit on unwanted effects.', target: tab('counter'), done: inView('counter') },
+      { text: 'Return to Brew. Add 125 ml water, 50 ml Silverleaf and 25 ml Sunthistle. Common herbs have side effects: fire and frost cancel one another.', target: tab('brew'), done: () => lab.view === 'brew' && poured(H.healer) >= 45 && poured(H.warmer) >= 20 && poured(R.water) >= 120 },
+      { text: 'Crush the herbs with the pestle, stir and warm the tonic to about 60 °C to extract their magic. Whole solids release almost nothing.', target: () => lab.controls, done: () => brewT() >= 50 && wholeSolids() <= 3 },
+      { text: 'Open Trials. Select a rabbit and Give a measured dose from the tap. The existing rabbit colony is your first testing habitat.', target: tab('trials'), done: rabbitTested },
+      { text: 'Every effect has a reading and uncertainty. Testing a second rabbit improves confidence. Feed and rest your animals between trials.', target: q('.estimate-card'), button: 'Next' },
+      { text: 'Return to Brew and Bottle 100 ml. The bottle and its control remain separate and accessible below the cauldron.', target: () => lab.bottleFab, done: () => !!st.vial || this.flags.bottled },
+      { text: `At the Counter, label the vial from your trials and sell it to ${who}. Agree on a price, then keep the recipe in your Book.`, target: q('[data-act=serve]'), done: () => this.flags.sold || st.stats.served > 0 },
+      { text: 'Excellent. Traveller Coins regenerate depleted biomes: one coin makes new scenery, specimens and creatures without changing your stored items, seeds or crops. Up to three coins recharge, one every 25 minutes.', target: tab('wilds'), button: 'Next' },
+      { text: 'Successful sales and guild rank unlock more Natural biomes, then Exotic worlds. Later customers have visible patience. Special commissions return on saved game days: accept or decline, then store a finished bottle for pickup.', target: tab('counter'), button: 'Next' },
+      { text: 'Explore → harvest → cultivate → experiment → test → sell. Your Book keeps ingredients, recipes, trials and discoveries. Revisit the garden to harvest your demonstration crop.', target: tab('book'), button: 'Run my shop!' },
     ];
+    // Replays teach the same controls without requiring a second practice
+    // batch, granting items or asking the player to empty an existing brew.
+    return this.replay ? steps.map(({ done, ...s }) => ({ ...s, button: 'Next' })) : steps;
   }
 
   start(restart = false) {
     if (restart) {
       this.lab.state.tutorial.done = false;
     }
+    this.replay = restart || !!this.lab.state.tutorial.replay;
+    this.lab.state.tutorial.replay = this.replay;
     this.active = true;
-    this.index = 0;
+    this.index = restart ? 0 : Math.max(0, Math.min(this.steps.length - 1, this.lab.state.tutorial.step || 0));
     this.flags = {};
     this.lab.state.tutorial.active = true;
+    this.lab.state.tutorial.version = 2;
     this.show();
   }
 
@@ -112,6 +109,9 @@ export class Tutorial {
     this.stop();
     this.lab.state.tutorial.active = false;
     this.lab.state.tutorial.done = true;
+    this.lab.state.tutorial.replay = false;
+    this.replay = false;
+    this.lab.save();
   }
 
   clearUi() {
@@ -146,6 +146,8 @@ export class Tutorial {
 
   advance() {
     this.index++;
+    this.lab.state.tutorial.step = this.index;
+    this.lab.save();
     this.show();
   }
 

@@ -19,6 +19,7 @@ import { Rng } from '../core/rng.js';
 import { normalizeTrials } from '../game/experiments.js';
 import { sandboxWilds } from '../game/gathering.js';
 import { BIOMES } from '../game/biomes.js';
+import { loadGameIngredients } from '../rendering/ingredient-loader.js';
 
 const DEFAULT_SETTINGS = { master: 0.8, sfx: 0.8, music: 0.35, musicOn: true, muted: false, quality: 'auto', showFps: false, resolution: 3 };
 const SEED_WORDS = ['amber', 'ashen', 'brine', 'copper', 'dusk', 'elder', 'fen', 'gloam', 'hollow', 'iron', 'juniper', 'kelp', 'lantern', 'moon', 'nettle', 'oak', 'pewter', 'quill', 'raven', 'sage', 'thorn', 'umber', 'vale', 'willow', 'wyrm', 'yarrow'];
@@ -77,21 +78,22 @@ export class App {
     this._swap(new MenuScreen(this));
   }
 
-  continueGame() {
+  async continueGame() {
     const { state, error } = loadGame();
-    if (state) this.startGame(state);
+    if (state) await this.startGame(state);
     // after the screen swap, which clears the root (and any toast in it)
     if (error) toast('Save problem', error, 'scroll', 6000);
   }
 
   /** @param {GameState} state */
-  startGame(state) {
+  async startGame(state) {
     try {
+      await loadGameIngredients(state);
       this._swap(new LabScreen(this, state));
     } catch (e) {
       console.error(e);
-      toast('Could not start', String(e && e.message), 'close', 6000);
       this.showMenu();
+      toast('Could not start', String(e && e.message), 'close', 6000);
     }
   }
 
@@ -111,7 +113,7 @@ export class App {
       deleteSave();
       saveGame(st);
       m.close();
-      this.startGame(st);
+      await this.startGame(st);
     };
     m = modal({
       title: 'A New Shop',
@@ -132,7 +134,7 @@ export class App {
     setArtDirection(compileProfile(studio.project)); this.startSandbox(true);
   }
 
-  startSandbox(preview = false) {
+  async startSandbox(preview = false) {
     const saved = preview ? null : loadJSON(KEYS.sandbox, null);
     const existing = loadGame().state;
     const seed = existing ? existing.seed : saved && saved.seed ? saved.seed : 'experiment';
@@ -154,6 +156,8 @@ export class App {
       st.restoreRemains();
       for (const id of sandboxIngredients(st.world)) st.inventory[id] = Infinity;
     }
+    try { await loadGameIngredients(st, true); }
+    catch (e) { toast('Could not load ingredient artwork', String(e.message), 'close', 6000); return; }
     this._swap(new LabScreen(this, st, { sandbox: true, artPreview: preview }));
     toast('Free Experiment', 'Unlimited reagents, wild ingredients, tools and test subjects. Nothing here affects your shop.', 'flask', 4500);
   }

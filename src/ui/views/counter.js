@@ -3,7 +3,8 @@
 // verified), the sealed vial — labelled, then bargained over — and the
 // potion shelves, where sealed bottles wait until they are needed.
 
-import { h, btn, clear, coins, confirmDialog, starsText } from '../dom.js';
+import { h, btn, clear, coins, confirmDialog, starsText, toast } from '../dom.js';
+import { serviceStatus, ORDERS } from '../../game/orders.js';
 import { icon } from '../icons.js';
 import { drawPortrait } from '../../rendering/portraits.js';
 import { drawBottle } from '../../rendering/renderer.js';
@@ -39,6 +40,7 @@ export class CounterView {
       return;
     }
     for (const f of st.dueFollowUps()) el.append(trade.followUpCard(lab, f));
+    this.specialBoard(el);
     const com = st.current;
     if (!com) {
       el.append(h('div', { class: 'card parch counter-empty' },
@@ -72,6 +74,9 @@ export class CounterView {
       com.patron ? h('div', { class: 'small patron ' + (com.patron.trust > 0.2 ? 'ok' : com.patron.trust < -0.2 ? 'warn' : 'muted'), text: `A returning customer (${com.patron.visits} earlier visit${com.patron.visits === 1 ? '' : 's'}): ${com.patron.trust > 0.2 ? 'they trust your shop — less haggling, a bigger purse' : com.patron.trust < -0.2 ? 'they were let down before and want proof this time' : 'they know your shop'}.` }) : null,
       h('div', { class: 'speech', text: '“' + com.dialogue + '”' }),
       h('div', { class: 'potion-name', text: com.potionName }),
+      com.service ? h('div', { class: 'customer-patience row', title: 'Patience counts visible active play only; it pauses while suspended or in a dialog.' },
+        icon('clock', 'sm'), h('progress', { max: 1, value: serviceStatus(com).fraction, 'aria-label': 'Customer patience' }),
+        h('span', { class: 'small', text: 'Service patience' })) : null,
       list,
       this.techCard(com),
       this.supplyCard(com),
@@ -82,6 +87,32 @@ export class CounterView {
         com.tutorial ? null : btn('Decline', () => lab.decline(), { icon: 'door', act: 'decline', title: 'Send this customer away (no penalty)' }))));
     this.vialCard(el);
     this.shelfCard(el);
+  }
+
+  specialBoard(el) {
+    const lab = this.lab, st = lab.state, offer = st.offerSpecial();
+    if (!offer && !st.specialOrders.length) return;
+    const board = h('details', { class: 'card parch special-board', open: true }, h('summary', { text: `Special commissions · ${st.specialOrders.length}/${st.specialCapacity}` }));
+    const act = (fn) => { const r = fn(); if (r && !r.ok) toast('Commission', r.reason, 'scroll'); lab.save(); lab.refreshHud(true); this.refresh(); };
+    const card = (o, offered) => {
+      const com = o.request;
+      const box = h('article', { class: 'special-order', 'data-order': o.id }, h('b', { text: com.potionName }),
+        h('p', { class: 'small', text: `${com.customer.name} · ${com.bottleMl} ml · ${o.reward} coins · pickup day ${o.pickupDay}–${o.pickupDay + ORDERS.pickupGraceDays}` }),
+        h('ul', { class: 'small' }, ...com.requirements.map((r) => h('li', { text: `${PROPERTY_LABELS[r.key] || r.key}: ${r.label}` }))),
+        h('p', { class: 'small muted', text: 'Keep one complete sealed bottle on the potion shelves. Refusal has no penalty.' }));
+      if (offered) box.append(h('div', { class: 'row wrap' },
+        btn('Accept commission', () => act(() => st.acceptSpecial(o.id)), { act: 'special-accept', cls: 'gold' }),
+        btn('Decline', () => act(() => st.declineSpecial(o.id)), { act: 'special-decline' })));
+      else {
+        const select = h('select', { 'aria-label': 'Commission bottle' }, ...st.bottles.map((b) => h('option', { value: b.id, text: `${Math.round(b.ml)} ml · Stored potion` })));
+        box.append(select, btn(st.day < o.pickupDay ? `Returns day ${o.pickupDay}` : 'Deliver stored potion', () => act(() => st.deliverSpecial(o.id, select.value)),
+          { act: 'special-deliver', cls: 'primary', disabled: st.day < o.pickupDay || !st.bottles.length }));
+      }
+      return box;
+    };
+    if (offer) board.append(card(offer, true));
+    for (const o of st.specialOrders) board.append(card(o, false));
+    el.append(board);
   }
 
   /** What the order's techniques ask of the alchemist (one line each). @param {any} com */

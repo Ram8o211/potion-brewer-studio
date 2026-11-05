@@ -8,7 +8,10 @@ import { validateAtlas } from '../src/visual/atlas-contract.js';
 import { registerIngredientAtlas, ingredientAssetFrame, ingredientAssetInfo } from '../src/visual/ingredient-assets.js';
 import { describe } from '../src/visual/descriptor.js';
 import { archetypeIdentity, pieceSprite } from '../src/visual/pieces.js';
-import { iconFrame } from '../src/visual/render.js';
+import { iconFrame, pieceFrame } from '../src/visual/render.js';
+import { newProject, newComponent, newNode, compileProfile } from '../src/studio/model.js';
+import { colorWord } from '../src/studio/pixels.js';
+import { setArtDirection } from '../src/studio/direction.js';
 
 const ROOT = new URL('../assets/ingredients/', import.meta.url);
 function png(file) {
@@ -59,4 +62,21 @@ test('runtime icons and physical fragments sample the shipped master, never a ne
   assert.equal(iconFrame(d).pix.hash(), ingredientAssetFrame(key, 'icon', 32).pix.hash());
   const sprite = pieceSprite(1, 40);
   assert.ok(sprite?.px.some((c) => c >>> 24));
+});
+
+test('a Studio binding overrides a loaded PNG for both the icon and fragments, then reverts exactly', () => {
+  const d = describe(archetypeIdentity('silverleaf'));
+  const before = pieceFrame(d, 0).pix.hash(), project = newProject();
+  const component = newComponent('Ruby specimen', 'blank'), color = colorWord('#fe1337');
+  for (let y = 8; y < 24; y++) for (let x = 8; x < 24; x++) component.layers[0].pixels[y * 32 + x] = color;
+  const asset = project.assets[0], root = newNode(component.id);
+  root.x = 48; root.y = 70; asset.components = [component]; asset.nodes = [root];
+  project.domains.ingredients.silverleaf = { asset: asset.id, morph: {}, growth: {} };
+  try {
+    setArtDirection(compileProfile(project));
+    assert.ok(iconFrame(d).pix.px.includes(color), 'inventory uses the custom source');
+    for (let v = 0; v < 4; v++) assert.ok(pieceFrame(d, v).pix.px.includes(color), 'fragments use that same source');
+    assert.notEqual(pieceFrame(d, 0).pix.hash(), before);
+  } finally { setArtDirection(null); }
+  assert.equal(pieceFrame(d, 0).pix.hash(), before, 'no stale custom fragment cache after revert');
 });

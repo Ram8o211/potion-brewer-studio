@@ -208,7 +208,7 @@ export function iconFrameOf(m) {
  * @param {any} m material @param {number} [fill] 0..1 (unused by icons; remains shrink with it)
  */
 export function ingredientSprite(m, fill = 1) {
-  const shipped = !artDomain('ingredients', m?.wild?.key)?.asset && ingredientAssetFrame(m?.wild?.key || m?.speciesId, 'icon', 64);
+  const shipped = !m?.legacy && !artDomain('ingredients', m?.wild?.key)?.asset && ingredientAssetFrame(m?.wild?.key || m?.speciesId, 'icon', 64);
   if (shipped) {
     const cv = shipped.pix.toCanvas(); cv.style.imageRendering = 'pixelated';
     cv.dataset.asset = ingredientAssetInfo(m.wild.key, 'icon').asset;
@@ -233,6 +233,10 @@ export function ingredientSprite(m, fill = 1) {
 
 /** A species' actual propagation or growth image, with the same variant. */
 export function growthSprite(m, stage) {
+  if (stage !== 'seed' && artDomain('ingredients', m?.wild?.key)?.asset) {
+    const custom = plantFrameOf(m, stage === 'sprout' ? 'sprout' : stage === 'young' ? 'ripe' : 'mature');
+    if (custom) return custom.pix.toCanvas();
+  }
   const f = ingredientAssetFrame(m?.wild?.key, stage, 64);
   if (!f) return ingredientSprite(m);
   const cv = f.pix.toCanvas(); cv.style.imageRendering = 'pixelated';

@@ -8,7 +8,7 @@ export const EFFECT_NAMES = EFFECT_KEYS;
 export const CREATURES = KIND_IDS;
 export const visualStyle = () => ({ tint: '#ffffff', mix: 0, opacity: 1, grain: 1, emission: 0, speed: 1 });
 export const creatureStyle = () => ({ body: 1, head: 1, ears: 1, legs: 1, tail: 1, coat: '#b19a7b', coat2: '#e7dfcd', recolor: false, pattern: '', speed: 1, poses: {} });
-export const environmentStyle = () => ({ strokes: [], objects: [], lights: [], tint: '#253f4c', mix: 0, density: 1, light: 1, atmosphere: 1 });
+export const environmentStyle = () => ({ strokes: [], objects: [], lights: [], tint: '#253f4c', mix: 0, density: 1, light: 1, atmosphere: 1, interaction: { stiffness: 30, damping: 6, particles: 18 } });
 export function newDomains() {
   return { ingredients: {}, environments: {}, creatures: {}, materials: {}, effects: {}, interface: { enabled: false, accent: '#aebf8d', panel: '#2c2429', ink: '#f5e8cc', border: 2, duration: 140, frame: '', button: '', icons: {} } };
 }
@@ -31,6 +31,7 @@ export function validateDomains(d, assets) {
         }
       } else if (section === 'environments') {
         check(REGIONS.includes(key) && color(v.tint) && number(v.mix, 0, 1) && number(v.density, 0, 2) && number(v.light, 0.1, 2) && number(v.atmosphere, 0, 3), 'environment settings');
+        if (v.interaction) check(object(v.interaction) && number(v.interaction.stiffness, 5, 60) && number(v.interaction.damping, 2, 16) && number(v.interaction.particles, 4, 32), 'interaction physics');
         check(Array.isArray(v.strokes) && v.strokes.length <= 512 && Array.isArray(v.objects) && v.objects.length <= 128, 'environment count');
         for (const s of v.strokes) {
           check(['rock', 'soil', 'erase', 'water', 'lava'].includes(s.kind) && color(s.color) && number(s.radius, 1, 32) && Array.isArray(s.points) && s.points.length > 0 && s.points.length <= 1024, 'terrain stroke');

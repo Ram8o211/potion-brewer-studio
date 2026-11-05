@@ -5,6 +5,7 @@
 // the same pixels; visual/sprites.js caches them as canvases.
 
 import { boundPixels } from '../studio/asset-runtime.js';
+import { artRevision } from '../studio/direction.js';
 import { FAMILIES } from './families/index.js';
 import { rasterize } from './raster.js';
 import { Pixels } from './pixels.js';
@@ -51,7 +52,7 @@ export function plantFrame(d, stage, o = {}) {
     }
     return { pix: custom, ax: center, ay: size - 1, glints: [] };
   }
-  const shipped = ingredientAssetFrame(d.id.key, stage === 0 ? 'sprout' : stage === 1 ? 'young' : 'mature',
+  const shipped = (!d.id.origin || d.id.origin === 'catalog-v1') && ingredientAssetFrame(d.id.key, stage === 0 ? 'sprout' : stage === 1 ? 'young' : 'mature',
     Math.max(20, Math.round(Math.max(d.size.w, d.size.h) * (o.k || 1))), o.mount, o.flip);
   if (shipped) return shipped;
   return growFrame(d, stage, o);
@@ -61,7 +62,7 @@ export function plantFrame(d, stage, o = {}) {
 export function iconFrame(d) {
   const custom = boundPixels(d.id.key, d.id.seed, 2, ICON_PX - 2, ICON_PX - 2);
   if (custom) { iconRasters.set(d, custom); return { pix: inked(custom), ax: ICON_PX / 2, ay: ICON_PX, glints: [] }; }
-  const shipped = ingredientAssetFrame(d.id.key, 'icon', ICON_PX);
+  const shipped = (!d.id.origin || d.id.origin === 'catalog-v1') && ingredientAssetFrame(d.id.key, 'icon', ICON_PX);
   if (shipped) return shipped;
   const model = FAMILIES[d.family].icon(d);
   model.fit(ICON_PX - 2, ICON_PX - 2, { margin: 0.5 });
@@ -171,12 +172,12 @@ let iconRasters = new WeakMap();
 /** @param {import('./descriptor.js').Descriptor} d */
 function iconRaster(d) {
   refreshAssetRasters();
-  const shipped = ingredientAssetFrame(d.id.key, 'icon', ICON_IN);
-  if (shipped) return shipped.pix;
   let p = iconRasters.get(d);
   if (p) return p;
   const custom = boundPixels(d.id.key, d.id.seed, 2, ICON_IN, ICON_IN);
   if (custom) { iconRasters.set(d, custom); return custom; }
+  const shipped = (!d.id.origin || d.id.origin === 'catalog-v1') && ingredientAssetFrame(d.id.key, 'icon', ICON_IN);
+  if (shipped) { iconRasters.set(d, shipped.pix); return shipped.pix; }
   const model = FAMILIES[d.family].icon(d);
   model.fit(ICON_IN, ICON_IN, { margin: 0.5 });
   p = rasterize(model, ICON_IN, ICON_IN, d.pal, { seed: d.seeds.surface ^ 0x1c0, outline: false }).pix;
@@ -247,9 +248,10 @@ export function pieceFrame(d, v) {
 
 export { Pixels };
 
-let rasterRevision = -1;
+let rasterRevision = '';
 function refreshAssetRasters() {
-  if (rasterRevision === ingredientArtRevision()) return;
-  rasterRevision = ingredientArtRevision();
+  const revision = `${ingredientArtRevision()}:${artRevision()}`;
+  if (rasterRevision === revision) return;
+  rasterRevision = revision;
   shards = new WeakMap(); iconRasters = new WeakMap(); lowMasks = new WeakMap();
 }

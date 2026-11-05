@@ -22,6 +22,7 @@ import { Renderer } from '../rendering/renderer.js';
 import { drawPortrait } from '../rendering/portraits.js';
 import { drawJar } from '../rendering/art.js';
 import { ingredientSprite } from '../rendering/species-sprites.js';
+import { RARITIES } from '../materials/rarity.js';
 import { measureParticles, tapSelection, probeSelection, viscosityClass, densityWord } from '../game/measure.js';
 import { scoreRequirement, PROPERTY_LABELS } from '../game/evaluate.js';
 import { processEvent } from '../game/journal.js';
@@ -496,7 +497,7 @@ export class LabScreen {
     for (const [n, id] of ids.entries()) {
       const m = st.lookup(id);
       let cv;
-      if ((m.wild || m.remains) && m.form === 'solid') {
+      if (m.wild || m.remains) {
         cv = ingredientSprite(m);
         cv.classList.add('raw');
       } else {
@@ -506,6 +507,12 @@ export class LabScreen {
       const stock = h('span', { class: 'jstock' });
       const el = h('button', { class: 'jar' + (m.wild ? ' wild' : '') + (m.remains ? ' remains' : ''), title: m.name, 'aria-label': m.name, 'data-id': id, role: 'option' }, stock, cv, h('span', { class: 'jname', text: m.remains ? m.remains.short : labels[n] }));
       this.bindJar(el, id);
+      if (m.speciesId) {
+        const quality = RARITIES[m.rarity].label, seeds = st.garden.seeds[id] || 0;
+        el.dataset.rarity = m.rarity; el.dataset.arcane = String(!!m.arcaneVariant);
+        el.title = `${m.name} · ${quality}${m.arcaneVariant ? ' · Arcane' : ''} · ${seeds} seeds`;
+        el.append(h('span', { class: 'ingredient-quality', title: `${quality}${m.arcaneVariant ? ' · Arcane' : ''} · ${seeds} seeds`, text: quality[0] + (m.arcaneVariant ? ' ✦' : '') }));
+      }
       this.jarEls[id] = { el, stock };
       sh.appendChild(el);
     }
@@ -1760,6 +1767,7 @@ export class LabScreen {
     const pf = this.perf;
     pf.intervals[pf.n % 600] = t - this.lastT;
     let dt = (t - this.lastT) / 1000;
+    const serviceDt = dt;
     // battery saver: draw at 30 fps (physics still integrates real time)
     const battery = this.effectiveQuality() === 'low' && this.app.settings.quality === 'low';
     if (battery && dt < 1 / 34) return;
@@ -1770,6 +1778,12 @@ export class LabScreen {
     fa.t += dt; fa.n++;
     if (fa.t >= 1) { fa.fps = Math.round(fa.n / fa.t); fa.t = 0; fa.n = 0; }
     const modalOpen = !!document.querySelector('.overlay');
+    if (!this.sandbox && this.state.tickCustomer(serviceDt, !document.hidden && !modalOpen && !this.tutorial?.active)) {
+      toast('Customer left', 'Their patience ran out. Your potion stays yours.', 'clock');
+      this.views.counter.refresh(); this.refreshHud(true); this.save();
+    }
+    const patience = this.el.querySelector('.customer-patience progress');
+    if (patience && this.state.current?.service) patience.value = Math.max(0, 1 - this.state.current.service.elapsed / this.state.current.service.duration);
     const sim = this.sim;
     const brewing = this.view === 'brew';
     // the hutch lives in real time, whichever room is open
