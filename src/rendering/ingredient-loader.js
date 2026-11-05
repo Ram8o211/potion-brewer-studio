@@ -23,8 +23,8 @@ export async function loadIngredientBiome(biome) {
 
 export async function loadGameIngredients(st, all = false) {
   const biomes = new Set(all ? st.world.materials.filter((m) => m.wild).map((m) => m.wild.region) : st.unlockedBiomes);
-  // A migrated/traded item can belong to a still-locked biome.
-  for (const [id, amount] of Object.entries(st.inventory)) if (Number(amount) > 0 && st.lookup(id)?.wild) biomes.add(st.lookup(id).wild.region);
+  // Migrated discoveries, items and propagules may belong to a still-locked biome.
+  for (const [id, amount] of [...Object.entries(st.inventory), ...Object.entries(st.garden.seeds), ...Object.entries(st.found)]) if (Number(amount) > 0 && st.lookup(id)?.wild) biomes.add(st.lookup(id).wild.region);
   for (const p of st.garden.plots) if (p.crop && st.lookup(p.crop.materialId)?.wild) biomes.add(st.lookup(p.crop.materialId).wild.region);
   await Promise.all([...biomes].map(loadIngredientBiome));
 }

@@ -10,6 +10,18 @@ test('shipped ingredient artwork loads without fetching locked Exotic biomes', a
   const images = await page.locator('.jar[data-id^="wild-silverleaf"] canvas').evaluateAll((els) => els.map((e) => (/** @type {HTMLCanvasElement} */ (e)).toDataURL()));
   expect(new Set(images).size).toBeGreaterThanOrEqual(2);
   expect(assets.some((url) => /moonfen|skyshard|morphgrove|ghostglass|chronoglass|\/veil\./.test(url))).toBe(false);
+  // Seed-only ownership and saved discoveries with no stock need the PNG too.
+  await lab(page, (l) => {
+    l.state.garden.seeds['wild-glasscap-mushroom'] = 1;
+    l.state.found['wild-lodestone'] = 1;
+    l.state.reputation = 70; l.state.stats.served = 5;
+    l.save();
+  });
+  await page.reload(); await page.click('[data-act=continue]'); await page.waitForSelector('canvas.view-canvas');
+  expect(assets.some((url) => url.endsWith('/ghostglass.png'))).toBe(true);
+  expect(assets.some((url) => url.endsWith('/quarry.png'))).toBe(true);
+  await page.click('[data-act=shop]');
+  await expect(page.locator('.overlay canvas[data-asset="lodestone:icon"]')).toBeVisible();
   expect(await horizontalOverflow(page)).toBe(0);
   expect(errors).toEqual([]);
 });
