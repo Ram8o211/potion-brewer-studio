@@ -1286,8 +1286,7 @@ details.steps summary { cursor: pointer; min-height: 24px; }
   scrollbar-gutter:stable;
 }
 .art-studio .art-inspector > h2 {
-  position:sticky;
-  top:-10px;
+  position:static;
   z-index:2;
   padding:8px 0;
   margin:0 0 12px;
@@ -1582,3 +1581,18 @@ details.steps summary { cursor: pointer; min-height: 24px; }
   .art-studio .art-slider-field input[type="range"] { min-height:42px; }
   .art-studio .art-shape-controls .btn { min-height:40px; }
 }
+
+/* Shared, compact customer and cultivation controls. */
+.customer-patience { gap: 8px; margin: 6px 0; }
+.customer-patience progress { width: min(48vw, 200px); height: 10px; accent-color: #93ad6c; }
+.special-board { margin-bottom: 10px; }.special-board summary { cursor: pointer; min-height: 36px; }
+.special-order { padding: 10px 0; border-top: 1px solid #8c765b; }
+.special-order select { max-width: 100%; min-height: 44px; }
+.garden-seed-preview canvas { width: 64px; height: 64px; image-rendering: pixelated; }
+.garden-plot { background: linear-gradient(#e5d1a4, #c3a276); }
+.garden-plot[data-moisture=wet] { background: linear-gradient(#d8c5a0, #947754); }
+.ingredient-quality { position: absolute; left: 2px; top: 2px; font-size: 8px; line-height: 10px; color: #e1dbc6; pointer-events: none; }
+.jar[data-rarity=uncommon] .ingredient-quality { color: #a4d47d; }
+.jar[data-rarity=rare] .ingredient-quality { color: #86ccee; }
+.jar[data-rarity=unique] .ingredient-quality { color: #d6a7f4; }
+.jar[data-rarity=legendary] .ingredient-quality { color: #f9d67c; }

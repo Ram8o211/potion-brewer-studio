@@ -1,0 +1,88 @@
+{
+  "version": 2,
+  "nativeResolution": 64,
+  "stages": [
+    "icon",
+    "seed",
+    "sprout",
+    "young",
+    "developing",
+    "mature"
+  ],
+  "biomes": {
+    "forest": {
+      "metadata": "biomes/forest.json",
+      "image": "biomes/forest.png",
+      "species": 17,
+      "frames": 204
+    },
+    "meadow": {
+      "metadata": "biomes/meadow.json",
+      "image": "biomes/meadow.png",
+      "species": 21,
+      "frames": 252
+    },
+    "river": {
+      "metadata": "biomes/river.json",
+      "image": "biomes/river.png",
+      "species": 19,
+      "frames": 228
+    },
+    "quarry": {
+      "metadata": "biomes/quarry.json",
+      "image": "biomes/quarry.png",
+      "species": 17,
+      "frames": 204
+    },
+    "netherwood": {
+      "metadata": "biomes/netherwood.json",
+      "image": "biomes/netherwood.png",
+      "species": 19,
+      "frames": 228
+    },
+    "crags": {
+      "metadata": "biomes/crags.json",
+      "image": "biomes/crags.png",
+      "species": 14,
+      "frames": 168
+    },
+    "moonfen": {
+      "metadata": "biomes/moonfen.json",
+      "image": "biomes/moonfen.png",
+      "species": 20,
+      "frames": 240
+    },
+    "skyshard": {
+      "metadata": "biomes/skyshard.json",
+      "image": "biomes/skyshard.png",
+      "species": 10,
+      "frames": 120
+    },
+    "morphgrove": {
+      "metadata": "biomes/morphgrove.json",
+      "image": "biomes/morphgrove.png",
+      "species": 10,
+      "frames": 120
+    },
+    "veil": {
+      "metadata": "biomes/veil.json",
+      "image": "biomes/veil.png",
+      "species": 10,
+      "frames": 120
+    },
+    "ghostglass": {
+      "metadata": "biomes/ghostglass.json",
+      "image": "biomes/ghostglass.png",
+      "species": 10,
+      "frames": 120
+    },
+    "chronoglass": {
+      "metadata": "biomes/chronoglass.json",
+      "image": "biomes/chronoglass.png",
+      "species": 10,
+      "frames": 120
+    }
+  },
+  "species": 177,
+  "frames": 2124
+}
