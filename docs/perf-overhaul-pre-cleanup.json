@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-05T20:07:07.761Z",
+  "machine": {
+    "cpus": "INTEL(R) XEON(R) PLATINUM 8573C",
+    "cores": 5,
+    "node": "v24.22.1",
+    "platform": "linux x64"
+  },
+  "memory": {
+    "soak": [
+      {
+        "t": 0,
+        "mb": 9.26
+      },
+      {
+        "t": 30,
+        "mb": 10.19
+      },
+      {
+        "t": 60,
+        "mb": 10.1
+      },
+      {
+        "t": 90,
+        "mb": 10.14
+      }
+    ],
+    "particlesAtEnd": 450,
+    "screenTrips": [
+      {
+        "trip": 1,
+        "mb": 11.51
+      },
+      {
+        "trip": 10,
+        "mb": 22.97
+      }
+    ]
+  },
+  "note": "Same-session full benchmark before disposing Wilds/Hutch canvas observers on LabScreen exit. Compare the memory-only follow-up in perf-results.json."
+}

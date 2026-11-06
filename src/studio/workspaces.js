@@ -23,6 +23,11 @@ import { NE } from '../alchemy/effects.js';
 import { ICON_NAMES, iconUrl } from '../ui/icons.js';
 import { interfaceDecoration } from './interface-runtime.js';
 import { wordColor } from './pixels.js';
+import { loadIngredientBiome } from '../rendering/ingredient-loader.js';
+import { ingredientAssetFrame, ingredientAssetInfo } from '../visual/ingredient-assets.js';
+import { ingredientAtlasLoaded } from '../visual/ingredient-assets.js';
+import { ExoticInteractions } from '../rendering/exotic-interactions.js';
+import { BIOME_BY_ID } from '../game/biomes.js';
 let nextToken = -1;
 const POSES = ['idle', 'hop', 'rear', 'eat', 'loaf', 'hurt', 'sick', 'flop', 'collapse', 'dead'];
 const TRAITS = ['', 'horns', 'antlers', 'unihorn', 'wings', 'scales', 'eye3', 'spines', 'tail-lizard', 'giant', 'tiny'];
@@ -108,13 +113,24 @@ export class DomainWorkspace {
   }
   ingredients(cfg) {
     const s = this.studio, inspector = s.inspector;
+    const spec = WILD_SPECS.find((m) => m.key === this.target);
+    const metadata = ingredientAssetInfo(this.target);
+    if (!metadata && !this.loadingArtwork) {
+      this.loadingArtwork = true;
+      loadIngredientBiome(spec.region).then(() => { this.loadingArtwork = false; if (!this.destroyed) this.render(); }).catch((e) => { this.loadingArtwork = false; s.message(e.message, true); });
+    }
+    inspector.append(h('div', { class: 'art-atlas-info card', 'data-act': 'atlas-metadata' },
+      h('b', { text: `${spec.noun} · ${spec.rarity}${spec.arcaneVariant ? ' · Arcane' : ''}` }),
+      h('p', { text: `Biome: ${spec.region}. Permanent species: ${spec.baseKey || spec.key}. Shipped master: 64 × 64 native pixels; icon, propagation and five growth stages.` }),
+      h('p', { text: metadata ? `Atlas: ${metadata.atlas} · frame ${metadata.rect.join(', ')}. The game and this preview read the same PNG pixels.` : 'Loading the species atlas…' }),
+      h('a', { href: `assets/ingredients/biomes/${spec.region}.png`, download: `${spec.region}.png`, text: 'Export atlas PNG' })));
     const id = archetypeIdentity(this.target); id.seed = Number(this.seed);
     const d = this.scope(() => describe(id)), growth = this.scope(() => growthParams(d));
     inspector.append(this.select('Growth stage', String(this.stage), [['0', 'Sprout'], ['1', 'Ripe'], ['2', 'Mature']], (v) => { this.stage = +v; this.render(); }),
       this.select('Game construction', cfg.asset, [['', 'Native family grammar'], ...s.project.assets.map((a) => [a.id, a.name])], (v) => this.change('Bind species construction', () => { cfg.asset = v; })),
       btn('Use current component graph for this species', () => this.change('Bind graph to species', () => { cfg.asset = s.asset.id; }), { act: 'domain-bind-species' }),
       btn('Use current graph for this native family', () => this.change('Bind procedural family', () => { for (const spec of WILD_SPECS) if (describe(archetypeIdentity(spec.key)).family === d.family) s.project.domains.ingredients[spec.key] = { ...(s.project.domains.ingredients[spec.key] || { morph: {}, growth: {} }), asset: s.asset.id }; }), { act: 'domain-bind-family' }),
-      h('p', { text: `Native family: ${d.family}. Its geometry, growth, icons and shards use the same identity. Parameter edits change the native generator; graph binding replaces the shared construction.` }));
+      h('p', { text: `Source family: ${d.family}. Shipped species use fixed PNG artwork. Bind an edited component graph to explicitly replace its artwork in both the preview and game. The native parameters below are authoring controls for that family.` }));
     for (const [name, source, target] of [['Morphology', d.m, cfg.morph], ['Growth grammar', growth, cfg.growth]]) {
       const details = this.group('ingredient-' + name, name, name === 'Morphology' ? 'Fine-tune the native shape and proportions' : 'Fine-tune how the ingredient grows');
       for (const [key, value] of Object.entries(source)) {
@@ -141,7 +157,15 @@ export class DomainWorkspace {
   }
   environments(cfg) {
     const s = this.studio, i = s.inspector;
+    if (BIOME_BY_ID[this.target] && !ingredientAtlasLoaded(this.target)) loadIngredientBiome(this.target).then(() => { this.previewFeature = null; this.draw(); }).catch((e) => s.message(e.message, true));
     cfg.lights ??= [];
+    cfg.interaction ??= { stiffness: 30, damping: 6, particles: 18 };
+    const interaction = this.group('interaction-physics', 'Touch interaction', 'Shared decorative physics and bounded particles');
+    interaction.append(this.sliderField('Spring stiffness', cfg.interaction, 'stiffness', 5, 60, 1),
+      this.sliderField('Spring damping', cfg.interaction, 'damping', 2, 16, 1),
+      this.sliderField('Temporal particles', cfg.interaction, 'particles', 4, 32, 1),
+      btn('Try native interaction', () => { this.previewFeature?.activate(); this.draw(); }, { act: 'domain-interact', disabled: !BIOME_BY_ID[this.target]?.interaction }));
+    i.append(interaction);
     this.canvas.dataset.editorTool = this.terrainTool;
     const tool = WILDS_TOOLS.find(([id]) => id === this.terrainTool) || WILDS_TOOLS[0];
     const chooseTool = (id) => { this.terrainTool = id; this.render(); };
@@ -258,7 +282,9 @@ export class DomainWorkspace {
         this.sceneSelection = { kind: hit.kind, index: hit.index };
         this.groupState.set(hit.kind === 'object' ? 'wilds-objects' : 'wilds-lights', true);
         const o = hit.kind === 'object' ? cfg.objects[hit.index] : cfg.lights[hit.index];
+        const bounds = this.canvas.getBoundingClientRect();
         this.sceneDrag = { ...hit, before: clone(s.project), pointerId: e.pointerId, x: p[0], y: p[1],
+          clientX: e.clientX, clientY: e.clientY, width: bounds.width, height: bounds.height,
           source: { x: o.x, y: o.y, scale: o.scale, radius: o.radius } };
         this.canvas.setPointerCapture(e.pointerId);
         this.draw(); return;
@@ -281,14 +307,15 @@ export class DomainWorkspace {
     this.canvas.onpointermove = (e) => {
       const d = this.sceneDrag;
       if (d && e.pointerId === d.pointerId) {
-        const p = point(e), o = d.kind === 'object' ? cfg.objects[d.index] : cfg.lights[d.index];
+        const dx = (e.clientX - d.clientX) * 384 / d.width, dy = (e.clientY - d.clientY) * 216 / d.height;
+        const o = d.kind === 'object' ? cfg.objects[d.index] : cfg.lights[d.index];
         if (!o) return;
         if (d.action === 'resize') {
-          if (d.kind === 'object') o.scale = Math.max(0.1, Math.min(2, Math.round((d.source.scale + (p[0] - d.x) / 20) * 10) / 10));
-          else o.radius = Math.max(2, Math.min(120, Math.round(d.source.radius + p[0] - d.x)));
+          if (d.kind === 'object') o.scale = Math.max(0.1, Math.min(2, Math.round((d.source.scale + dx / 20) * 10) / 10));
+          else o.radius = Math.max(2, Math.min(120, Math.round(d.source.radius + dx)));
         } else {
-          o.x = Math.max(0, Math.min(383, Math.round(d.source.x + p[0] - d.x)));
-          o.y = Math.max(0, Math.min(215, Math.round(d.source.y + p[1] - d.y)));
+          o.x = Math.max(0, Math.min(383, Math.round(d.source.x + dx)));
+          o.y = Math.max(0, Math.min(215, Math.round(d.source.y + dy)));
         }
         this.draw(); return;
       }
@@ -383,10 +410,17 @@ export class DomainWorkspace {
         const frames = [plantFrame(d, this.stage), iconFrame(d), ...[0, 1, 2, 3].map((v) => ({ pix: pieceArt(d, v, 40) }))];
         for (const [i, frame] of frames.entries()) { const size = i === 0 ? 100 : 42, x = i === 0 ? 20 : 140 + (i - 1) * 46; ctx.drawImage(frame.pix.toCanvas(), x, 120 - size, size, size); }
         ctx.fillStyle = '#d7e4ce'; ctx.font = '9px sans-serif'; ctx.fillText('Growth stage        Icon           Four physical fragments', 20, 150);
+        for (const [i, stage] of ['seed', 'sprout', 'young', 'developing', 'mature'].entries()) {
+          const f = ingredientAssetFrame(this.target, stage, 40);
+          if (f) ctx.drawImage(f.pix.toCanvas(), 20 + i * 64, 161, 40, 40);
+        }
       } else if (this.kind === 'environments') {
         this.requestScene(); const sc = this.scene;
         if (!sc || !this.sceneCanvas) return;
         ctx.drawImage(this.sceneCanvas, 0, 0); if (this.play) animateRegion(ctx, this.target, this.time, String(this.seed), sc);
+        const featureKey = `${this.target}:${this.seed}:${this.token}`;
+        if (!this.previewFeature || this.previewFeatureKey !== featureKey) { this.previewFeatureKey = featureKey; this.previewFeature = new ExoticInteractions(this.target, sc); }
+        this.previewFeature.step(dt); this.previewFeature.draw(ctx);
         if (this.mask) { ctx.fillStyle = '#ff606060'; for (let k = 0; k < sc.solid.length; k++) if (sc.solid[k]) ctx.fillRect(k % 384, Math.floor(k / 384), 1, 1); ctx.fillStyle = '#44ffbb'; for (let k = 0; k < sc.open.length; k++) if (sc.open[k]) ctx.fillRect(k % 384, Math.floor(k / 384), 1, 1); }
         if (this.stroke) { ctx.fillStyle = this.stroke.kind === 'erase' ? '#101f2b88' : this.stroke.color; for (const [x, y] of this.stroke.points) { ctx.beginPath(); ctx.arc(x, y, this.stroke.radius, 0, Math.PI * 2); ctx.fill(); } }
         if (this.terrainTool === 'select' || this.sceneSelection) {

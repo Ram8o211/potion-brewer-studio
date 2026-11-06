@@ -21,16 +21,18 @@ import { returningPatron, welcomePatron, recentStyles, notePatron, patronVerdict
 import { techniqueById, migrateTechniques } from './commissions.js';
 import { migrateRecipe } from './recipes.js';
 import { archiveLegacyMaterials } from './legacy-materials.js';
-import { BIOMES, biomeUnlocked, refreshBiomeUnlocks } from './biomes.js';
+import { startService, waitForService, normalizeSpecialOrders, ORDERS } from './orders.js';
+import { evaluatePotion } from './evaluate.js';
+import { BIOMES, biomeUnlocked, refreshBiomeUnlocks, ingredientRank } from './biomes.js';
 import { normalizeTraveller, settleTraveller, spendTraveller, awardTravellerGift, makeBiomeInstance, seedDrop } from './travel.js';
 import { normalizeGarden, settleGarden, plantSeed as gardenPlant, waterPlot, harvestGarden, FACILITIES, GARDEN } from './garden.js';
 
-export const SAVE_VERSION = 8;
+export const SAVE_VERSION = 9;
 /** A purging draught at the apothecary, and brewed in the still. */
 export const PURGE_PRICE = 8;
 export const PURGE_BREW_COST = 1;
 export const PURGE_BREW_TIME = 40;
-export const WORLD_GEN_VERSION = 2;
+export const WORLD_GEN_VERSION = 3;
 
 /** What a new shop's shelves hold (ml): a healer's and a hedge-witch's basics. */
 export const STARTER_HERBS = { silverleaf: 200, sunthistle: 150, heartpetal: 150, ironroot: 150, emberbark: 100, frostcap: 100, riverchalk: 100, nettle: 100 };
@@ -125,7 +127,7 @@ export class GameState {
     /** wild ingredients gathered at least once (material id → 1): only these are listed in the Wilds; saves from before it keep what they already hold @type {Record<string, number>} */
     this.found = data.found || Object.fromEntries(Object.entries(data.inventory || {}).filter(([id, n]) => id.startsWith('wild-') && Number(n) > 0).map(([id]) => [id, 1]));
     this.stats = { served: 0, perfect: 0, earned: 0, spent: 0, brews: 0, declined: 0, bestQuality: 0, ...(data.stats || {}) };
-    /** @type {{active:boolean, step:number, done:boolean, tips?:Record<string, boolean>}} */ this.tutorial = { active: false, step: 0, done: true, ...(data.tutorial || {}) };
+    /** @type {{active:boolean, step:number, done:boolean, version?:number, replay?:boolean, arcane?:boolean, resourcesGranted?:boolean, tips?:Record<string, boolean>}} */ this.tutorial = { active: false, step: 0, done: true, ...(data.tutorial || {}) };
     /** @type {{event:string, mods:Record<string, number>}} */ this.market = data.market || { event: 'none', mods: {} };
     /** @type {any} */ this.cauldron = data.cauldron || null;
     /** @type {any[]} */ this.brewLog = data.brewLog || [];
@@ -156,6 +158,14 @@ export class GameState {
     /** @type {string[]} */ this.unlockedBiomes = Array.isArray(data.unlockedBiomes) ? data.unlockedBiomes.filter((id) => BIOMES.some((b) => b.id === id)) : ['forest'];
     this.traveller = normalizeTraveller(data.traveller);
     this.garden = normalizeGarden(data.garden, this.lookup);
+    if (this.tutorial.active && !this.tutorial.done && !this.tutorial.resourcesGranted && this.stats.served === 0) {
+      this.inventory['wild-silverleaf@arcane'] = Math.max(25, this.inventory['wild-silverleaf@arcane'] || 0);
+      this.tutorial.resourcesGranted = true;
+    }
+    this.specialOrders = normalizeSpecialOrders(data.specialOrders);
+    this.specialOffer = data.specialOffer?.request?.requirements?.length ? data.specialOffer : null;
+    this.specialOfferDay = Number.isSafeInteger(data.specialOfferDay) ? data.specialOfferDay : 0;
+    startService(this.current, this.rank);
     settleTraveller(this.traveller); settleGarden(this.garden);
     /** @type {import('./gathering.js').Deposit[]|null} */
     this._deposits = null;
@@ -242,7 +252,7 @@ export class GameState {
 
   /** Ingredients the player may buy now (unlocked by rank). */
   purchasable() {
-    return this.world.ingredients.filter((id) => { const m = this.lookup(id); return m && !m.legacy && !isRemains(m) && (!m.wild || (!m.arcaneVariant && biomeUnlocked(this, m.wild.region))) && !(m.wild && m.wild.gatherOnly) && !m.product && (m.tier || 0) <= this.rank; });
+    return this.world.ingredients.filter((id) => { const m = this.lookup(id); return m && !m.legacy && !isRemains(m) && (!m.wild || (!m.arcaneVariant && biomeUnlocked(this, m.wild.region))) && (!m.wild || ingredientRank(m) <= this.rank) && !(m.wild && m.wild.gatherOnly) && !m.product && (m.tier || 0) <= this.rank; });
   }
 
   /** Ingredient ids that are buyable or in stock. */
@@ -677,6 +687,7 @@ export class GameState {
   canBuy(id) {
     const m = this.lookup(id);
     if (!m) return { ok: false, reason: 'Unknown ingredient.' };
+    if (m.wild && ingredientRank(m) > this.rank) return { ok: false, reason: 'This species needs a higher exploration rank.' };
     if (id === this.world.roles.water) return { ok: false, reason: 'Well water is free.' };
     if (isRemains(m)) return { ok: false, reason: 'Remains are never sold.' };
     if (m.legacy) return { ok: false, reason: 'Legacy finds can be used from your stores, but are no longer traded.' };
@@ -886,7 +897,7 @@ export class GameState {
     // buy today never comes in: the next one does (the day can never stall)
     for (let guard = 0; guard < 4 && this.customerIndex < this.customersPerDay; guard++) {
       const com = this._makeCustomer();
-      if (com) { this.current = com; return com; }
+      if (com) { this.current = startService(com, this.rank); return com; }
       this.customerIndex++;
     }
     return null;
@@ -944,6 +955,45 @@ export class GameState {
     this.current = null;
     this.customerIndex++;
     this.stats.declined++;
+  }
+
+  tickCustomer(dt, active = true) {
+    if (!waitForService(this.current, dt, active)) return false;
+    this.declineCustomer(); return true;
+  }
+
+  get specialCapacity() { return Math.min(4, Math.max(1, this.rank)); }
+  offerSpecial() {
+    if (this.rank < 2 || this.day < 3 || this.specialOfferDay === this.day) return this.specialOffer;
+    this.specialOfferDay = this.day;
+    this.specialOffer = null;
+    if (this.specialOrders.length >= this.specialCapacity) return null;
+    const rng = new Rng(`${this.seed}:special-v1:${this.day}`);
+    // The same feasibility engine and finite supplies as immediate orders.
+    const request = generateCommission(this.commissionContext(), rng, { tier: this.rank, contract: true });
+    if (!request) return null;
+    request.special = true;
+    this.specialOffer = { id: `special:${this.seed}:${this.day}`, request, acceptedDay: this.day,
+      pickupDay: this.day + 2 + Math.min(3, request.techniques?.length || 0), reward: Math.round(request.budget * ORDERS.specialMultiplier) };
+    return this.specialOffer;
+  }
+  acceptSpecial(id) {
+    const o = this.specialOffer;
+    if (!o || o.id !== id || this.specialOrders.some((x) => x.id === id) || this.specialOrders.length >= this.specialCapacity) return { ok: false, reason: 'No commission slot available.' };
+    this.specialOrders.push(o); this.specialOffer = null; return { ok: true };
+  }
+  declineSpecial(id) { if (this.specialOffer?.id === id) this.specialOffer = null; }
+  deliverSpecial(id, bottleId) {
+    const o = this.specialOrders.find((x) => x.id === id), index = this.bottles.findIndex((b) => b.id === bottleId), b = this.bottles[index];
+    if (!o || !b?.m || this.day < o.pickupDay || this.day > o.pickupDay + ORDERS.pickupGraceDays) return { ok: false, reason: 'A stored bottle and a customer in their pickup window are required.' };
+    const ev = evaluatePotion(o.request, b.m);
+    if (ev.rows.some((r) => r.score < 0.999)) return { ok: false, reason: 'This bottle does not meet every requested effect, purity and quantity.' };
+    this.bottles.splice(index, 1); this.specialOrders.splice(this.specialOrders.indexOf(o), 1);
+    this.coins = round1(this.coins + o.reward); this.stats.earned += o.reward; this.stats.served++; this.dayEarnings += o.reward;
+    this.adjustReputation(Math.max(5, ev.repDelta));
+    this.history.unshift({ day: this.day, customer: o.request.customer.name, potion: o.request.potionName, quality: ev.quality, stars: ev.stars, paid: o.reward, ml: b.ml, special: true });
+    this.history.length = Math.min(this.history.length, 60);
+    return { ok: true, paid: o.reward };
   }
 
   /**
@@ -1115,6 +1165,8 @@ export class GameState {
     // tonight's weather is the weather of the day now ending (as forecast)
     weatherRegrowth(this.gathering, this.deposits, weatherOn(this.seed, this.day), this.lookup);
     this.day++;
+    this.specialOrders = this.specialOrders.filter((o) => this.day <= o.pickupDay + ORDERS.pickupGraceDays);
+    this.specialOffer = null;
     this.customerIndex = 0;
     this.servedToday = 0;
     this.dayEarnings = 0;
@@ -1259,6 +1311,9 @@ export class GameState {
       unlockedBiomes: this.unlockedBiomes,
       traveller: this.traveller,
       garden: this.garden,
+      specialOrders: this.specialOrders,
+      specialOffer: this.specialOffer,
+      specialOfferDay: this.specialOfferDay,
       vial: this.vial,
       bottles: this.bottles,
       batch: this.batch,
@@ -1413,6 +1468,15 @@ export function migrate(raw) {
     const rank = rankIndex(d.reputation || 0);
     d.unlockedBiomes ||= ['forest', 'meadow', 'river', 'quarry', ...(rank >= 1 ? ['netherwood'] : []), ...(rank >= 2 ? ['moonfen'] : []), ...(rank >= 3 ? ['crags'] : [])];
     d.version = 8;
+  }
+  // every shop owns the starting kit (the pestle joined it in v6)
+  if (d.version < 9) {
+    // The revised tour has a new step order; retain all discoveries and stock.
+    if (d.tutorial?.active && !d.tutorial.done) d.tutorial.step = 0;
+    d.tutorial.version = 2;
+    d.specialOrders ||= [];
+    d.specialOfferDay ||= 0;
+    d.version = 9;
   }
   // every shop owns the starting kit (the pestle joined it in v6)
   for (const id of STARTING_EQUIPMENT) if (!d.equipment.includes(id)) d.equipment = [...d.equipment, id];

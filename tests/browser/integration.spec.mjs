@@ -5,6 +5,7 @@
 // in bargaining, and a guild shop that sells only tools with a purpose.
 import { test, expect } from '@playwright/test';
 import { watchErrors, shot, newGame, lab, pourDose, crushInPot } from './helpers.mjs';
+import { EFFECT_KEYS } from '../../src/alchemy/effects.js';
 
 /** Clear the toasts so a screenshot shows the room itself. @param {import('@playwright/test').Page} page */
 const clean = (page) => page.evaluate(() => document.querySelectorAll('.toast').forEach((t) => t.remove()));
@@ -36,14 +37,20 @@ test('a day dawns closed; the order card says what it takes and where to find it
     const mod = await import(/* @vite-ignore */ src + 'commissions.js');
     const rng = await import(/* @vite-ignore */ '/src/core/' + 'rng.js');
     const st = l.state;
-    st.current = mod.generateCommission(st.commissionContext(), new rng.Rng('ui-tech'), { tier: 2, techniques: ['strong'] });
+    // A forced Adept technique needs an Adept's earned access and supplies.
+    st.reputation = 180; st.stats.served = 12; st.coins = 10000;
+    const pureHerb = 'wild-crown-of-the-grove';
+    st.inventory[pureHerb] = 1000;
+    const context = { ...st.commissionContext(), available: new Set([st.world.roles.water, pureHerb]) };
+    st.current = mod.generateCommission(context, new rng.Rng('ui-tech'), { tier: 2, request: 'healing', techniques: ['strong'] });
+    if (!st.current) throw new Error('The progressed shop cannot support the forced technique fixture');
     l.refreshCustomer();
     l.views.counter.refresh();
   });
   await expect(page.locator('.tech-card')).toContainText('Strong and compact');
   await expect(page.locator('.supply-card summary')).toContainText('ml of brew');
   await page.click('.supply-card summary');
-  await expect(page.locator('.supply-card')).toContainText('Every one of them brings side effects');
+  await expect(page.locator('.supply-card')).toContainText('Check each species for side effects');
   await clean(page);
   await page.locator('.tech-card').scrollIntoViewIfNeeded();
   await shot(page, info, 'order-techniques');
@@ -51,7 +58,7 @@ test('a day dawns closed; the order card says what it takes and where to find it
   await page.click('[data-act=tab-brew]');
   await pourDose(page, await lab(page, (l) => l.state.world.roles.water), [100]);
   const keys = await lab(page, (l) => l.state.current.requirements.map((r) => r.key));
-  for (const k of keys) expect(['purity', 'vitality', 'strength', 'love', 'arcana', 'transformation', 'fire', 'frost', 'acidity', 'toxicity', 'death']).toContain(k);
+  for (const k of keys) expect(['purity', ...EFFECT_KEYS]).toContain(k);
   await expect(page.locator('.req-chip.unknown').first()).toBeVisible();
   await expect(page.locator('.req-chip', { hasText: '°' }), 'no serving temperature on the order').toHaveCount(0);
   expect(errors).toEqual([]);

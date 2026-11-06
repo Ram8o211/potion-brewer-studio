@@ -1,0 +1,1290 @@
+{
+  "branch": "feat/complete-potion-brewer-overhaul",
+  "baseRevision": "180c7dc351024a88309a66433c17005941a88e15",
+  "generatedAt": "2026-11-05T20:40:58.573886+00:00",
+  "method": "Latest execution per current test identity across the initial matrix, completion/corrective runs, final migration/fog checks and strict GC lifetime checks. This is incremental validation, not a claim that the first matrix was clean.",
+  "total": 168,
+  "outcomes": {
+    "passed": 166,
+    "skipped": 2
+  },
+  "profiles": {
+    "desktop": {
+      "passed": 67,
+      "skipped": 1
+    },
+    "phone-portrait": {
+      "passed": 67,
+      "skipped": 1
+    },
+    "phone-landscape": {
+      "passed": 20
+    },
+    "tablet": {
+      "passed": 5
+    },
+    "offline-build": {
+      "passed": 2
+    },
+    "pages-subpath": {
+      "passed": 5
+    }
+  },
+  "runs": [
+    {
+      "name": "initial matrix",
+      "statistics": {
+        "startTime": "2026-11-05T15:34:47.016Z",
+        "duration": 2995887.994,
+        "expected": 107,
+        "skipped": 47,
+        "unexpected": 10,
+        "flaky": 0
+      }
+    },
+    {
+      "name": "completion and corrections",
+      "statistics": {
+        "startTime": "2026-11-05T19:10:08.178Z",
+        "duration": 2374924.122,
+        "expected": 53,
+        "skipped": 2,
+        "unexpected": 2,
+        "flaky": 0
+      }
+    },
+    {
+      "name": "final focused checks",
+      "statistics": {
+        "startTime": "2026-11-05T19:51:26.327Z",
+        "duration": 434832.331,
+        "expected": 9,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "name": "saved discoveries and seed-only reload",
+      "statistics": {
+        "startTime": "2026-11-05T20:05:30.742Z",
+        "duration": 37585.481,
+        "expected": 2,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "name": "cached fog and touch reveal",
+      "statistics": {
+        "startTime": "2026-11-05T20:20:33.052Z",
+        "duration": 142697.327,
+        "expected": 2,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "name": "initial lifetime leak reproduction",
+      "statistics": {
+        "startTime": "2026-11-05T20:24:45.095Z",
+        "duration": 42400.191999999995,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 2,
+        "flaky": 0
+      }
+    },
+    {
+      "name": "screen lifetime after observer and idle cleanup",
+      "statistics": {
+        "startTime": "2026-11-05T20:34:19.925Z",
+        "duration": 40691.934,
+        "expected": 2,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    }
+  ],
+  "cases": [
+    {
+      "project": "desktop",
+      "file": "art-studio.spec.mjs",
+      "title": "draw, extract, attach, vary, grow and recover an editable project without touching the shop",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "art-studio.spec.mjs",
+      "title": "project and transparent PNG export/import perform real round trips; invalid imports preserve work",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "art-studio.spec.mjs",
+      "title": "art preview is temporary, apply persists, revert restores original generators and legacy saves stay readable",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "art-studio.spec.mjs",
+      "title": "zoomed coordinates, cancelled gestures and hidden layouts remain reliable",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "art-studio.spec.mjs",
+      "title": "component editor keeps the drawing workflow visible and advanced groups optional",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "art-studio.spec.mjs",
+      "title": "generated geometry can be moved and resized directly with one undo step per drag",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "art-studio.spec.mjs",
+      "title": "draw, extract, attach, vary, grow and recover an editable project without touching the shop",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "art-studio.spec.mjs",
+      "title": "project and transparent PNG export/import perform real round trips; invalid imports preserve work",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "art-studio.spec.mjs",
+      "title": "art preview is temporary, apply persists, revert restores original generators and legacy saves stay readable",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "art-studio.spec.mjs",
+      "title": "zoomed coordinates, cancelled gestures and hidden layouts remain reliable",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "art-studio.spec.mjs",
+      "title": "component editor keeps the drawing workflow visible and advanced groups optional",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "art-studio.spec.mjs",
+      "title": "generated geometry can be moved and resized directly with one undo step per drag",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "bargain.spec.mjs",
+      "title": "walking away keeps the talks; the same bottle resumes them; a new label remembers them",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "bargain.spec.mjs",
+      "title": "walking away keeps the talks; the same bottle resumes them; a new label remembers them",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "colony.spec.mjs",
+      "title": "choose a rabbit, dose it, replay the trial for free",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "colony.spec.mjs",
+      "title": "a rabbit dies; its body keeps its look; its remains go to the shelf once and survive a reload",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "colony.spec.mjs",
+      "title": "buy until the hutch is full; a night brings kits and a hutch report",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "colony.spec.mjs",
+      "title": "the sandbox hutch lets a night pass by hand",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "colony.spec.mjs",
+      "title": "choose a rabbit, dose it, replay the trial for free",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "colony.spec.mjs",
+      "title": "a rabbit dies; its body keeps its look; its remains go to the shelf once and survive a reload",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "colony.spec.mjs",
+      "title": "buy until the hutch is full; a night brings kits and a hutch report",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "colony.spec.mjs",
+      "title": "the sandbox hutch lets a night pass by hand",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-landscape",
+      "file": "colony.spec.mjs",
+      "title": "choose a rabbit, dose it, replay the trial for free",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-landscape",
+      "file": "colony.spec.mjs",
+      "title": "a rabbit dies; its body keeps its look; its remains go to the shelf once and survive a reload",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-landscape",
+      "file": "colony.spec.mjs",
+      "title": "buy until the hutch is full; a night brings kits and a hutch report",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-landscape",
+      "file": "colony.spec.mjs",
+      "title": "the sandbox hutch lets a night pass by hand",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "desktop",
+      "file": "ecology.spec.mjs",
+      "title": "a wild harvest opens the garden; planting, watering and a single harvest survive reload",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "ecology.spec.mjs",
+      "title": "finite resources and wildlife stay depleted; a recharged coin enables regeneration in place",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "ecology.spec.mjs",
+      "title": "all exotic scenery controls activate their native scene and keep sandbox regeneration free",
+      "status": "passed",
+      "run": "cached fog and touch reveal"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "ecology.spec.mjs",
+      "title": "a wild harvest opens the garden; planting, watering and a single harvest survive reload",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "ecology.spec.mjs",
+      "title": "finite resources and wildlife stay depleted; a recharged coin enables regeneration in place",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "ecology.spec.mjs",
+      "title": "all exotic scenery controls activate their native scene and keep sandbox regeneration free",
+      "status": "passed",
+      "run": "cached fog and touch reveal"
+    },
+    {
+      "project": "desktop",
+      "file": "gameplay.spec.mjs",
+      "title": "first commission: brew, test on a subject, bottle and serve",
+      "status": "passed",
+      "run": "final focused checks"
+    },
+    {
+      "project": "desktop",
+      "file": "gameplay.spec.mjs",
+      "title": "a customer who insists on proof will not buy until the vial is tested; testing fills in the label",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "desktop",
+      "file": "gameplay.spec.mjs",
+      "title": "tools switch and act on the brew",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "gameplay.spec.mjs",
+      "title": "drag a jar from the shelf onto the cauldron to pour; a root goes in whole and only the pestle crushes it",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "gameplay.spec.mjs",
+      "title": "first commission: brew, test on a subject, bottle and serve",
+      "status": "passed",
+      "run": "final focused checks"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "gameplay.spec.mjs",
+      "title": "a customer who insists on proof will not buy until the vial is tested; testing fills in the label",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "gameplay.spec.mjs",
+      "title": "tools switch and act on the brew",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "gameplay.spec.mjs",
+      "title": "drag a jar from the shelf onto the cauldron to pour; a root goes in whole and only the pestle crushes it",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-landscape",
+      "file": "gameplay.spec.mjs",
+      "title": "first commission: brew, test on a subject, bottle and serve",
+      "status": "passed",
+      "run": "final focused checks"
+    },
+    {
+      "project": "phone-landscape",
+      "file": "gameplay.spec.mjs",
+      "title": "a customer who insists on proof will not buy until the vial is tested; testing fills in the label",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-landscape",
+      "file": "gameplay.spec.mjs",
+      "title": "tools switch and act on the brew",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-landscape",
+      "file": "gameplay.spec.mjs",
+      "title": "drag a jar from the shelf onto the cauldron to pour; a root goes in whole and only the pestle crushes it",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "desktop",
+      "file": "integration.spec.mjs",
+      "title": "a day dawns closed; the order card says what it takes and where to find it",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "desktop",
+      "file": "integration.spec.mjs",
+      "title": "advice read off the cauldron, a trial\u2019s margin and level, and a recipe that keeps its steps",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "desktop",
+      "file": "integration.spec.mjs",
+      "title": "bargaining shows what the customer weighs; the guild sells only tools with a purpose",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "integration.spec.mjs",
+      "title": "a day dawns closed; the order card says what it takes and where to find it",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "integration.spec.mjs",
+      "title": "advice read off the cauldron, a trial\u2019s margin and level, and a recipe that keeps its steps",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "integration.spec.mjs",
+      "title": "bargaining shows what the customer weighs; the guild sells only tools with a purpose",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "layout.spec.mjs",
+      "title": "main menu fits the screen",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "layout.spec.mjs",
+      "title": "brew room: cauldron, order, shelf, tools and tabs are all on screen",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "layout.spec.mjs",
+      "title": "every room fits the screen and its controls are touch sized",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "layout.spec.mjs",
+      "title": "free experiment layout",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "layout.spec.mjs",
+      "title": "panels open, fit and close",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "layout.spec.mjs",
+      "title": "main menu fits the screen",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "layout.spec.mjs",
+      "title": "brew room: cauldron, order, shelf, tools and tabs are all on screen",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "layout.spec.mjs",
+      "title": "every room fits the screen and its controls are touch sized",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "layout.spec.mjs",
+      "title": "free experiment layout",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "layout.spec.mjs",
+      "title": "panels open, fit and close",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-landscape",
+      "file": "layout.spec.mjs",
+      "title": "main menu fits the screen",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-landscape",
+      "file": "layout.spec.mjs",
+      "title": "brew room: cauldron, order, shelf, tools and tabs are all on screen",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-landscape",
+      "file": "layout.spec.mjs",
+      "title": "every room fits the screen and its controls are touch sized",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-landscape",
+      "file": "layout.spec.mjs",
+      "title": "free experiment layout",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-landscape",
+      "file": "layout.spec.mjs",
+      "title": "panels open, fit and close",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "tablet",
+      "file": "layout.spec.mjs",
+      "title": "main menu fits the screen",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "tablet",
+      "file": "layout.spec.mjs",
+      "title": "brew room: cauldron, order, shelf, tools and tabs are all on screen",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "tablet",
+      "file": "layout.spec.mjs",
+      "title": "every room fits the screen and its controls are touch sized",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "tablet",
+      "file": "layout.spec.mjs",
+      "title": "free experiment layout",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "tablet",
+      "file": "layout.spec.mjs",
+      "title": "panels open, fit and close",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "desktop",
+      "file": "lifecycle.spec.mjs",
+      "title": "menu trips release the previous shop screens and their canvas observers",
+      "status": "passed",
+      "run": "screen lifetime after observer and idle cleanup"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "lifecycle.spec.mjs",
+      "title": "menu trips release the previous shop screens and their canvas observers",
+      "status": "passed",
+      "run": "screen lifetime after observer and idle cleanup"
+    },
+    {
+      "project": "desktop",
+      "file": "overhaul.spec.mjs",
+      "title": "shipped ingredient artwork loads without fetching locked Exotic biomes",
+      "status": "passed",
+      "run": "saved discoveries and seed-only reload"
+    },
+    {
+      "project": "desktop",
+      "file": "overhaul.spec.mjs",
+      "title": "introductory fox, seed and garden use actual controls and persist tutorial position",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "overhaul.spec.mjs",
+      "title": "service patience and delayed commission controls preserve separate order slots",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "overhaul.spec.mjs",
+      "title": "a complete tour replay keeps the current brew and grants no extra resources",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "overhaul.spec.mjs",
+      "title": "shipped ingredient artwork loads without fetching locked Exotic biomes",
+      "status": "passed",
+      "run": "saved discoveries and seed-only reload"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "overhaul.spec.mjs",
+      "title": "introductory fox, seed and garden use actual controls and persist tutorial position",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "overhaul.spec.mjs",
+      "title": "service patience and delayed commission controls preserve separate order slots",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "overhaul.spec.mjs",
+      "title": "a complete tour replay keeps the current brew and grants no extra resources",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "pourback.spec.mjs",
+      "title": "bottle, test a dose of the vial, pour the rest back",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "pourback.spec.mjs",
+      "title": "a tested bottle keeps its label through the shelf, a pour back into the empty cauldron and bottling again",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "pourback.spec.mjs",
+      "title": "bottle, test a dose of the vial, pour the rest back",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "pourback.spec.mjs",
+      "title": "a tested bottle keeps its label through the shelf, a pour back into the empty cauldron and bottling again",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "rooms.spec.mjs",
+      "title": "harvesting a mature plant fills the stores and leaves nothing behind; growing ones cannot be taken",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "rooms.spec.mjs",
+      "title": "the dropper doses a rabbit on the farm; a dead one is replaced for coins; trials persist",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "rooms.spec.mjs",
+      "title": "watering belongs to the garden; Water all updates crop moisture and survives reload",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "rooms.spec.mjs",
+      "title": "harvesting a mature plant fills the stores and leaves nothing behind; growing ones cannot be taken",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "rooms.spec.mjs",
+      "title": "the dropper doses a rabbit on the farm; a dead one is replaced for coins; trials persist",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "rooms.spec.mjs",
+      "title": "watering belongs to the garden; Water all updates crop moisture and survives reload",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-landscape",
+      "file": "rooms.spec.mjs",
+      "title": "harvesting a mature plant fills the stores and leaves nothing behind; growing ones cannot be taken",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-landscape",
+      "file": "rooms.spec.mjs",
+      "title": "the dropper doses a rabbit on the farm; a dead one is replaced for coins; trials persist",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-landscape",
+      "file": "rooms.spec.mjs",
+      "title": "watering belongs to the garden; Water all updates crop moisture and survives reload",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "desktop",
+      "file": "sandbox.spec.mjs",
+      "title": "layers, powders and stirring",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "sandbox.spec.mjs",
+      "title": "freeze a liquid into a block, then crush it with the pestle",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "sandbox.spec.mjs",
+      "title": "the physics demonstrations live here: skimmer, alembic, heat map and exact readings",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "sandbox.spec.mjs",
+      "title": "oil catches fire on a strong furnace and the lid smothers it",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "sandbox.spec.mjs",
+      "title": "a long boiling session stays stable and conserves matter",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "sandbox.spec.mjs",
+      "title": "swiping the tool row over Auto scrolls it without starting the stirrer",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "sandbox.spec.mjs",
+      "title": "layers, powders and stirring",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "sandbox.spec.mjs",
+      "title": "freeze a liquid into a block, then crush it with the pestle",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "sandbox.spec.mjs",
+      "title": "the physics demonstrations live here: skimmer, alembic, heat map and exact readings",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "sandbox.spec.mjs",
+      "title": "oil catches fire on a strong furnace and the lid smothers it",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "sandbox.spec.mjs",
+      "title": "a long boiling session stays stable and conserves matter",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "sandbox.spec.mjs",
+      "title": "swiping the tool row over Auto scrolls it without starting the stirrer",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "shelves.spec.mjs",
+      "title": "bottles go onto the potion shelves while there is room, and come down to the counter",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "shelves.spec.mjs",
+      "title": "every natural ingredient has its own look on the shelf and in the cauldron",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "shelves.spec.mjs",
+      "title": "a tested batch labels its bottles by itself: shelved bottles show their effects at once",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "shelves.spec.mjs",
+      "title": "bottles go onto the potion shelves while there is room, and come down to the counter",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "shelves.spec.mjs",
+      "title": "every natural ingredient has its own look on the shelf and in the cauldron",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "shelves.spec.mjs",
+      "title": "a tested batch labels its bottles by itself: shelved bottles show their effects at once",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "showcase.spec.mjs",
+      "title": "an awakened brew draws its effects' patterns boldly",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "showcase.spec.mjs",
+      "title": "a hutch of changed rabbits, and a body that keeps its changes",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "showcase.spec.mjs",
+      "title": "label, bargain, and the customer comes back with a complaint",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "showcase.spec.mjs",
+      "title": "the wilds at dusk in a thunderstorm",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "showcase.spec.mjs",
+      "title": "an awakened brew draws its effects' patterns boldly",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "showcase.spec.mjs",
+      "title": "a hutch of changed rabbits, and a body that keeps its changes",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "showcase.spec.mjs",
+      "title": "label, bargain, and the customer comes back with a complaint",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "showcase.spec.mjs",
+      "title": "the wilds at dusk in a thunderstorm",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-landscape",
+      "file": "showcase.spec.mjs",
+      "title": "an awakened brew draws its effects' patterns boldly",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-landscape",
+      "file": "showcase.spec.mjs",
+      "title": "a hutch of changed rabbits, and a body that keeps its changes",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-landscape",
+      "file": "showcase.spec.mjs",
+      "title": "label, bargain, and the customer comes back with a complaint",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-landscape",
+      "file": "showcase.spec.mjs",
+      "title": "the wilds at dusk in a thunderstorm",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "desktop",
+      "file": "studio-domains.spec.mjs",
+      "title": "native ingredient editor binds graphs and extracts editable geometry",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "studio-domains.spec.mjs",
+      "title": "terrain edits are structural, undoable and portable",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "desktop",
+      "file": "studio-domains.spec.mjs",
+      "title": "creature anatomy, pose keys, mutations and animation use the real renderer",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "studio-domains.spec.mjs",
+      "title": "material, magical effect and UI workspaces persist real visual settings",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "studio-domains.spec.mjs",
+      "title": "Wilds inspector controls remain reachable on short and narrow screens",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "studio-domains.spec.mjs",
+      "title": "Wilds painting tools are direct, contextual and reversible",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "desktop",
+      "file": "studio-domains.spec.mjs",
+      "title": "Wilds props and lights expose draggable position and size handles",
+      "status": "passed",
+      "run": "final focused checks"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "studio-domains.spec.mjs",
+      "title": "native ingredient editor binds graphs and extracts editable geometry",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "studio-domains.spec.mjs",
+      "title": "terrain edits are structural, undoable and portable",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "studio-domains.spec.mjs",
+      "title": "creature anatomy, pose keys, mutations and animation use the real renderer",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "studio-domains.spec.mjs",
+      "title": "material, magical effect and UI workspaces persist real visual settings",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "studio-domains.spec.mjs",
+      "title": "Wilds inspector controls remain reachable on short and narrow screens",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "studio-domains.spec.mjs",
+      "title": "Wilds painting tools are direct, contextual and reversible",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "studio-domains.spec.mjs",
+      "title": "Wilds props and lights expose draggable position and size handles",
+      "status": "passed",
+      "run": "final focused checks"
+    },
+    {
+      "project": "desktop",
+      "file": "systems.spec.mjs",
+      "title": "buying reagents and equipment",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "systems.spec.mjs",
+      "title": "progress survives a reload and Continue restores the shop",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "systems.spec.mjs",
+      "title": "the cauldron contents are saved with the game",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "systems.spec.mjs",
+      "title": "export and import a save file",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "systems.spec.mjs",
+      "title": "a damaged save falls back to the backup instead of crashing",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "systems.spec.mjs",
+      "title": "settings persist across sessions",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "systems.spec.mjs",
+      "title": "the wilds are shown upscaled at the chosen resolution, and as they are at \u00d71",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "systems.spec.mjs",
+      "title": "buying reagents and equipment",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "systems.spec.mjs",
+      "title": "progress survives a reload and Continue restores the shop",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "systems.spec.mjs",
+      "title": "the cauldron contents are saved with the game",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "systems.spec.mjs",
+      "title": "export and import a save file",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "systems.spec.mjs",
+      "title": "a damaged save falls back to the backup instead of crashing",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "systems.spec.mjs",
+      "title": "settings persist across sessions",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "systems.spec.mjs",
+      "title": "the wilds are shown upscaled at the chosen resolution, and as they are at \u00d71",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "desktop",
+      "file": "tutorial.spec.mjs",
+      "title": "the first tour completes harvesting, cultivation, Arcane practice and a real customer sale",
+      "status": "passed",
+      "run": "final focused checks"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "tutorial.spec.mjs",
+      "title": "the first tour completes harvesting, cultivation, Arcane practice and a real customer sale",
+      "status": "passed",
+      "run": "final focused checks"
+    },
+    {
+      "project": "desktop",
+      "file": "wilds-touch.spec.mjs",
+      "title": "sandbox wilds: shake, gather by tap, regrow at random spots; watering stays in the garden",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "desktop",
+      "file": "wilds-touch.spec.mjs",
+      "title": "sandbox wilds: a crystal fused into its rock breaks free only after several blows",
+      "status": "skipped",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "desktop",
+      "file": "wilds-touch.spec.mjs",
+      "title": "sandbox wilds: the scene zooms in and out, starting a little closer, and a tap still finds the plant under it",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "desktop",
+      "file": "wilds-touch.spec.mjs",
+      "title": "wild rabbits: tapped, one bleeds over the ground and bolts faster; brought down, a tap carries it to the hutch",
+      "status": "passed",
+      "run": "initial matrix"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "wilds-touch.spec.mjs",
+      "title": "sandbox wilds: shake, gather by tap, regrow at random spots; watering stays in the garden",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "wilds-touch.spec.mjs",
+      "title": "sandbox wilds: a crystal fused into its rock breaks free only after several blows",
+      "status": "skipped",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "wilds-touch.spec.mjs",
+      "title": "sandbox wilds: the scene zooms in and out, starting a little closer, and a tap still finds the plant under it",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "phone-portrait",
+      "file": "wilds-touch.spec.mjs",
+      "title": "wild rabbits: tapped, one bleeds over the ground and bolts faster; brought down, a tap carries it to the hutch",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "offline-build",
+      "file": "offline.spec.mjs",
+      "title": "the built game loads and plays offline after the first visit",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "offline-build",
+      "file": "offline.spec.mjs",
+      "title": "the bundled Art Studio opens, draws and saves offline without writing a game save",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "pages-subpath",
+      "file": "subpath.spec.mjs",
+      "title": "the source copy runs from the repository root under the sub-path",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "pages-subpath",
+      "file": "subpath.spec.mjs",
+      "title": "the production build runs from /dist/, installs its worker there and plays with the server gone",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "pages-subpath",
+      "file": "subpath.spec.mjs",
+      "title": "the two copies keep their own offline caches on the shared origin",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "pages-subpath",
+      "file": "subpath.spec.mjs",
+      "title": "a second tab saving the shop makes a stale tab step back instead of overwriting it",
+      "status": "passed",
+      "run": "completion and corrections"
+    },
+    {
+      "project": "pages-subpath",
+      "file": "subpath.spec.mjs",
+      "title": "a redeploy reaches returning players even with Pages-style caching (max-age=600)",
+      "status": "passed",
+      "run": "completion and corrections"
+    }
+  ]
+}

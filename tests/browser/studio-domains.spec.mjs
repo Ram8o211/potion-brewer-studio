@@ -1,6 +1,6 @@
 import {test, expect} from '@playwright/test';
-import {watchErrors} from './helpers.mjs';
-async function open(page, workspace){await page.goto('/?nosw');await page.locator('[data-act=art-studio]').click();await page.getByLabel('Editor workspace',{exact:true}).selectOption(workspace);await page.locator('[data-domain]').waitFor();}
+import {watchErrors, drag} from './helpers.mjs';
+async function open(page, workspace){await page.goto('/?nosw');await page.locator('[data-act=art-studio]').click();await page.getByLabel('Editor workspace',{exact:true}).selectOption(workspace);await page.locator('[data-domain]').waitFor();if(workspace==='environments')await page.waitForFunction(()=>!!window.__alchemist.screen.domainEditor.sceneKey,null,{timeout:30000});}
 async function field(page,label,value){const f=page.getByLabel(label,{exact:true});await f.fill(String(value));await f.press('Tab');}
 const state=(page,fn)=>page.evaluate(fn);
 test('native ingredient editor binds graphs and extracts editable geometry',async({page})=>{
@@ -86,6 +86,7 @@ test('Wilds inspector controls remain reachable on short and narrow screens', as
 test('Wilds painting tools are direct, contextual and reversible', async ({ page }) => {
   const errors = watchErrors(page);
   await open(page, 'environments');
+  await page.getByLabel('Domain target', { exact: true }).selectOption('meadow');
   const palette = page.getByRole('toolbar', { name: 'Wilds painting tools' });
   await expect(palette).toBeVisible();
   for (const tool of ['rock', 'soil', 'erase', 'water', 'lava', 'place', 'light']) {
@@ -133,33 +134,31 @@ test('Wilds props and lights expose draggable position and size handles', async 
   await page.mouse.click(drop.x, drop.y);
   await expect.poll(() => page.evaluate(() => window.__alchemist.screen.project.domains.environments.forest.lights.length)).toBe(1);
   await expect(page.locator('[data-act=domain-tool-select]')).toHaveAttribute('aria-pressed', 'true');
+  // Contextual controls change the phone layout after placement. Measure the
+  // current canvas for each new gesture, using native touch on phone profiles.
+  await preview.scrollIntoViewIfNeeded();
+  const start = await at(95, 70);
   const moved = await at(125, 82);
-  await page.mouse.move(drop.x, drop.y);
-  await page.mouse.down();
-  await page.mouse.move(moved.x, moved.y, { steps: 6 });
-  await page.mouse.up();
+  await drag(page, [start, moved], 30);
   await expect.poll(() => page.evaluate(() => window.__alchemist.screen.project.domains.environments.forest.lights[0].x)).toBe(125);
   await page.locator('[data-act=domain-undo]').click();
   await expect.poll(() => page.evaluate(() => window.__alchemist.screen.project.domains.environments.forest.lights[0].x)).toBe(95);
   await page.locator('[data-act=domain-redo]').click();
   await expect.poll(() => page.evaluate(() => window.__alchemist.screen.project.domains.environments.forest.lights[0].x)).toBe(125);
+  await preview.scrollIntoViewIfNeeded();
   const handle = await at(160, 82), enlarged = await at(175, 82);
-  await page.mouse.move(handle.x, handle.y);
-  await page.mouse.down();
-  await page.mouse.move(enlarged.x, enlarged.y, { steps: 5 });
-  await page.mouse.up();
+  await drag(page, [handle, enlarged], 30);
   await expect.poll(() => page.evaluate(() => window.__alchemist.screen.project.domains.environments.forest.lights[0].radius)).toBe(50);
   await page.locator('[data-act=domain-tool-place]').click();
+  await preview.scrollIntoViewIfNeeded();
   const prop = await at(230, 120);
   await page.mouse.click(prop.x, prop.y);
   await expect.poll(() => page.evaluate(() => window.__alchemist.screen.project.domains.environments.forest.objects.length)).toBe(1);
   const before = await page.evaluate(() => window.__alchemist.screen.project.domains.environments.forest.objects[0].scale);
+  await preview.scrollIntoViewIfNeeded();
   const propHandle = await at(230 + 20 * before, 120 - 20 * before);
   const grow = await at(230 + 20 * before + 6, 120 - 20 * before);
-  await page.mouse.move(propHandle.x, propHandle.y);
-  await page.mouse.down();
-  await page.mouse.move(grow.x, grow.y, { steps: 4 });
-  await page.mouse.up();
+  await drag(page, [propHandle, grow], 30);
   await expect.poll(() => page.evaluate(() => window.__alchemist.screen.project.domains.environments.forest.objects[0].scale)).toBe(1.3);
   expect(errors).toEqual([]);
 });

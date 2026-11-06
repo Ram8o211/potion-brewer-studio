@@ -1,0 +1,47 @@
+{
+  "before": {
+    "seed": "experiment:biome-v1:forest:0",
+    "population": [
+      {
+        "id": "wild-silverleaf",
+        "count": 3
+      },
+      {
+        "id": "wild-goldpear",
+        "count": 6
+      },
+      {
+        "id": "wild-ironroot",
+        "count": 3
+      },
+      {
+        "id": "wild-silverleaf@arcane",
+        "count": 1
+      }
+    ],
+    "balance": 3
+  },
+  "after": {
+    "seed": "experiment:biome-v1:forest:1",
+    "population": [
+      {
+        "id": "wild-dawnblossom",
+        "count": 3
+      },
+      {
+        "id": "wild-heartwood-mandrake",
+        "count": 1
+      },
+      {
+        "id": "wild-silverleaf",
+        "count": 6
+      },
+      {
+        "id": "wild-goldpear",
+        "count": 2
+      }
+    ],
+    "balance": 2
+  },
+  "preservedInventory": true
+}

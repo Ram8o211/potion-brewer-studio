@@ -21,8 +21,10 @@ import { drawRabbit, rabbitSpriteKey, RABBIT_W, RABBIT_H } from '../../rendering
 import { defaultSnap, penHasRoom, PEN_MAX } from '../../game/colony.js';
 import { KINDS } from '../../game/kinds.js';
 import { settleTraveller, TRAVEL } from '../../game/travel.js';
+import { NATIVE_SPECIES } from '../../game/native-species.js';
 import { RARITIES } from '../../materials/rarity.js';
 import { ExoticInteractions, FEATURE_HINTS } from '../../rendering/exotic-interactions.js';
+import { loadIngredientBiome } from '../../rendering/ingredient-loader.js';
 
 /** The shadow a plant casts on its ground, by region (the crags' is warm and deep, the fens' cold). */
 const SHADOW = { forest: 'rgba(8,16,10,0.32)', netherwood: 'rgba(6,4,16,0.4)', meadow: 'rgba(24,30,10,0.26)', river: 'rgba(4,14,16,0.34)', quarry: 'rgba(26,18,10,0.3)', moonfen: 'rgba(2,6,18,0.42)', crags: 'rgba(30,6,4,0.4)' };
@@ -102,6 +104,8 @@ export class WildsView {
   /** @param {import('../lab.js').LabScreen} lab */
   constructor(lab) {
     this.lab = lab;
+    this.disposed = false;
+    /** @type {any} */ this.warmIdle = 0;
     this.el = h('section', { class: 'view view-wilds', 'data-view': 'wilds' });
     this.region = 'forest';
     this.time = 0;
@@ -163,6 +167,17 @@ export class WildsView {
     this.told = new Set();
     /** the pointer pressed on the scene: where it is, where it came down (sx, sy), how far it has gone (CSS px), and in watering mode where it last watered and how many drank @type {{id:number, type:string, x:number, y:number, cx:number, cy:number, sx:number, sy:number, dist:number, water:boolean, wx:number, wy:number, drank:number, near:boolean, pours:number}|null} */
     this.drag = null;
+  }
+
+  dispose() {
+    this.disposed = true;
+    clearTimeout(this.warmTimer); this.warmTimer = 0;
+    if (this.warmIdle) {
+      if (typeof cancelIdleCallback === 'function') cancelIdleCallback(this.warmIdle);
+      else clearTimeout(this.warmIdle);
+      this.warmIdle = 0;
+    }
+    this.crisp?.dispose();
   }
 
   build() {
@@ -275,16 +290,18 @@ export class WildsView {
    * travelling to them later only draws what is already made.
    */
   prewarm() {
-    if (this.warmTimer) return;
+    if (this.disposed || this.warmTimer || this.warmIdle) return;
     const st = this.lab.state, seed = st.seed;
     const todo = REGIONS.filter((r) => this.unlocked(r) && r.id !== this.region).map((r) => r.id);
     const idle = typeof requestIdleCallback === 'function' ? (fn) => requestIdleCallback(fn) : (fn) => setTimeout(fn, 50);
     const tick = () => {
       this.warmTimer = 0;
-      if (this.lab.state !== st || !todo.length) return;
+      if (this.disposed || this.lab.state !== st || !todo.length) return;
       // only while this room is shown and nobody is touching it
       if (this.lab.view !== 'wilds' || performance.now() - this.lastInput < 1500) { this.warmTimer = setTimeout(tick, 1500); return; }
-      idle(() => {
+      this.warmIdle = idle(() => {
+        this.warmIdle = 0;
+        if (this.disposed) return;
         if (this.lab.view !== 'wilds' || performance.now() - this.lastInput < 1500) { this.warmTimer = setTimeout(tick, 1500); return; }
         const region = /** @type {string} */ (todo.shift());
         sceneCanvas(region, st.sceneSeed(region));
@@ -311,14 +328,15 @@ export class WildsView {
     const tabs = clear(this.tabs);
     for (const r of REGIONS) {
       const ok = this.unlocked(r);
-      tabs.appendChild(btn(r.name, () => {
+      tabs.appendChild(btn(r.name, async () => {
         if (!ok) { toast(r.name, `${RANKS[r.rank].name} · ${r.sales} successful sales unlock passage.`, 'lock'); return; }
+        try { await loadIngredientBiome(r.id); } catch (e) { toast('Artwork unavailable', e.message, 'close'); return; }
         this.region = r.id; this.bgKey = ''; this.fallen = {}; this.shakes = {}; this.energy = {}; this.hits = {}; this.rubble = []; this.puffs = []; this.pops = []; this.flashes = []; this.drag = null; audio.play('page'); this.refresh();
       }, { cls: (this.region === r.id ? 'active ' : '') + (ok ? '' : 'locked'), icon: ok ? (r.magical ? 'wisp' : r.id === 'quarry' ? 'pick' : r.id === 'river' ? 'drop' : r.id === 'meadow' ? 'rose' : r.id === 'netherwood' ? 'shroom' : 'tree') : 'lock', act: 'region-' + r.id }));
     }
     const region = REGIONS.find((r) => r.id === this.region);
     settleTraveller(st.traveller);
-    clear(this.info).append(h('b', { text: region.name }), ` · ${region.category} · ${EFFECT_BY_KEY[region.dominant].label} · ${region.creature}`,
+    clear(this.info).append(h('b', { text: region.name }), ` · ${region.category} · ${EFFECT_BY_KEY[region.dominant].label} · ${NATIVE_SPECIES[region.creature]?.label || region.creature}`,
       btn(lab.sandbox ? 'Regenerate sandbox' : `Regenerate · 1 Traveller Coin (${st.traveller.balance}/${TRAVEL.capacity})`, () => {
         const r = st.regenerateBiome(this.region, Date.now(), lab.sandbox);
         if (!r.ok) { toast('Travel', r.reason, 'coin'); return; }
@@ -326,6 +344,13 @@ export class WildsView {
         if (lab.sandbox) for (const d of st.deposits) sandboxDeposit(d);
         this.interaction = null; this.refresh(); lab.save(); lab.tutorial?.notify('regenerate');
       }, { act: 'regenerate-biome', icon: 'coin', disabled: !lab.sandbox && st.traveller.balance < 1 }));
+    if (this.region === 'forest' && st.tutorial.active && !st.tutorial.done && !st.colony.rabbits.some((r) => r.look.kind === 'fox' && r.alive)) {
+      this.info.append(btn('Welcome fox', () => {
+        const w = this.warren(), fox = w?.rabbits.find((r) => !r.dead && r.kind === 'fox');
+        if (!fox) { toast('Fox', 'Look around Whisperwood for its native fox.', 'rabbit'); return; }
+        fox.hits = 0; this.takeHome(w, fox); this.refresh();
+      }, { act: 'tutorial-fox', icon: 'rabbit' }));
+    }
     if (region.interaction) this.info.append(btn('Touch scenery', () => this.interaction?.activate(), { act: 'biome-feature', title: FEATURE_HINTS[region.interaction], icon: 'wisp' }), h('span', { class: 'feature-hint', text: FEATURE_HINTS[region.interaction] }));
     const list = clear(this.list);
     const now = Date.now();
@@ -340,7 +365,7 @@ export class WildsView {
       lab.sandbox || weather.id === 'clear' ? null : h('div', { class: 'muted', text: !lab.sandbox && weather.id === 'rain' ? 'Rain wets the living growth. Harvested specimens stay depleted until this biome is regenerated.' : !lab.sandbox && weather.id === 'storm' ? 'Wind scatters a quarter of every outdoor harvest. Depleted mineral seams remain empty.' : weather.desc }),
       h('div', { class: 'row wrap seg tap-mode' }, h('span', { text: 'Tap to:' }),
         btn('Harvest', () => { this.mode = 'harvest'; audio.play('click'); this.refresh(); }, { cls: 'small' + (this.mode === 'harvest' ? ' active' : ''), icon: 'rose', act: 'mode-harvest' }),
-        lab.sandbox ? btn('Water', () => { this.mode = 'water'; audio.play('click'); this.refresh(); }, { cls: 'small' + (this.mode === 'water' ? ' active' : ''), icon: 'drop', act: 'mode-water' }) : null,
+        null,
         this.mode === 'water' ? h('span', { class: 'muted', text: 'tap or drag across the scene to water the plants there' }) : null),
       // (the Free Experiment's bottomless stores have no use for digging plants out whole)
       this.mode === 'harvest' && !lab.sandbox ? h('div', { class: 'row wrap seg harvest-mode' }, h('span', { text: 'Harvest:' }), mode('Careful', false, 'harvest-careful'), mode('Thorough ×2', true, 'harvest-thorough'),
@@ -365,7 +390,7 @@ export class WildsView {
       const barI = h('i', { style: { width: Math.round(s.fraction * 100) + '%' } });
       const meta = h('div', { class: 'meta', text: `${stock} · ${when}` });
       const soil = lab.sandbox && d.botanical ? h('div', { class: 'meta soil', text: this.soilText(d, s) }) : null;
-      const wbtn = lab.sandbox && d.botanical && !locked ? btn('Water', () => this.waterStand(d), { cls: 'small water', icon: 'drop', disabled: s.plants.every((p) => p.stage === 'mature'), act: 'water-' + d.id, title: 'Water every growing plant of this stand' }) : null;
+      const wbtn = null;
       this.rows[d.id] = { barI, meta, g, locked, take, soil, wbtn, card: /** @type {HTMLElement | null} */ (null) };
       const notes = lab.sandbox ? [] : plan.factors.filter((f) => f.why !== 'satchel' && !f.why.startsWith('thorough')).map((f) => f.why);
       const tool = plan.method.tool ? equipmentById(plan.method.tool) : null;
@@ -391,7 +416,7 @@ export class WildsView {
     }
     if (!list.childElementCount) list.appendChild(h('div', { class: 'muted small empty-list', text: 'Nothing gathered here yet. Slide a finger across a ripe plant to shake its fruit loose, then tap what falls. Each ingredient is listed here once you have gathered it for the first time.' }));
     clear(this.foot).append(lab.sandbox
-      ? 'Sandbox plants regrow and can be watered. Campaign populations are finite.'
+      ? 'Sandbox plants regrow for free experiments. Watering belongs to the personal garden.'
       : `Room for ${st.cap.storage} ml of each ingredient. This generation never regrows. Gather propagation materials for your garden, or spend a Traveller Coin for a new population. Coins recharge over time and may be gifted by delighted customers.`);
     this.paintBg();
     this.grow();

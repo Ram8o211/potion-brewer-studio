@@ -8,7 +8,7 @@
 // Frames and silhouettes are plain pixel buffers (usable in Node); canvases
 // are made only where there is a DOM.
 
-import { artRevision } from '../studio/direction.js';
+import { artRevision, artDomain } from '../studio/direction.js';
 import { describe } from '../visual/descriptor.js';
 import { plantFrame, iconFrame, ICON_PX } from '../visual/render.js';
 import { identityKey, validIdentity } from '../visual/identity.js';
@@ -19,6 +19,7 @@ import { rawSprite } from './scenes.js';
 import { mountsOfForm, frameMount, growthParams } from '../visual/growth.js';
 import { hashString } from '../core/rng.js';
 import { INK } from '../visual/style.js';
+import { ingredientAssetFrame, ingredientAssetInfo, ingredientArtRevision } from '../visual/ingredient-assets.js';
 
 export { ICON_PX };
 
@@ -44,7 +45,7 @@ export function speciesOf(m) {
 const cache = new Map();
 const CACHE_MAX = 500;
 function cached(k, make) {
-  k = artRevision() + ":" + k;
+  k = ingredientArtRevision() + ':' + artRevision() + ":" + k;
   let v = cache.get(k);
   if (v) return v;
   v = make();
@@ -207,6 +208,12 @@ export function iconFrameOf(m) {
  * @param {any} m material @param {number} [fill] 0..1 (unused by icons; remains shrink with it)
  */
 export function ingredientSprite(m, fill = 1) {
+  const shipped = !m?.legacy && !artDomain('ingredients', m?.wild?.key)?.asset && ingredientAssetFrame(m?.wild?.key || m?.speciesId, 'icon', 64);
+  if (shipped) {
+    const cv = shipped.pix.toCanvas(); cv.style.imageRendering = 'pixelated';
+    cv.dataset.asset = ingredientAssetInfo(m.wild.key, 'icon').asset;
+    return cv;
+  }
   const f = m && m.wild ? iconFrameOf(m) : null;
   if (!f) return rawSprite(m.shape || 'stone', m.look || m.color, fill);
   // the very picture it has in the wilds: the grown plant (or crystal, stone, shell) on the mount its species is found on
@@ -221,5 +228,18 @@ export function ingredientSprite(m, fill = 1) {
   const ctx = /** @type {CanvasRenderingContext2D} */ (cv.getContext('2d'));
   // (what hangs from its hold hangs from the top of the box; the rest stands on its floor)
   ctx.drawImage(sp.cv, Math.round((S - sp.w) / 2), frameMount(mount) === 'hang' ? 1 : S - 1 - sp.h);
+  return cv;
+}
+
+/** A species' actual propagation or growth image, with the same variant. */
+export function growthSprite(m, stage) {
+  if (stage !== 'seed' && artDomain('ingredients', m?.wild?.key)?.asset) {
+    const custom = plantFrameOf(m, stage === 'sprout' ? 'sprout' : stage === 'young' ? 'ripe' : 'mature');
+    if (custom) return custom.pix.toCanvas();
+  }
+  const f = ingredientAssetFrame(m?.wild?.key, stage, 64);
+  if (!f) return ingredientSprite(m);
+  const cv = f.pix.toCanvas(); cv.style.imageRendering = 'pixelated';
+  cv.dataset.asset = ingredientAssetInfo(m.wild.key, stage).asset;
   return cv;
 }

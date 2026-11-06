@@ -210,7 +210,17 @@ test('plants grow where their species is found — on open ground, hanging from 
   const mounts = new Set();
   for (const r of REGIONS) {
     const st = GameState.create('place-1', { tutorial: false });
+    st.reputation = 800; st.stats.served = 36;
     st.unlockedBiomes.push(r.id);
+    // Placement coverage must not depend on a rare species happening to spawn
+    // in an apprentice's random roster. Exercise representative native ground,
+    // wall and hanging forms while retaining every geometry/occlusion assertion.
+    const pool = st.world.materials.filter((m) => m.wild?.region === r.id && !m.arcaneVariant && !m.product);
+    const examples = [...new Set([...pool.slice(0, 3),
+      pool.find((m) => mountsOf(m).some(([mount]) => mount === 'wall' || mount === 'trunk')),
+      pool.find((m) => mountsOf(m).some(([mount]) => ['hang', 'bough', 'ceiling'].includes(mount)))].filter(Boolean))];
+    st.gathering.instances[r.id] = { version: 1, seed: st.sceneSeed(r.id), revision: 0, captured: [], roster: examples.map((m) => ({ id: m.id, count: 1 })) };
+    st.gathering.nodes = {}; st._deposits = null;
     const seed = st.sceneSeed(r.id), ground = new PlantGround(r.id, seed), sc = sceneOf(r.id, seed);
     const plants = [];
     for (const d of st.deposits.filter((x) => x.region === r.id)) {

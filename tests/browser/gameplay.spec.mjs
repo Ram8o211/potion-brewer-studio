@@ -6,7 +6,7 @@ import { watchErrors, shot, newGame, lab, drag, stirPath, pourDose, wholeSolids,
 
 test('first commission: brew, test on a subject, bottle and serve', async ({ page }, info) => {
   const errors = watchErrors(page);
-  await newGame(page, { tutorial: true });
+  await newGame(page, { tutorial: true, seed: 'first-brew-tour' });
   await page.click('[data-act=tutorial-next]');
   await page.waitForTimeout(200);
   await page.click('[data-act=tutorial-next]').catch(() => {});
@@ -51,6 +51,10 @@ test('first commission: brew, test on a subject, bottle and serve', async ({ pag
   }, null, { timeout: 90_000, polling: 500 });
   await lab(page, (l) => { l.speed = 1; });
   await page.locator('input[aria-label="Fire and frost control"]').fill('0');
+  // Extraction happens after the initial stir. Mix the extracted liquid again
+  // before drawing a tap sample, instead of testing a stratified bottom layer.
+  await page.click('[data-act=tool-spoon]');
+  await drag(page, await stirPath(page, 3, 100));
   await shot(page, info, 'tutorial-heated');
   // the trial: a real 10 ml dose leaves the cauldron and reveals vitality
   await page.click('[data-act=tab-trials]');

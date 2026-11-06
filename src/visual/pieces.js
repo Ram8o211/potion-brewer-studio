@@ -16,6 +16,7 @@ import { hslToRgb } from '../core/color.js';
 import { identityOf, identityKey, validIdentity } from './identity.js';
 import { describe } from './descriptor.js';
 import { pieceFrame, pieceArt, PIECE_PX, PIECE_GRID } from './render.js';
+import { ingredientArtRevision } from './ingredient-assets.js';
 
 /** Cell size in the atlas (art pixels) and the silhouette grid of a piece. */
 export const PIECE_CELL = PIECE_PX;
@@ -69,7 +70,7 @@ export function registerSpecies(def) {
 export function ensurePieces(key) {
   if (!(key in INDEX)) return null;
   const id = shown[key] || (shown[key] = archetypeIdentity(key));
-  const ik = artRevision() + ":" + identityKey(id);
+  const ik = ingredientArtRevision() + ':' + artRevision() + ":" + identityKey(id);
   if (painted[key] === ik) return masks[key];
   const d = describe(id), row = INDEX[key] * PIECE_CELL, W = PIECE_ART.width;
   const out = [];

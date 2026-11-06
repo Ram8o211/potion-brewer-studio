@@ -68,6 +68,8 @@ export class TrialsView {
     return d < SIM.ML_PER_PARTICLE ? this.lab.trialDose : Math.floor(d / SIM.ML_PER_PARTICLE) * SIM.ML_PER_PARTICLE;
   }
 
+  dispose() { this.hutch.crisp?.dispose(); }
+
   build() {
     const lab = this.lab, st = lab.state;
     const el = clear(this.el);

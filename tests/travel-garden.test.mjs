@@ -133,3 +133,38 @@ test('seed rolls are deterministic and rarity-aware; Arcane drops are less frequ
     assert.equal(seedDrop(st.seed, 'same-event', m), seedDrop(st.seed, 'same-event', m));
   }
 });
+
+
+test('regeneration follows rarity weights without forcing rare species into small pools', () => {
+  const st = GameState.create('weighted-ecology', { tutorial: false });
+  const hits = Object.fromEntries(Object.keys(RARITIES).map((r) => [r, 0]));
+  const n = 2000;
+  for (let i = 1; i <= n; i++) {
+    const roster = makeBiomeInstance(st.world, st.lookup, 'skyshard', i, 4).roster.filter((x) => !st.lookup(x.id).arcaneVariant);
+    for (const r of Object.keys(hits)) if (roster.some((x) => st.lookup(x.id).rarity === r)) hits[r]++;
+  }
+  for (const [r, rule] of Object.entries(RARITIES)) {
+    const expected = 1 - (1 - rule.spawnWeight / 100) ** 6;
+    assert.ok(Math.abs(hits[r] / n - expected) < 0.04, r + ' tracks independent weighted draws');
+  }
+  assert.ok(hits.legendary < n * 0.015, 'a six-slot biome does not force a Legendary find');
+});
+
+test('only the first Common tutorial crop gets accelerated growth', () => {
+  const st = GameState.create('demo-crop', { tutorial: true });
+  st.garden.unlocked = true; st.garden.seeds['wild-silverleaf'] = 2;
+  assert.ok(st.plantSeed('plot-0', 'wild-silverleaf').ok);
+  assert.equal(st.garden.plots[0].crop.tutorial, true);
+  assert.ok(st.plantSeed('plot-1', 'wild-silverleaf').ok);
+  assert.equal(st.garden.plots[1].crop.tutorial, false);
+  const back = GameState.fromJSON(JSON.parse(JSON.stringify(st.toJSON())));
+  assert.equal(back.garden.demoUsed, true);
+});
+
+test('new apprentice populations do not introduce Exotic effect channels early', () => {
+  const st = GameState.create('natural-progression', { tutorial: false });
+  for (let i = 0; i < 30; i++) {
+    const roster = makeBiomeInstance(st.world, st.lookup, 'forest', i, 0).roster;
+    for (const x of roster) for (const key of ['arcana', 'transformation', 'levitation', 'invisibility', 'phasing', 'temporal']) assert.equal(st.lookup(x.id).effects[key] || 0, 0);
+  }
+});

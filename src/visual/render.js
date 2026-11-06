@@ -5,12 +5,14 @@
 // the same pixels; visual/sprites.js caches them as canvases.
 
 import { boundPixels } from '../studio/asset-runtime.js';
+import { artRevision } from '../studio/direction.js';
 import { FAMILIES } from './families/index.js';
 import { rasterize } from './raster.js';
 import { Pixels } from './pixels.js';
 import { inked } from './style.js';
 import { growFrame } from './growth.js';
 import { noise2, hash2 } from './noise.js';
+import { ingredientAssetFrame, ingredientArtRevision } from './ingredient-assets.js';
 
 /** Icon size (art pixels, square). */
 export const ICON_PX = 32;
@@ -50,6 +52,9 @@ export function plantFrame(d, stage, o = {}) {
     }
     return { pix: custom, ax: center, ay: size - 1, glints: [] };
   }
+  const shipped = (!d.id.origin || d.id.origin === 'catalog-v1') && ingredientAssetFrame(d.id.key, stage === 0 ? 'sprout' : stage === 1 ? 'young' : 'mature',
+    Math.max(20, Math.round(Math.max(d.size.w, d.size.h) * (o.k || 1))), o.mount, o.flip);
+  if (shipped) return shipped;
   return growFrame(d, stage, o);
 }
 
@@ -57,6 +62,8 @@ export function plantFrame(d, stage, o = {}) {
 export function iconFrame(d) {
   const custom = boundPixels(d.id.key, d.id.seed, 2, ICON_PX - 2, ICON_PX - 2);
   if (custom) { iconRasters.set(d, custom); return { pix: inked(custom), ax: ICON_PX / 2, ay: ICON_PX, glints: [] }; }
+  const shipped = (!d.id.origin || d.id.origin === 'catalog-v1') && ingredientAssetFrame(d.id.key, 'icon', ICON_PX);
+  if (shipped) return shipped;
   const model = FAMILIES[d.family].icon(d);
   model.fit(ICON_PX - 2, ICON_PX - 2, { margin: 0.5 });
   const r = rasterize(model, ICON_PX - 2, ICON_PX - 2, d.pal, { seed: d.seeds.surface ^ 0x1c0, outline: false });
@@ -68,7 +75,7 @@ export function iconFrame(d) {
 const ICON_IN = ICON_PX - 2;
 
 /** descriptor → the four shards its icon breaks into @type {WeakMap<object, {sx:number[], sy:number[], seed:number}>} */
-const shards = new WeakMap();
+let shards = new WeakMap();
 
 /**
  * The icon broken into four shards: four seed points spread over its drawn
@@ -79,6 +86,7 @@ const shards = new WeakMap();
  * @param {import('./descriptor.js').Descriptor} d
  */
 function shardsOf(d) {
+  refreshAssetRasters();
   let got = shards.get(d);
   if (got) return got;
   const lo = shardsLow(d);
@@ -160,13 +168,16 @@ function shardArt(d, v, size) {
 }
 
 /** descriptor → the icon's raster, uninked (iconFrame's inner square) @type {WeakMap<object, Pixels>} */
-const iconRasters = new WeakMap();
+let iconRasters = new WeakMap();
 /** @param {import('./descriptor.js').Descriptor} d */
 function iconRaster(d) {
+  refreshAssetRasters();
   let p = iconRasters.get(d);
   if (p) return p;
   const custom = boundPixels(d.id.key, d.id.seed, 2, ICON_IN, ICON_IN);
   if (custom) { iconRasters.set(d, custom); return custom; }
+  const shipped = (!d.id.origin || d.id.origin === 'catalog-v1') && ingredientAssetFrame(d.id.key, 'icon', ICON_IN);
+  if (shipped) { iconRasters.set(d, shipped.pix); return shipped.pix; }
   const model = FAMILIES[d.family].icon(d);
   model.fit(ICON_IN, ICON_IN, { margin: 0.5 });
   p = rasterize(model, ICON_IN, ICON_IN, d.pal, { seed: d.seeds.surface ^ 0x1c0, outline: false }).pix;
@@ -175,7 +186,7 @@ function iconRaster(d) {
 }
 
 /** descriptor → the icon's opaque pixels in its inner square @type {WeakMap<object, Uint8Array>} */
-const lowMasks = new WeakMap();
+let lowMasks = new WeakMap();
 /** @param {import('./descriptor.js').Descriptor} d */
 function shardsLow(d) {
   let m = lowMasks.get(d);
@@ -236,3 +247,11 @@ export function pieceFrame(d, v) {
 }
 
 export { Pixels };
+
+let rasterRevision = '';
+function refreshAssetRasters() {
+  const revision = `${ingredientArtRevision()}:${artRevision()}`;
+  if (rasterRevision === revision) return;
+  rasterRevision = revision;
+  shards = new WeakMap(); iconRasters = new WeakMap(); lowMasks = new WeakMap();
+}

@@ -5,12 +5,13 @@ import { seedDrop } from './travel.js';
 export const GARDEN = Object.freeze({ initialPlots: 3, maxPlots: 18, offlineCapMs: 8 * 3600000, harvestMl: 50 });
 export const FACILITIES = Object.freeze({ soil: { label: 'Soil plot', price: 0, rank: 0 }, fungal: { label: 'Fungal chamber', price: 80, rank: 1 }, mineral: { label: 'Mineral bed', price: 90, rank: 1 }, exotic: { label: 'Exotic planter', price: 240, rank: 3 }, arcane: { label: 'Arcane chamber', price: 180, rank: 2 } });
 export function createGarden(now = Date.now()) {
-  return { version: 1, seeds: /** @type {Record<string, number>} */ ({}), plots: /** @type {any[]} */ (Array.from({ length: GARDEN.initialPlots }, (_, i) => ({ id: 'plot-' + i, facility: 'soil', crop: null }))), serial: 0, time: 0, wall: now, unlocked: false };
+  return { version: 1, seeds: /** @type {Record<string, number>} */ ({}), plots: /** @type {any[]} */ (Array.from({ length: GARDEN.initialPlots }, (_, i) => ({ id: 'plot-' + i, facility: 'soil', crop: null }))), serial: 0, time: 0, wall: now, unlocked: false, demoUsed: false };
 }
 export function normalizeGarden(raw, lookup, now = Date.now()) {
   const g = createGarden(now);
   if (!raw || typeof raw !== 'object') return g;
   g.unlocked = !!raw.unlocked;
+  g.demoUsed = !!raw.demoUsed || (Array.isArray(raw.plots) && raw.plots.some((p) => p?.crop?.tutorial));
   if (Number.isFinite(raw.wall) && raw.wall >= 0) g.wall = raw.wall;
   if (Number.isFinite(raw.time) && raw.time >= 0) g.time = raw.time;
   if (Number.isSafeInteger(raw.serial) && raw.serial >= 0) g.serial = raw.serial;
@@ -50,7 +51,9 @@ export function plantSeed(st, plotId, id, now = Date.now()) {
   settleGarden(g, now);
   if (!g.unlocked || !p || p.crop || !(g.seeds[id] > 0) || !m || !canCultivate(p, m)) return { ok: false, reason: 'Choose an empty compatible plot and an available propagation material.' };
   g.seeds[id]--;
-  p.crop = { id: `${st.seed}:crop:${g.serial++}`, materialId: id, x: 0, y: 0, born: g.time, g: 0, t: g.time, w: 0.25, tutorial: st.tutorial.active && !st.tutorial.done };
+  const demo = !g.demoUsed && id === 'wild-silverleaf' && st.tutorial.active && !st.tutorial.done && st.stats.served === 0;
+  if (demo) g.demoUsed = true;
+  p.crop = { id: `${st.seed}:crop:${g.serial++}`, materialId: id, x: 0, y: 0, born: g.time, g: 0, t: g.time, w: 0.25, tutorial: demo };
   return { ok: true };
 }
 export function waterPlot(st, plotId, now = Date.now()) {

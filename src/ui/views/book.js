@@ -11,6 +11,7 @@ import * as panels from '../panels.js';
 import { SUBJECT_BY_ID } from '../../game/experiments.js';
 import { EFFECTS, EFFECT_BY_KEY, EFFECT_KEYS } from '../../alchemy/effects.js';
 import { rgbToHex } from '../../core/color.js';
+import { RARITIES } from '../../materials/rarity.js';
 
 const TABS = [
   ['recipes', 'Recipes', 'book'], ['trials', 'Trials', 'dropper'], ['laws', 'Laws', 'eye'], ['ingredients', 'Ingredients', 'leaf'],
@@ -108,9 +109,10 @@ export class BookView {
       const seen = lab.sandbox || (st.knows(id) && (m.tier <= st.rank || st.stock(id) > 0 || !!m.wild));
       const fx = m.remains ? [] : EFFECT_KEYS.map((k) => [k, (m.effects && m.effects[k]) || 0]).filter(([, v]) => Math.abs(v) >= 1).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
       list.appendChild(h('div', { class: 'item parch' + (seen ? '' : ' locked') },
-        panels.jarCanvas(m, 18, 24),
+        seen ? panels.jarCanvas(m, 18, 24) : icon('help'),
         h('div', {},
           h('div', { class: 'title', text: seen ? m.name : '???' }),
+          seen && m.rarity ? h('div', { class: 'meta', text: `${RARITIES[m.rarity].label}${m.arcaneVariant ? ' · Arcane' : ' · Ordinary'} · ${st.garden.seeds[id] || 0} seeds` }) : null,
           seen ? h('div', { class: 'meta' }, m.remains ? h('span', { class: 'muted', text: 'effects unknown — test it' }) : fx.length ? fx.map(([k, v]) => h('span', { class: 'fx-chip', title: EFFECT_BY_KEY[k].label }, icon(EFFECT_BY_KEY[k].icon, 'sm'), ` ${Math.round(v)}`)) : h('span', { class: 'muted', text: 'no magical effect' })) : h('div', { class: 'meta', text: m.wild && !st.knows(id) ? 'Not yet gathered.' : 'Not yet available.' }),
           seen ? h('div', { class: 'meta muted', text: `${m.remains ? `remains of ${m.remains.rabbitName}` : m.wild ? `wild · ${m.wild.region}` : m.form}${m.solubility > 0.03 ? ' · dissolves' : ''}${m.binder > 0.3 ? ' · forms dough' : ''}` }) : null),
         seen ? btn('', () => panels.openIngredient(lab, id), { icon: 'lens', cls: 'icon', title: 'Inspect', act: 'inspect-' + id }) : icon('lock')));

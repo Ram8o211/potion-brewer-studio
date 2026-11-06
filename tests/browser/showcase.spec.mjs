@@ -16,13 +16,16 @@ test('an awakened brew draws its effects\' patterns boldly', async ({ page }, in
   const errors = watchErrors(page);
   await newGame(page, { tutorial: false, seed: 'showcase-glow' });
   await pourRole(page, 'water', 125);
-  await pourRole(page, 'wild-silverleaf', 100);
+  await lab(page, (l) => { l.state.inventory['wild-silverleaf@arcane'] = 100; l.buildShelf(); });
+  await pourRole(page, 'wild-silverleaf@arcane', 100);
   await crushInPot(page);
-  // stir until even, then heat past the blend's threshold with the fire control
+  // 100 ml is 20 simulation volumes: awaken more than half of the eligible
+  // Arcane matter, then verify the actual awakened species below.
+  // Stir until even, then heat past the blend's threshold with the fire control
   await lab(page, (l) => { l.setAutoStir(true); });
   await page.waitForTimeout(2500);
   await lab(page, (l) => { l.setAutoStir(false); l.setFurnace(1); l.speed = 4; });
-  await page.waitForFunction(() => (/** @type {any} */ (window)).__alchemist.screen.sim.awakened > 20, null, { timeout: 90_000, polling: 500 });
+  await page.waitForFunction(() => (/** @type {any} */ (window)).__alchemist.screen.sim.awakened > 10, null, { timeout: 90_000, polling: 500 });
   await lab(page, (l) => { l.setFurnace(0); l.speed = 1; });
   await page.waitForTimeout(600);
   const inv = await lab(page, (l) => l.sim.inventory());

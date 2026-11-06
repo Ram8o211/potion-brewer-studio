@@ -133,7 +133,7 @@ export class StudioScreen {
   }
   showGuide() {
     const guides = {
-      components: ['Choose a plant or component in the library.', 'Use Shape to drag generated geometry or its corner handle to resize; use Pencil or Eraser for pixel corrections.', 'Watch the assembled result on the right; adjust growth and attachments in the tabs below.'],
+      components: ['Draw a component: choose a plant or component in the library.', 'Use Shape to drag generated geometry or its corner handle to resize; use Pencil or Eraser for pixel corrections.', 'Watch the assembled result on the right; adjust growth and attachments in the tabs below.'],
       ingredients: ['Choose an ingredient species in Domain target.', 'Select its growth stage and see the icon, plant and fragments together.', 'Bind a reusable component graph, or open the native morphology details for precise adjustments.'],
       environments: ['Choose a biome in Domain target.', 'Pick Rock, Soil, Erase, Water, Lava, Place prop or Add light above the preview.', 'After placement, drag a prop or light center to move it; drag the square handle to resize. Sliders adjust the rest.'],
       creatures: ['Choose a creature.', 'Adjust its anatomy and pose while watching the live animation.', 'Preview mutations and magical effects before applying the art profile.'],
@@ -482,6 +482,7 @@ export class StudioScreen {
         const g = this.component.geometry[hit.index];
         this.geometryDrag = { before: clone(this.project), pointerId: e.pointerId,
           action: hit.action, index: hit.index, x: hit.x, y: hit.y,
+          screenX: e.clientX, screenY: e.clientY, zoom: this.zoom,
           source: { x: g.x, y: g.y, width: g.width, height: g.height } };
         this.draw(); return;
       }
@@ -503,10 +504,9 @@ export class StudioScreen {
     cv.addEventListener('pointermove', (e) => {
       const d = this.geometryDrag;
       if (d && e.pointerId === d.pointerId) {
-        const b = cv.getBoundingClientRect();
-        const x = (e.clientX - b.left - this.origin[0]) / this.zoom;
-        const y = (e.clientY - b.top - this.origin[1]) / this.zoom;
-        const dx = x - d.x, dy = y - d.y, g = this.component.geometry[d.index];
+        // Layout/preview redraws can move the canvas origin during a drag.
+        // Measure the gesture from its captured pointer and zoom instead.
+        const dx = (e.clientX - d.screenX) / d.zoom, dy = (e.clientY - d.screenY) / d.zoom, g = this.component.geometry[d.index];
         if (!g) return;
         if (d.action === 'resize') {
           g.width = Math.max(1, Math.min(32, Math.round(d.source.width + dx * 2)));

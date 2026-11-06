@@ -1,4 +1,4 @@
-// The Alchemist's Shop 2.3.0 — bundled build
+// The Alchemist's Shop 2.4.0 — bundled build
 // src/core/color.js
 const __m3 = (() => {
 function srgbToLinear(c) {
@@ -136,33 +136,6 @@ const hh = d.h !== undefined ? hueToward(h, d.h, d.hT ?? 1) : h + (d.dh || 0);
 return fromLch(L + (d.dL || 0), Math.max(0, C * (d.cK ?? 1) + (d.dC || 0)), (hh + 360) % 360);
 }
 return { toLch, fromLch, hueDiff, hueToward, pack, unpack, mixPacked, hex, ramp, shift };
-})();
-// src/game/biomes.js
-const __m6 = (() => {
-const BIOMES = [
-{ id: 'forest', name: 'Whisperwood', category: 'natural', dominant: 'vitality', creature: 'fox', rank: 0, sales: 0, sky: [0.36, 0.52, 0.42], desc: 'Old oaks, healing herbs and silver leaves.' },
-{ id: 'meadow', name: 'Sunlit Meadow', category: 'natural', dominant: 'love', creature: 'hare', rank: 0, sales: 1, sky: [0.55, 0.72, 0.9], desc: 'Warm meadows, flowers and affectionate magic.' },
-{ id: 'river', name: 'Willow Bank', category: 'natural', dominant: 'frost', creature: 'otter', rank: 1, sales: 3, sky: [0.5, 0.66, 0.78], desc: 'Cool water, willow roots and winter pearls.' },
-{ id: 'quarry', name: 'Ironstone Quarry', category: 'natural', dominant: 'strength', creature: 'beetle', rank: 1, sales: 5, sky: [0.62, 0.6, 0.58], desc: 'Mineral seams and hardy stone-borne life.' },
-{ id: 'netherwood', name: 'Netherwood', category: 'natural', dominant: 'toxicity', creature: 'cavemoth', rank: 2, sales: 8, sky: [0.1, 0.12, 0.18], desc: 'A deep fungal forest, rich with poisonous spores.' },
-{ id: 'crags', name: 'Ember Crags', category: 'natural', dominant: 'fire', creature: 'salamander', rank: 2, sales: 12, sky: [0.42, 0.2, 0.16], desc: 'Volcanic ledges and heat-blooming ingredients.' },
-{ id: 'moonfen', name: 'Moonfen', category: 'exotic', dominant: 'arcana', creature: 'wisp', rank: 3, sales: 16, sky: [0.16, 0.18, 0.32], desc: 'Luminous marshes and spectral ripples.', interaction: 'ripple' },
-{ id: 'skyshard', name: 'Skyshard Archipelago', category: 'exotic', dominant: 'levitation', creature: 'cloudray', rank: 3, sales: 19, sky: [0.4, 0.72, 0.92], desc: 'Floating islands anchored by springing sky crystals.', interaction: 'spring' },
-{ id: 'morphgrove', name: 'Morphgrove', category: 'exotic', dominant: 'transformation', creature: 'mimiclizard', rank: 3, sales: 22, sky: [0.32, 0.52, 0.48], desc: 'Living terrain and plants that change their shape.', interaction: 'morph' },
-{ id: 'veil', name: 'Veil Hollow', category: 'exotic', dominant: 'invisibility', creature: 'shroudmoth', rank: 4, sales: 26, sky: [0.24, 0.28, 0.38], desc: 'Disturb the mist to uncover hidden ruins.', interaction: 'mist' },
-{ id: 'ghostglass', name: 'Ghostglass Reef', category: 'exotic', dominant: 'phasing', creature: 'axolotl', rank: 4, sales: 30, sky: [0.08, 0.24, 0.34], desc: 'Spectral coral and crystals that drift between states.', interaction: 'phase' },
-{ id: 'chronoglass', name: 'Chronoglass Wastes', category: 'exotic', dominant: 'temporal', creature: 'scarab', rank: 4, sales: 36, sky: [0.56, 0.35, 0.5], desc: 'Broken arches and sandfalls outside ordinary time.', interaction: 'time' },
-].map((b) => Object.freeze({ ...b, magical: b.category === 'exotic' }));
-const BIOME_BY_ID = Object.fromEntries(BIOMES.map((b) => [b.id, b]));
-function biomeUnlocked(st, id) {
-const b = BIOME_BY_ID[id];
-return !!b && (id === 'forest' || !!st.unlockedBiomes?.includes(id) || (st.rank >= b.rank && (st.stats?.served || 0) >= b.sales));
-}
-function refreshBiomeUnlocks(st) {
-st.unlockedBiomes = [...new Set(['forest', ...(st.unlockedBiomes || []), ...BIOMES.filter((b) => biomeUnlocked(st, b.id)).map((b) => b.id)])];
-return st.unlockedBiomes;
-}
-return { BIOMES, BIOME_BY_ID, biomeUnlocked, refreshBiomeUnlocks };
 })();
 // src/reactions/compatibility.js
 const __m8 = (() => {
@@ -385,6 +358,39 @@ if (a < 40) return 'strong';
 return 'intense';
 }
 return { EFFECTS, NATURAL_EFFECTS, EXOTIC_EFFECTS, NE, EFFECT_KEYS, EFFECT_INDEX, EFFECT_BY_KEY, E, ASPECT_TO_EFFECT, EFFECT_CUTOFF, cutoffEffects, effectVector, toRecord, fromRecord, cutoffDormant, extractedEffects, interact, compositionEffects, theoryOf, sampleEffects, dominantEffect, potencyWord };
+})();
+// src/game/biomes.js
+const __m6 = (() => {
+const { EXOTIC_EFFECTS } = __m7;
+const BIOMES = [
+{ id: 'forest', name: 'Whisperwood', category: 'natural', dominant: 'vitality', creature: 'fox', rank: 0, sales: 0, sky: [0.36, 0.52, 0.42], desc: 'Old oaks, healing herbs and silver leaves.' },
+{ id: 'meadow', name: 'Sunlit Meadow', category: 'natural', dominant: 'love', creature: 'hare', rank: 0, sales: 1, sky: [0.55, 0.72, 0.9], desc: 'Warm meadows, flowers and affectionate magic.' },
+{ id: 'river', name: 'Willow Bank', category: 'natural', dominant: 'frost', creature: 'otter', rank: 1, sales: 3, sky: [0.5, 0.66, 0.78], desc: 'Cool water, willow roots and winter pearls.' },
+{ id: 'quarry', name: 'Ironstone Quarry', category: 'natural', dominant: 'strength', creature: 'beetle', rank: 1, sales: 5, sky: [0.62, 0.6, 0.58], desc: 'Mineral seams and hardy stone-borne life.' },
+{ id: 'netherwood', name: 'Netherwood', category: 'natural', dominant: 'toxicity', creature: 'cavemoth', rank: 2, sales: 8, sky: [0.1, 0.12, 0.18], desc: 'A deep fungal forest, rich with poisonous spores.' },
+{ id: 'crags', name: 'Ember Crags', category: 'natural', dominant: 'fire', creature: 'salamander', rank: 2, sales: 12, sky: [0.42, 0.2, 0.16], desc: 'Volcanic ledges and heat-blooming ingredients.' },
+{ id: 'moonfen', name: 'Moonfen', category: 'exotic', dominant: 'arcana', creature: 'wisp', rank: 3, sales: 16, sky: [0.16, 0.18, 0.32], desc: 'Luminous marshes and spectral ripples.', interaction: 'ripple' },
+{ id: 'skyshard', name: 'Skyshard Archipelago', category: 'exotic', dominant: 'levitation', creature: 'cloudray', rank: 3, sales: 19, sky: [0.4, 0.72, 0.92], desc: 'Floating islands anchored by springing sky crystals.', interaction: 'spring' },
+{ id: 'morphgrove', name: 'Morphgrove', category: 'exotic', dominant: 'transformation', creature: 'mimiclizard', rank: 3, sales: 22, sky: [0.32, 0.52, 0.48], desc: 'Living terrain and plants that change their shape.', interaction: 'morph' },
+{ id: 'veil', name: 'Veil Hollow', category: 'exotic', dominant: 'invisibility', creature: 'shroudmoth', rank: 4, sales: 26, sky: [0.24, 0.28, 0.38], desc: 'Disturb the mist to uncover hidden ruins.', interaction: 'mist' },
+{ id: 'ghostglass', name: 'Ghostglass Reef', category: 'exotic', dominant: 'phasing', creature: 'axolotl', rank: 4, sales: 30, sky: [0.08, 0.24, 0.34], desc: 'Spectral coral and crystals that drift between states.', interaction: 'phase' },
+{ id: 'chronoglass', name: 'Chronoglass Wastes', category: 'exotic', dominant: 'temporal', creature: 'scarab', rank: 4, sales: 36, sky: [0.56, 0.35, 0.5], desc: 'Broken arches and sandfalls outside ordinary time.', interaction: 'time' },
+].map((b) => Object.freeze({ ...b, magical: b.category === 'exotic' }));
+const BIOME_BY_ID = Object.fromEntries(BIOMES.map((b) => [b.id, b]));
+function ingredientRank(m) {
+const base = m?.wild?.rank || 0;
+const exotic = EXOTIC_EFFECTS.some((k) => Math.abs(m?.effects?.[k] || 0) > 0);
+return Math.max(base, exotic ? 3 : 0);
+}
+function biomeUnlocked(st, id) {
+const b = BIOME_BY_ID[id];
+return !!b && (id === 'forest' || !!st.unlockedBiomes?.includes(id) || (st.rank >= b.rank && (st.stats?.served || 0) >= b.sales));
+}
+function refreshBiomeUnlocks(st) {
+st.unlockedBiomes = [...new Set(['forest', ...(st.unlockedBiomes || []), ...BIOMES.filter((b) => biomeUnlocked(st, b.id)).map((b) => b.id)])];
+return st.unlockedBiomes;
+}
+return { BIOMES, BIOME_BY_ID, ingredientRank, biomeUnlocked, refreshBiomeUnlocks };
 })();
 // src/core/rng.js
 const __m10 = (() => {
@@ -637,7 +643,7 @@ const EFFECT_NAMES = EFFECT_KEYS;
 const CREATURES = KIND_IDS;
 const visualStyle = () => ({ tint: '#ffffff', mix: 0, opacity: 1, grain: 1, emission: 0, speed: 1 });
 const creatureStyle = () => ({ body: 1, head: 1, ears: 1, legs: 1, tail: 1, coat: '#b19a7b', coat2: '#e7dfcd', recolor: false, pattern: '', speed: 1, poses: {} });
-const environmentStyle = () => ({ strokes: [], objects: [], lights: [], tint: '#253f4c', mix: 0, density: 1, light: 1, atmosphere: 1 });
+const environmentStyle = () => ({ strokes: [], objects: [], lights: [], tint: '#253f4c', mix: 0, density: 1, light: 1, atmosphere: 1, interaction: { stiffness: 30, damping: 6, particles: 18 } });
 function newDomains() {
 return { ingredients: {}, environments: {}, creatures: {}, materials: {}, effects: {}, interface: { enabled: false, accent: '#aebf8d', panel: '#2c2429', ink: '#f5e8cc', border: 2, duration: 140, frame: '', button: '', icons: {} } };
 }
@@ -660,6 +666,7 @@ for (const [k, value] of Object.entries(v[type])) check(k.length < 80 && (typeof
 }
 } else if (section === 'environments') {
 check(REGIONS.includes(key) && color(v.tint) && number(v.mix, 0, 1) && number(v.density, 0, 2) && number(v.light, 0.1, 2) && number(v.atmosphere, 0, 3), 'environment settings');
+if (v.interaction) check(object(v.interaction) && number(v.interaction.stiffness, 5, 60) && number(v.interaction.damping, 2, 16) && number(v.interaction.particles, 4, 32), 'interaction physics');
 check(Array.isArray(v.strokes) && v.strokes.length <= 512 && Array.isArray(v.objects) && v.objects.length <= 128, 'environment count');
 for (const s of v.strokes) {
 check(['rock', 'soil', 'erase', 'water', 'lava'].includes(s.kind) && color(s.color) && number(s.radius, 1, 32) && Array.isArray(s.points) && s.points.length > 0 && s.points.length <= 1024, 'terrain stroke');

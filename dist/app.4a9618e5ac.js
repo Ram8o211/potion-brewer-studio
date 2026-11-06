@@ -1,31 +1,4 @@
-// The Alchemist's Shop 2.3.0 — bundled build
-// src/game/biomes.js
-const __m4 = (() => {
-const BIOMES = [
-{ id: 'forest', name: 'Whisperwood', category: 'natural', dominant: 'vitality', creature: 'fox', rank: 0, sales: 0, sky: [0.36, 0.52, 0.42], desc: 'Old oaks, healing herbs and silver leaves.' },
-{ id: 'meadow', name: 'Sunlit Meadow', category: 'natural', dominant: 'love', creature: 'hare', rank: 0, sales: 1, sky: [0.55, 0.72, 0.9], desc: 'Warm meadows, flowers and affectionate magic.' },
-{ id: 'river', name: 'Willow Bank', category: 'natural', dominant: 'frost', creature: 'otter', rank: 1, sales: 3, sky: [0.5, 0.66, 0.78], desc: 'Cool water, willow roots and winter pearls.' },
-{ id: 'quarry', name: 'Ironstone Quarry', category: 'natural', dominant: 'strength', creature: 'beetle', rank: 1, sales: 5, sky: [0.62, 0.6, 0.58], desc: 'Mineral seams and hardy stone-borne life.' },
-{ id: 'netherwood', name: 'Netherwood', category: 'natural', dominant: 'toxicity', creature: 'cavemoth', rank: 2, sales: 8, sky: [0.1, 0.12, 0.18], desc: 'A deep fungal forest, rich with poisonous spores.' },
-{ id: 'crags', name: 'Ember Crags', category: 'natural', dominant: 'fire', creature: 'salamander', rank: 2, sales: 12, sky: [0.42, 0.2, 0.16], desc: 'Volcanic ledges and heat-blooming ingredients.' },
-{ id: 'moonfen', name: 'Moonfen', category: 'exotic', dominant: 'arcana', creature: 'wisp', rank: 3, sales: 16, sky: [0.16, 0.18, 0.32], desc: 'Luminous marshes and spectral ripples.', interaction: 'ripple' },
-{ id: 'skyshard', name: 'Skyshard Archipelago', category: 'exotic', dominant: 'levitation', creature: 'cloudray', rank: 3, sales: 19, sky: [0.4, 0.72, 0.92], desc: 'Floating islands anchored by springing sky crystals.', interaction: 'spring' },
-{ id: 'morphgrove', name: 'Morphgrove', category: 'exotic', dominant: 'transformation', creature: 'mimiclizard', rank: 3, sales: 22, sky: [0.32, 0.52, 0.48], desc: 'Living terrain and plants that change their shape.', interaction: 'morph' },
-{ id: 'veil', name: 'Veil Hollow', category: 'exotic', dominant: 'invisibility', creature: 'shroudmoth', rank: 4, sales: 26, sky: [0.24, 0.28, 0.38], desc: 'Disturb the mist to uncover hidden ruins.', interaction: 'mist' },
-{ id: 'ghostglass', name: 'Ghostglass Reef', category: 'exotic', dominant: 'phasing', creature: 'axolotl', rank: 4, sales: 30, sky: [0.08, 0.24, 0.34], desc: 'Spectral coral and crystals that drift between states.', interaction: 'phase' },
-{ id: 'chronoglass', name: 'Chronoglass Wastes', category: 'exotic', dominant: 'temporal', creature: 'scarab', rank: 4, sales: 36, sky: [0.56, 0.35, 0.5], desc: 'Broken arches and sandfalls outside ordinary time.', interaction: 'time' },
-].map((b) => Object.freeze({ ...b, magical: b.category === 'exotic' }));
-const BIOME_BY_ID = Object.fromEntries(BIOMES.map((b) => [b.id, b]));
-function biomeUnlocked(st, id) {
-const b = BIOME_BY_ID[id];
-return !!b && (id === 'forest' || !!st.unlockedBiomes?.includes(id) || (st.rank >= b.rank && (st.stats?.served || 0) >= b.sales));
-}
-function refreshBiomeUnlocks(st) {
-st.unlockedBiomes = [...new Set(['forest', ...(st.unlockedBiomes || []), ...BIOMES.filter((b) => biomeUnlocked(st, b.id)).map((b) => b.id)])];
-return st.unlockedBiomes;
-}
-return { BIOMES, BIOME_BY_ID, biomeUnlocked, refreshBiomeUnlocks };
-})();
+// The Alchemist's Shop 2.4.0 — bundled build
 // src/reactions/compatibility.js
 const __m6 = (() => {
 const COMPAT_FULL = 0.26;
@@ -247,6 +220,39 @@ if (a < 40) return 'strong';
 return 'intense';
 }
 return { EFFECTS, NATURAL_EFFECTS, EXOTIC_EFFECTS, NE, EFFECT_KEYS, EFFECT_INDEX, EFFECT_BY_KEY, E, ASPECT_TO_EFFECT, EFFECT_CUTOFF, cutoffEffects, effectVector, toRecord, fromRecord, cutoffDormant, extractedEffects, interact, compositionEffects, theoryOf, sampleEffects, dominantEffect, potencyWord };
+})();
+// src/game/biomes.js
+const __m4 = (() => {
+const { EXOTIC_EFFECTS } = __m5;
+const BIOMES = [
+{ id: 'forest', name: 'Whisperwood', category: 'natural', dominant: 'vitality', creature: 'fox', rank: 0, sales: 0, sky: [0.36, 0.52, 0.42], desc: 'Old oaks, healing herbs and silver leaves.' },
+{ id: 'meadow', name: 'Sunlit Meadow', category: 'natural', dominant: 'love', creature: 'hare', rank: 0, sales: 1, sky: [0.55, 0.72, 0.9], desc: 'Warm meadows, flowers and affectionate magic.' },
+{ id: 'river', name: 'Willow Bank', category: 'natural', dominant: 'frost', creature: 'otter', rank: 1, sales: 3, sky: [0.5, 0.66, 0.78], desc: 'Cool water, willow roots and winter pearls.' },
+{ id: 'quarry', name: 'Ironstone Quarry', category: 'natural', dominant: 'strength', creature: 'beetle', rank: 1, sales: 5, sky: [0.62, 0.6, 0.58], desc: 'Mineral seams and hardy stone-borne life.' },
+{ id: 'netherwood', name: 'Netherwood', category: 'natural', dominant: 'toxicity', creature: 'cavemoth', rank: 2, sales: 8, sky: [0.1, 0.12, 0.18], desc: 'A deep fungal forest, rich with poisonous spores.' },
+{ id: 'crags', name: 'Ember Crags', category: 'natural', dominant: 'fire', creature: 'salamander', rank: 2, sales: 12, sky: [0.42, 0.2, 0.16], desc: 'Volcanic ledges and heat-blooming ingredients.' },
+{ id: 'moonfen', name: 'Moonfen', category: 'exotic', dominant: 'arcana', creature: 'wisp', rank: 3, sales: 16, sky: [0.16, 0.18, 0.32], desc: 'Luminous marshes and spectral ripples.', interaction: 'ripple' },
+{ id: 'skyshard', name: 'Skyshard Archipelago', category: 'exotic', dominant: 'levitation', creature: 'cloudray', rank: 3, sales: 19, sky: [0.4, 0.72, 0.92], desc: 'Floating islands anchored by springing sky crystals.', interaction: 'spring' },
+{ id: 'morphgrove', name: 'Morphgrove', category: 'exotic', dominant: 'transformation', creature: 'mimiclizard', rank: 3, sales: 22, sky: [0.32, 0.52, 0.48], desc: 'Living terrain and plants that change their shape.', interaction: 'morph' },
+{ id: 'veil', name: 'Veil Hollow', category: 'exotic', dominant: 'invisibility', creature: 'shroudmoth', rank: 4, sales: 26, sky: [0.24, 0.28, 0.38], desc: 'Disturb the mist to uncover hidden ruins.', interaction: 'mist' },
+{ id: 'ghostglass', name: 'Ghostglass Reef', category: 'exotic', dominant: 'phasing', creature: 'axolotl', rank: 4, sales: 30, sky: [0.08, 0.24, 0.34], desc: 'Spectral coral and crystals that drift between states.', interaction: 'phase' },
+{ id: 'chronoglass', name: 'Chronoglass Wastes', category: 'exotic', dominant: 'temporal', creature: 'scarab', rank: 4, sales: 36, sky: [0.56, 0.35, 0.5], desc: 'Broken arches and sandfalls outside ordinary time.', interaction: 'time' },
+].map((b) => Object.freeze({ ...b, magical: b.category === 'exotic' }));
+const BIOME_BY_ID = Object.fromEntries(BIOMES.map((b) => [b.id, b]));
+function ingredientRank(m) {
+const base = m?.wild?.rank || 0;
+const exotic = EXOTIC_EFFECTS.some((k) => Math.abs(m?.effects?.[k] || 0) > 0);
+return Math.max(base, exotic ? 3 : 0);
+}
+function biomeUnlocked(st, id) {
+const b = BIOME_BY_ID[id];
+return !!b && (id === 'forest' || !!st.unlockedBiomes?.includes(id) || (st.rank >= b.rank && (st.stats?.served || 0) >= b.sales));
+}
+function refreshBiomeUnlocks(st) {
+st.unlockedBiomes = [...new Set(['forest', ...(st.unlockedBiomes || []), ...BIOMES.filter((b) => biomeUnlocked(st, b.id)).map((b) => b.id)])];
+return st.unlockedBiomes;
+}
+return { BIOMES, BIOME_BY_ID, ingredientRank, biomeUnlocked, refreshBiomeUnlocks };
 })();
 // src/core/rng.js
 const __m8 = (() => {
@@ -499,7 +505,7 @@ const EFFECT_NAMES = EFFECT_KEYS;
 const CREATURES = KIND_IDS;
 const visualStyle = () => ({ tint: '#ffffff', mix: 0, opacity: 1, grain: 1, emission: 0, speed: 1 });
 const creatureStyle = () => ({ body: 1, head: 1, ears: 1, legs: 1, tail: 1, coat: '#b19a7b', coat2: '#e7dfcd', recolor: false, pattern: '', speed: 1, poses: {} });
-const environmentStyle = () => ({ strokes: [], objects: [], lights: [], tint: '#253f4c', mix: 0, density: 1, light: 1, atmosphere: 1 });
+const environmentStyle = () => ({ strokes: [], objects: [], lights: [], tint: '#253f4c', mix: 0, density: 1, light: 1, atmosphere: 1, interaction: { stiffness: 30, damping: 6, particles: 18 } });
 function newDomains() {
 return { ingredients: {}, environments: {}, creatures: {}, materials: {}, effects: {}, interface: { enabled: false, accent: '#aebf8d', panel: '#2c2429', ink: '#f5e8cc', border: 2, duration: 140, frame: '', button: '', icons: {} } };
 }
@@ -522,6 +528,7 @@ for (const [k, value] of Object.entries(v[type])) check(k.length < 80 && (typeof
 }
 } else if (section === 'environments') {
 check(REGIONS.includes(key) && color(v.tint) && number(v.mix, 0, 1) && number(v.density, 0, 2) && number(v.light, 0.1, 2) && number(v.atmosphere, 0, 3), 'environment settings');
+if (v.interaction) check(object(v.interaction) && number(v.interaction.stiffness, 5, 60) && number(v.interaction.damping, 2, 16) && number(v.interaction.particles, 4, 32), 'interaction physics');
 check(Array.isArray(v.strokes) && v.strokes.length <= 512 && Array.isArray(v.objects) && v.objects.length <= 128, 'environment count');
 for (const s of v.strokes) {
 check(['rock', 'soil', 'erase', 'water', 'lava'].includes(s.kind) && color(s.color) && number(s.radius, 1, 32) && Array.isArray(s.points) && s.points.length > 0 && s.points.length <= 1024, 'terrain stroke');
@@ -4018,6 +4025,9 @@ minT: lo, maxT: hi, rate: 0.25, heat: 4, stir: 0.8, hint: `${nm(s.key)} dissolve
 return { materials, reactions, ids, laws: generateLaws(seed) };
 }
 const LAW_TEMPLATES = [
+{ id: 'tailwind', name: 'Tailwind', kind: 'catalyse', a: 'levitation', b: 'swiftness', k: [0.3, 0.5], lore: 'Swiftness carries levitation into a steadier ascent.' },
+{ id: 'deepveil', name: 'Deep Veil', kind: 'catalyse', a: 'invisibility', b: 'arcana', k: [0.25, 0.45], lore: 'Arcana strengthens a veil against the light.' },
+{ id: 'timeanchor', name: 'Temporal Anchor', kind: 'suppress', a: 'phasing', b: 'temporal', k: [0.4, 0.65], lore: 'A strong local flow of time anchors spectral matter.' },
 { id: 'forged', name: 'Forged Vigour', kind: 'catalyse', a: 'strength', b: 'fire', k: [0.45, 0.7], lore: 'A touch of fire tempers strength and makes it stronger.' },
 { id: 'blessed', name: 'Blessed Life', kind: 'catalyse', a: 'vitality', b: 'arcana', k: [0.4, 0.6], lore: 'Arcana amplifies healing.' },
 { id: 'enchant', name: 'Enchantment', kind: 'transmute', a: 'love', b: 'arcana', c: 'transformation', k: [0.5, 0.75], lore: 'Love and arcana together become transformation.' },
@@ -5003,15 +5013,88 @@ return p;
 }
 return { DANGLERS, ORCHARD, MOUNTS, mountsOfForm, frameMount, growFrame, growthParams };
 })();
+// src/visual/atlas-contract.js
+const __m53 = (() => {
+const { RARITY_KEYS } = __m49;
+const ATLAS_VERSION = 1;
+const GROWTH_STAGES = Object.freeze(['seed', 'sprout', 'young', 'developing', 'mature']);
+function validateAtlas(atlas) {
+const errors = [];
+if (atlas?.version !== ATLAS_VERSION) errors.push('Unsupported atlas version');
+if (!Number.isInteger(atlas?.width) || !Number.isInteger(atlas?.height) || atlas.width <= 0 || atlas.height <= 0 || atlas.width > 4096 || atlas.height > 4096) errors.push('Invalid atlas dimensions');
+const seen = new Set(), frames = Object.entries(atlas?.frames || {});
+for (const [id, raw] of frames) {
+const f = /** @type {any} */ (raw), r = f.rect || [];
+if (!f.species || !RARITY_KEYS.includes(f.rarity) || typeof f.arcane !== 'boolean') errors.push(id + ': invalid identity');
+if (!GROWTH_STAGES.includes(f.stage) && f.stage !== 'icon') errors.push(id + ': invalid stage');
+if (r.length !== 4 || !r.every(Number.isInteger) || r[0] < 0 || r[1] < 0 || r[2] <= 0 || r[3] <= 0 || r[0] + r[2] > atlas.width || r[1] + r[3] > atlas.height) errors.push(id + ': frame out of bounds');
+if (!Array.isArray(f.pivot) || f.pivot.length !== 2 || f.pivot.some((v) => !Number.isFinite(v) || v < 0 || v > 1)) errors.push(id + ': invalid pivot');
+if (atlas.libraryVersion >= 2) {
+if (f.asset !== id || !f.biome || !f.material || f.atlas !== atlas.image) errors.push(id + ': broken asset reference');
+if (!Array.isArray(f.nativeResolution) || f.nativeResolution[0] !== r[2] || f.nativeResolution[1] !== r[3]) errors.push(id + ': invalid native resolution');
+}
+const key = `${f.species}:${f.arcane}:${f.stage}`;
+if (seen.has(key)) errors.push(id + ': duplicate identity');
+seen.add(key);
+}
+for (let i = 0; i < frames.length; i++) for (let j = i + 1; j < frames.length; j++) {
+const a = /** @type {any} */ (frames[i][1]).rect, b = /** @type {any} */ (frames[j][1]).rect;
+if (a?.length === 4 && b?.length === 4 && a[0] < b[0] + b[2] && a[0] + a[2] > b[0] && a[1] < b[1] + b[3] && a[1] + a[3] > b[1]) errors.push(`${frames[i][0]} overlaps ${frames[j][0]}`);
+}
+return errors;
+}
+return { ATLAS_VERSION, GROWTH_STAGES, validateAtlas };
+})();
+// src/visual/ingredient-assets.js
+const __m52 = (() => {
+const { Pixels } = __m23;
+const { validateAtlas } = __m53;
+const frames = new Map();
+const manifests = new Map();
+let revision = 0;
+const ingredientArtRevision = () => revision;
+const ingredientAssetId = (key, stage = 'icon') => `${key}:${stage}`;
+function ingredientAssetInfo(key, stage = 'icon') { return frames.get(ingredientAssetId(key, stage))?.meta || null; }
+function registerIngredientAtlas(atlas, rgba) {
+const errors = validateAtlas(atlas);
+if (errors.length) throw new Error(errors.join('; '));
+if (rgba.length !== atlas.width * atlas.height * 4) throw new Error('Ingredient atlas pixel dimensions do not match metadata');
+const pixels = new Uint32Array(new Uint8Array(rgba).buffer);
+for (const [id, meta] of Object.entries(atlas.frames)) {
+const f = /** @type {any} */ (meta), [x, y, w, h] = f.rect;
+const pix = new Pixels(w, h);
+for (let j = 0; j < h; j++) pix.px.set(pixels.subarray((y + j) * atlas.width + x, (y + j) * atlas.width + x + w), j * w);
+frames.set(id, { pix, meta: f });
+}
+manifests.set(atlas.biome, atlas); revision++;
+}
+const ingredientAtlasLoaded = (biome) => manifests.has(biome);
+function ingredientAssetFrame(key, stage = 'icon', size = 32, mount = 'ground', flip = false) {
+const f = frames.get(ingredientAssetId(key, stage));
+if (!f) return null;
+const p = new Pixels(size, size), src = f.pix;
+for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+let u = flip ? size - 1 - x : x, v = y;
+if (mount === 'hang') v = size - 1 - y;
+if (mount === 'wall') { u = y; v = flip ? x : size - 1 - x; }
+p.set(x, y, src.get(Math.min(src.w - 1, Math.floor(u * src.w / size)), Math.min(src.h - 1, Math.floor(v * src.h / size))));
+}
+return { pix: p, ax: mount === 'wall' ? (flip ? size - 2 : 1) : size / 2,
+ay: mount === 'hang' ? 1 : mount === 'wall' ? size / 2 : size - 2, glints: [], glows: [] };
+}
+return { ingredientArtRevision, ingredientAssetId, ingredientAssetInfo, registerIngredientAtlas, ingredientAtlasLoaded, ingredientAssetFrame };
+})();
 // src/visual/render.js
 const __m50 = (() => {
 const { boundPixels } = __m19;
+const { artRevision } = __m16;
 const { FAMILIES } = __m31;
 const { rasterize } = __m22;
 const { Pixels } = __m23;
 const { inked } = __m25;
 const { growFrame } = __m51;
 const { noise2, hash2 } = __m24;
+const { ingredientAssetFrame, ingredientArtRevision } = __m52;
 const ICON_PX = 32;
 const PIECE_PX = 40;
 const PIECE_GRID = 20;
@@ -5030,11 +5113,16 @@ return { pix: p, ax: o.flip ? size - 1 : 0, ay: center, glints: [] };
 }
 return { pix: custom, ax: center, ay: size - 1, glints: [] };
 }
+const shipped = (!d.id.origin || d.id.origin === 'catalog-v1') && ingredientAssetFrame(d.id.key, stage === 0 ? 'sprout' : stage === 1 ? 'young' : 'mature',
+Math.max(20, Math.round(Math.max(d.size.w, d.size.h) * (o.k || 1))), o.mount, o.flip);
+if (shipped) return shipped;
 return growFrame(d, stage, o);
 }
 function iconFrame(d) {
 const custom = boundPixels(d.id.key, d.id.seed, 2, ICON_PX - 2, ICON_PX - 2);
 if (custom) { iconRasters.set(d, custom); return { pix: inked(custom), ax: ICON_PX / 2, ay: ICON_PX, glints: [] }; }
+const shipped = (!d.id.origin || d.id.origin === 'catalog-v1') && ingredientAssetFrame(d.id.key, 'icon', ICON_PX);
+if (shipped) return shipped;
 const model = FAMILIES[d.family].icon(d);
 model.fit(ICON_PX - 2, ICON_PX - 2, { margin: 0.5 });
 const r = rasterize(model, ICON_PX - 2, ICON_PX - 2, d.pal, { seed: d.seeds.surface ^ 0x1c0, outline: false });
@@ -5042,8 +5130,9 @@ iconRasters.set(d, r.pix);
 return { pix: inked(r.pix), ax: ICON_PX / 2, ay: ICON_PX, glints: r.glints.map(([x, y]) => [x + 1, y + 1]) };
 }
 const ICON_IN = ICON_PX - 2;
-const shards = new WeakMap();
+let shards = new WeakMap();
 function shardsOf(d) {
+refreshAssetRasters();
 let got = shards.get(d);
 if (got) return got;
 const lo = shardsLow(d);
@@ -5108,19 +5197,22 @@ out.px[y * inner + x] = part.px[Y * N + X];
 }
 return inked(out);
 }
-const iconRasters = new WeakMap();
+let iconRasters = new WeakMap();
 function iconRaster(d) {
+refreshAssetRasters();
 let p = iconRasters.get(d);
 if (p) return p;
 const custom = boundPixels(d.id.key, d.id.seed, 2, ICON_IN, ICON_IN);
 if (custom) { iconRasters.set(d, custom); return custom; }
+const shipped = (!d.id.origin || d.id.origin === 'catalog-v1') && ingredientAssetFrame(d.id.key, 'icon', ICON_IN);
+if (shipped) { iconRasters.set(d, shipped.pix); return shipped.pix; }
 const model = FAMILIES[d.family].icon(d);
 model.fit(ICON_IN, ICON_IN, { margin: 0.5 });
 p = rasterize(model, ICON_IN, ICON_IN, d.pal, { seed: d.seeds.surface ^ 0x1c0, outline: false }).pix;
 iconRasters.set(d, p);
 return p;
 }
-const lowMasks = new WeakMap();
+let lowMasks = new WeakMap();
 function shardsLow(d) {
 let m = lowMasks.get(d);
 if (m) return m;
@@ -5162,6 +5254,13 @@ mask[y * PIECE_GRID + x] = n * 2 >= k * k ? 1 : 0;
 }
 return { pix, mask };
 }
+let rasterRevision = '';
+function refreshAssetRasters() {
+const revision = `${ingredientArtRevision()}:${artRevision()}`;
+if (rasterRevision === revision) return;
+rasterRevision = revision;
+shards = new WeakMap(); iconRasters = new WeakMap(); lowMasks = new WeakMap();
+}
 return { ICON_PX, PIECE_PX, PIECE_GRID, plantFrame, iconFrame, pieceArt, pieceFrame, Pixels };
 })();
 // src/visual/pieces.js
@@ -5172,6 +5271,7 @@ const { hslToRgb } = __m18;
 const { identityOf, identityKey, validIdentity } = __m30;
 const { describe } = __m28;
 const { pieceFrame, pieceArt, PIECE_PX, PIECE_GRID } = __m50;
+const { ingredientArtRevision } = __m52;
 const PIECE_CELL = PIECE_PX;
 const PIECE_MASK = PIECE_GRID;
 const PIECE_KEYS = WILD_SPECS.map((s) => s.key).sort();
@@ -5202,7 +5302,7 @@ shown[key] = def.vis;
 function ensurePieces(key) {
 if (!(key in INDEX)) return null;
 const id = shown[key] || (shown[key] = archetypeIdentity(key));
-const ik = artRevision() + ":" + identityKey(id);
+const ik = ingredientArtRevision() + ':' + artRevision() + ":" + identityKey(id);
 if (painted[key] === ik) return masks[key];
 const d = describe(id), row = INDEX[key] * PIECE_CELL, W = PIECE_ART.width;
 const out = [];
@@ -5266,7 +5366,7 @@ onArtChanged(() => { palettes.clear(); sized.clear(); });
 return { PIECE_CELL, PIECE_MASK, PIECE_KEYS, PIECE_ART, onPiecesChanged, archetypeIdentity, registerSpecies, ensurePieces, pieceSprite, pieceMask, skinCell, forgetPieces, piecePalette };
 })();
 // src/studio/environment-runtime.js
-const __m53 = (() => {
+const __m55 = (() => {
 const { artDomain, artAssets } = __m16;
 const { generate } = __m20;
 const { fitPixels } = __m19;
@@ -5327,7 +5427,7 @@ cv.meta.artWarnings = warnings; cv.meta.artAtmosphere = cfg.atmosphere;
 return { directEnvironment };
 })();
 // src/visual/env/paint.js
-const __m54 = (() => {
+const __m56 = (() => {
 const { Pixels } = __m23;
 const { rasterize } = __m22;
 const { Model } = __m21;
@@ -5617,7 +5717,7 @@ cv.set(x, y, pack([c[0] + d, c[1] + d, c[2] + d]));
 return { SCENE_W, SCENE_H, CELL, Canvas, sky, ramp, hex, mixPacked, pack, unpack };
 })();
 // src/visual/env/stone.js
-const __m57 = (() => {
+const __m59 = (() => {
 const { hash2, noise2 } = __m24;
 const { mixPacked } = __m17;
 function cobble(x, y, o) {
@@ -5699,11 +5799,11 @@ return T[t];
 return { cobble, pebble };
 })();
 // src/visual/env/side.js
-const __m56 = (() => {
+const __m58 = (() => {
 const { fbm1, fbm2, hash2, noise2 } = __m24;
 const { mixPacked, pack, hex } = __m17;
-const { CELL } = __m54;
-const { cobble } = __m57;
+const { CELL } = __m56;
+const { cobble } = __m59;
 const snap = (v) => v - (((v % CELL) + CELL) % CELL);
 const col = (h) => pack(hex(h));
 function far(c, x, y, seed) {
@@ -6195,7 +6295,7 @@ return out.filter((_, i) => i % Math.max(1, Math.floor(out.length / n)) === 0).s
 return { col, far, heights, dip, raise, fillSolid, blob, paintTerrain, STRATA, hanging, pool, sunbeams, markOpen, ledges, surfaceAt, silhouette, mountains, rockFace, treeShape, glow, drips };
 })();
 // src/visual/env/lighting.js
-const __m58 = (() => {
+const __m60 = (() => {
 function litColour(colour, r, g, b, surface) {
 const shade = (v, energy) => {
 const exposure = 1 - Math.exp(-Math.max(0, energy));
@@ -6262,12 +6362,12 @@ sw.c[i] = apply(sw.c[i], k, surface);
 return { litColour, illuminate };
 })();
 // src/visual/env/cave.js
-const __m55 = (() => {
+const __m57 = (() => {
 const { fbm1, fbm2, hash2 } = __m24;
 const { mixPacked } = __m17;
-const { col, far } = __m56;
-const { cobble } = __m57;
-const { illuminate } = __m58;
+const { col, far } = __m58;
+const { cobble } = __m59;
+const { illuminate } = __m60;
 function farPillars(cv, o) {
 const fill = col(o.fill), rim = o.rim ? col(o.rim) : fill, W = cv.W;
 for (let i = 0; i < o.n; i++) {
@@ -6608,7 +6708,7 @@ const LAVA_VEINS = (seed) => ({ from: ['#ffd060', '#ffb040', '#ff8a2a', '#e05a18
 return { farPillars, fog, caveFrame, vines, moss, glowShrooms, torch, fall, ruins, finish, ledgeTops, veins, WATER_VEINS, LAVA_VEINS };
 })();
 // src/visual/env/legible.js
-const __m59 = (() => {
+const __m61 = (() => {
 const { hash2, fbm2, noise2 } = __m24;
 const { mixPacked } = __m17;
 const { Rng } = __m8;
@@ -6776,9 +6876,9 @@ if (f !== 1 || add) L[k] = saturate(scale(c, f, add), f > 1 ? 1.05 : 1);
 return { legible };
 })();
 // src/visual/env/flourish.js
-const __m60 = (() => {
+const __m62 = (() => {
 const { hash2 } = __m24;
-const { col } = __m56;
+const { col } = __m58;
 const FLORA = {
 meadow: {
 kinds: [['tuft', 4], ['daisy', 3], ['spike', 1.6], ['bloom', 2], ['fern', 0.8]], rate: 0.3,
@@ -7058,7 +7158,7 @@ else if (berry && h > 0.95 && free(cx + side, yy)) cv.set(cx + side, yy, berry);
 return { flourish };
 })();
 // src/visual/env/grade.js
-const __m61 = (() => {
+const __m63 = (() => {
 const GRADE = {
 meadow: [0.25, 1.18, 0.42], forest: [0.24, 1.16, 0.42], netherwood: [0.18, 1.18, 0.4], river: [0.24, 1.18, 0.42],
 quarry: [0.23, 1.12, 0.42], moonfen: [0.18, 1.18, 0.4], crags: [0.2, 1.14, 0.42],
@@ -7104,8 +7204,8 @@ return ((c & 0xff000000) | (Math.round(((c >>> 16) & 255) * f) << 16) | (Math.ro
 return { grade };
 })();
 // src/visual/env/kit.js
-const __m63 = (() => {
-const { ramp, hex } = __m54;
+const __m65 = (() => {
+const { ramp, hex } = __m56;
 const { Rng, hashString } = __m8;
 const { shift } = __m17;
 function palette(spec) {
@@ -7127,7 +7227,7 @@ const streamOf = (seed, region, part) => new Rng(hashString(`env:${seed}:${regio
 return { palette, vary, streamOf };
 })();
 // src/visual/env/foliage.js
-const __m65 = (() => {
+const __m67 = (() => {
 const { Model, bezier } = __m21;
 let groups = 0;
 const swayGroup = () => ++groups;
@@ -7303,9 +7403,9 @@ return m;
 return { swayGroup, leaf, cluster, strand, grove };
 })();
 // src/visual/env/objects.js
-const __m64 = (() => {
+const __m66 = (() => {
 const { Model, blade, PROFILES, bezier, lumpy, ellipse, polygon } = __m21;
-const { cluster, strand, grove, swayGroup } = __m65;
+const { cluster, strand, grove, swayGroup } = __m67;
 const R = (rng) => () => rng.next();
 function leafBlock(x, y, hw, hh, rnd) {
 const c = Math.max(1, Math.round(Math.min(hw, hh) * 0.4)), j = () => Math.round((rnd() - 0.5) * 2);
@@ -7669,8 +7769,8 @@ return m;
 return { leafBlock, crown, pad, branchTree, tree, branch, bush, boulder, reeds, fern, tuft, log, stump, mushroom, cloud, beam, crane, ladder, cart, crate, fence, skep, basalt, spire, cairn, scaffold, wheel };
 })();
 // src/visual/env/trees.js
-const __m66 = (() => {
-const { branchTree, tree } = __m64;
+const __m68 = (() => {
+const { branchTree, tree } = __m66;
 const { Rng } = __m8;
 const { pack, hex } = __m17;
 function treeRow(cv, rng, pal, o) {
@@ -7734,13 +7834,13 @@ return out;
 return { treeRow, terrainTrees };
 })();
 // src/visual/env/meadow.js
-const __m62 = (() => {
-const { sky } = __m54;
-const { palette, vary, streamOf } = __m63;
-const { heights, dip, raise, fillSolid, blob, paintTerrain, pool, markOpen, silhouette, mountains, treeShape, glow, drips, ledges, sunbeams } = __m56;
-const { caveFrame, fog, vines, moss, veins, WATER_VEINS } = __m55;
-const { cloud, fence, skep, boulder, spire } = __m64;
-const { terrainTrees } = __m66;
+const __m64 = (() => {
+const { sky } = __m56;
+const { palette, vary, streamOf } = __m65;
+const { heights, dip, raise, fillSolid, blob, paintTerrain, pool, markOpen, silhouette, mountains, treeShape, glow, drips, ledges, sunbeams } = __m58;
+const { caveFrame, fog, vines, moss, veins, WATER_VEINS } = __m57;
+const { cloud, fence, skep, boulder, spire } = __m66;
+const { terrainTrees } = __m68;
 const { Model, lumpy } = __m21;
 const { pack } = __m17;
 function compose(cv, seed) {
@@ -7841,13 +7941,13 @@ cv.meta.horizon = 120;
 return { compose };
 })();
 // src/visual/env/forest.js
-const __m67 = (() => {
-const { sky } = __m54;
-const { palette, vary, streamOf } = __m63;
-const { heights, raise, fillSolid, blob, paintTerrain, markOpen, surfaceAt, col, drips, ledges, hanging } = __m56;
-const { fog, moss, glowShrooms } = __m55;
-const { fern, log, stump } = __m64;
-const { treeRow, terrainTrees } = __m66;
+const __m69 = (() => {
+const { sky } = __m56;
+const { palette, vary, streamOf } = __m65;
+const { heights, raise, fillSolid, blob, paintTerrain, markOpen, surfaceAt, col, drips, ledges, hanging } = __m58;
+const { fog, moss, glowShrooms } = __m57;
+const { fern, log, stump } = __m66;
+const { treeRow, terrainTrees } = __m68;
 const { hash2 } = __m24;
 function compose(cv, seed) {
 const W = cv.W, H = cv.H, s = (p) => streamOf(seed, 'forest', p);
@@ -7927,13 +8027,13 @@ for (let i = 0, n = 0; i < 14 && n < 6; i++) if (cv.place(fern(fr, fr.int(8, 13)
 return { compose, roots, litter, ferns };
 })();
 // src/visual/env/river.js
-const __m68 = (() => {
-const { sky } = __m54;
-const { palette, vary, streamOf } = __m63;
-const { heights, dip, raise, fillSolid, ledges, paintTerrain, pool, markOpen, surfaceAt, silhouette, mountains, treeShape } = __m56;
-const { caveFrame, farPillars, fog, vines, moss, glowShrooms, ledgeTops, veins, WATER_VEINS } = __m55;
-const { reeds, beam, cloud } = __m64;
-const { terrainTrees } = __m66;
+const __m70 = (() => {
+const { sky } = __m56;
+const { palette, vary, streamOf } = __m65;
+const { heights, dip, raise, fillSolid, ledges, paintTerrain, pool, markOpen, surfaceAt, silhouette, mountains, treeShape } = __m58;
+const { caveFrame, farPillars, fog, vines, moss, glowShrooms, ledgeTops, veins, WATER_VEINS } = __m57;
+const { reeds, beam, cloud } = __m66;
+const { terrainTrees } = __m68;
 const { Model } = __m21;
 function compose(cv, seed) {
 const W = cv.W, H = cv.H, s = (p) => streamOf(seed, 'river', p);
@@ -8013,13 +8113,13 @@ cv.meta.horizon = 116;
 return { compose };
 })();
 // src/visual/env/quarry.js
-const __m69 = (() => {
-const { sky } = __m54;
-const { palette, vary, streamOf } = __m63;
-const { fillSolid, blob, ledges, paintTerrain, markOpen, glow, drips, silhouette, mountains, sunbeams } = __m56;
-const { caveFrame, farPillars, fog, moss, torch, ledgeTops } = __m55;
-const { crane, ladder, cart, crate, beam, boulder, scaffold, wheel, cloud, spire } = __m64;
-const { terrainTrees } = __m66;
+const __m71 = (() => {
+const { sky } = __m56;
+const { palette, vary, streamOf } = __m65;
+const { fillSolid, blob, ledges, paintTerrain, markOpen, glow, drips, silhouette, mountains, sunbeams } = __m58;
+const { caveFrame, farPillars, fog, moss, torch, ledgeTops } = __m57;
+const { crane, ladder, cart, crate, beam, boulder, scaffold, wheel, cloud, spire } = __m66;
+const { terrainTrees } = __m68;
 const { Model } = __m21;
 const { Rng } = __m8;
 function compose(cv, seed) {
@@ -8137,13 +8237,13 @@ cv.meta.horizon = 100;
 return { compose };
 })();
 // src/visual/env/moonfen.js
-const __m70 = (() => {
-const { sky } = __m54;
-const { palette, vary, streamOf } = __m63;
-const { heights, dip, raise, fillSolid, ledges, paintTerrain, pool, markOpen, surfaceAt, glow, silhouette, treeShape } = __m56;
-const { caveFrame, farPillars, fog, vines, moss, ruins, glowShrooms, veins, WATER_VEINS } = __m55;
-const { reeds, spire, cairn } = __m64;
-const { terrainTrees } = __m66;
+const __m72 = (() => {
+const { sky } = __m56;
+const { palette, vary, streamOf } = __m65;
+const { heights, dip, raise, fillSolid, ledges, paintTerrain, pool, markOpen, surfaceAt, glow, silhouette, treeShape } = __m58;
+const { caveFrame, farPillars, fog, vines, moss, ruins, glowShrooms, veins, WATER_VEINS } = __m57;
+const { reeds, spire, cairn } = __m66;
+const { terrainTrees } = __m68;
 const { fbm2 } = __m24;
 const { pack } = __m17;
 function compose(cv, seed) {
@@ -8243,13 +8343,13 @@ cv.meta.horizon = 124;
 return { compose };
 })();
 // src/visual/env/crags.js
-const __m71 = (() => {
-const { sky } = __m54;
-const { palette, vary, streamOf } = __m63;
-const { heights, dip, raise, fillSolid, blob, ledges, paintTerrain, pool, markOpen, glow, drips, silhouette, col, rockFace } = __m56;
-const { caveFrame, farPillars, fog, moss, fall, veins, LAVA_VEINS } = __m55;
-const { basalt, spire, cloud } = __m64;
-const { terrainTrees } = __m66;
+const __m73 = (() => {
+const { sky } = __m56;
+const { palette, vary, streamOf } = __m65;
+const { heights, dip, raise, fillSolid, blob, ledges, paintTerrain, pool, markOpen, glow, drips, silhouette, col, rockFace } = __m58;
+const { caveFrame, farPillars, fog, moss, fall, veins, LAVA_VEINS } = __m57;
+const { basalt, spire, cloud } = __m66;
+const { terrainTrees } = __m68;
 const { fbm1, hash2 } = __m24;
 const { mixPacked } = __m17;
 const { Model, lumpy } = __m21;
@@ -8409,14 +8509,14 @@ cv.set(x, y, c);
 return { compose };
 })();
 // src/visual/env/netherwood.js
-const __m72 = (() => {
-const { sky } = __m54;
-const { palette, vary, streamOf } = __m63;
-const { heights, dip, raise, fillSolid, blob, paintTerrain, pool, markOpen, drips, ledges, glow } = __m56;
-const { caveFrame, farPillars, fog, vines, moss, glowShrooms, veins, WATER_VEINS } = __m55;
-const { mushroom } = __m64;
-const { treeRow, terrainTrees } = __m66;
-const { roots, litter, ferns } = __m67;
+const __m74 = (() => {
+const { sky } = __m56;
+const { palette, vary, streamOf } = __m65;
+const { heights, dip, raise, fillSolid, blob, paintTerrain, pool, markOpen, drips, ledges, glow } = __m58;
+const { caveFrame, farPillars, fog, vines, moss, glowShrooms, veins, WATER_VEINS } = __m57;
+const { mushroom } = __m66;
+const { treeRow, terrainTrees } = __m68;
+const { roots, litter, ferns } = __m69;
 function compose(cv, seed) {
 const W = cv.W, H = cv.H, s = (p) => streamOf(seed, 'netherwood', p);
 const pal = vary(palette({
@@ -8494,11 +8594,11 @@ cv.meta.horizon = 120;
 return { compose };
 })();
 // src/visual/env/garden.js
-const __m73 = (() => {
+const __m75 = (() => {
 const { Rng, hashString } = __m8;
-const { sky } = __m54;
-const { heights, fillSolid, paintTerrain, markOpen, col } = __m56;
-const { fog } = __m55;
+const { sky } = __m56;
+const { heights, fillSolid, paintTerrain, markOpen, col } = __m58;
+const { fog } = __m57;
 function compose(cv, seed) {
 const rng = new Rng('garden:' + seed), W = cv.W, H = cv.H;
 sky(cv, 0, H, ['#171f2b', '#344c49', '#718366', '#9eaa77']);
@@ -8525,15 +8625,15 @@ markOpen(cv); cv.meta.vignette = 0.15; cv.meta.wind = 0.3;
 return { compose };
 })();
 // src/visual/env/exotic.js
-const __m74 = (() => {
+const __m76 = (() => {
 const { Rng, hashString } = __m8;
-const { sky } = __m54;
-const { heights, dip, raise, fillSolid, blob, paintTerrain, markOpen, col, pool, surfaceAt, ledges, silhouette, sunbeams } = __m56;
-const { caveFrame, farPillars, fog, vines, ruins, fall, moss, torch } = __m55;
-const { palette } = __m63;
-const { treeRow, terrainTrees } = __m66;
+const { sky } = __m56;
+const { heights, dip, raise, fillSolid, blob, paintTerrain, markOpen, col, pool, surfaceAt, ledges, silhouette, sunbeams } = __m58;
+const { caveFrame, farPillars, fog, vines, ruins, fall, moss, torch } = __m57;
+const { palette } = __m65;
+const { treeRow, terrainTrees } = __m68;
 const { hash2 } = __m24;
-const { branchTree, spire, fern, cairn, mushroom } = __m64;
+const { branchTree, spire, fern, cairn, mushroom } = __m66;
 const EXOTIC_ART = {
 skyshard: { sky: ['#284e85', '#4d98c0', '#85c8dc', '#d2ebdf'], rock: ['#424868', '#61637d', '#807f92'], turf: ['#a7d95c', '#78b342', '#4b793e'], gem: '#73d9fa', soil: '#524969' },
 morphgrove: { sky: ['#112331', '#284c55', '#426f6b', '#6d9e8c'], rock: ['#424951', '#555d60', '#6e7470'], turf: ['#a8cd5d', '#659b43', '#40683c'], gem: '#e89ccd', soil: '#5c3a43' },
@@ -8671,24 +8771,24 @@ cv.block(x - 12, y - height, x + 12, y + 1);
 return { EXOTIC_ART, composeExotic, skyshard, morphgrove, veil, ghostglass, chronoglass };
 })();
 // src/visual/env/scene.js
-const __m52 = (() => {
-const { directEnvironment } = __m53;
+const __m54 = (() => {
+const { directEnvironment } = __m55;
 const { artRevision, artDomain } = __m16;
-const { Canvas, SCENE_W, SCENE_H } = __m54;
+const { Canvas, SCENE_W, SCENE_H } = __m56;
 const { hashString } = __m8;
-const { finish } = __m55;
-const { legible } = __m59;
-const { flourish } = __m60;
-const { grade } = __m61;
-const meadow = __m62;
-const forest = __m67;
-const river = __m68;
-const quarry = __m69;
-const moonfen = __m70;
-const crags = __m71;
-const netherwood = __m72;
-const garden = __m73;
-const { skyshard, morphgrove, veil, ghostglass, chronoglass } = __m74;
+const { finish } = __m57;
+const { legible } = __m61;
+const { flourish } = __m62;
+const { grade } = __m63;
+const meadow = __m64;
+const forest = __m69;
+const river = __m70;
+const quarry = __m71;
+const moonfen = __m72;
+const crags = __m73;
+const netherwood = __m74;
+const garden = __m75;
+const { skyshard, morphgrove, veil, ghostglass, chronoglass } = __m76;
 const ENV_VERSION = 15;
 const COMPOSERS = { meadow, forest, netherwood, river, quarry, moonfen, crags, garden, skyshard, morphgrove, veil, ghostglass, chronoglass };
 const cache = new Map();
@@ -8723,7 +8823,7 @@ return s;
 return { ENV_VERSION, composeScene, sceneOf, SCENE_W, SCENE_H };
 })();
 // src/rendering/scenes.js
-const __m77 = (() => {
+const __m79 = (() => {
 function R(ctx, x, y, w, h, c) {
 ctx.fillStyle = c;
 ctx.fillRect(Math.round(x), Math.round(y), Math.max(1, Math.round(w)), Math.max(1, Math.round(h)));
@@ -8775,18 +8875,19 @@ return cv;
 return { drawRaw, rawSprite };
 })();
 // src/rendering/species-sprites.js
-const __m76 = (() => {
-const { artRevision } = __m16;
+const __m78 = (() => {
+const { artRevision, artDomain } = __m16;
 const { describe } = __m28;
 const { plantFrame, iconFrame, ICON_PX } = __m50;
 const { identityKey, validIdentity } = __m30;
 const { archetypeIdentity } = __m44;
 const { Pixels } = __m23;
 const { isBotanical } = __m29;
-const { rawSprite } = __m77;
+const { rawSprite } = __m79;
 const { mountsOfForm, frameMount, growthParams } = __m51;
 const { hashString } = __m8;
 const { INK } = __m25;
+const { ingredientAssetFrame, ingredientAssetInfo, ingredientArtRevision } = __m52;
 const MIN_HIT = 26;
 const STAGE = { sprout: 0, ripe: 1, mature: 2 };
 function identityOfMaterial(m) {
@@ -8800,7 +8901,7 @@ return id ? describe(id) : null;
 const cache = new Map();
 const CACHE_MAX = 500;
 function cached(k, make) {
-k = artRevision() + ":" + k;
+k = ingredientArtRevision() + ':' + artRevision() + ":" + k;
 let v = cache.get(k);
 if (v) return v;
 v = make();
@@ -8897,6 +8998,12 @@ const id = identityOfMaterial(m);
 return id ? cached(`i|${identityKey(id)}`, () => iconFrame(describe(id))) : null;
 }
 function ingredientSprite(m, fill = 1) {
+const shipped = !m?.legacy && !artDomain('ingredients', m?.wild?.key)?.asset && ingredientAssetFrame(m?.wild?.key || m?.speciesId, 'icon', 64);
+if (shipped) {
+const cv = shipped.pix.toCanvas(); cv.style.imageRendering = 'pixelated';
+cv.dataset.asset = ingredientAssetInfo(m.wild.key, 'icon').asset;
+return cv;
+}
 const f = m && m.wild ? iconFrameOf(m) : null;
 if (!f) return rawSprite(m.shape || 'stone', m.look || m.color, fill);
 const mount = mountsOf(m)[0][0];
@@ -8910,13 +9017,24 @@ const ctx = /** @type {CanvasRenderingContext2D} */ (cv.getContext('2d'));
 ctx.drawImage(sp.cv, Math.round((S - sp.w) / 2), frameMount(mount) === 'hang' ? 1 : S - 1 - sp.h);
 return cv;
 }
-return { MIN_HIT, identityOfMaterial, speciesOf, variantOf, mountsOf, plantFrameOf, plantCanvas, plantGlow, emitColour, silhouetteOf, iconFrameOf, ingredientSprite, ICON_PX };
+function growthSprite(m, stage) {
+if (stage !== 'seed' && artDomain('ingredients', m?.wild?.key)?.asset) {
+const custom = plantFrameOf(m, stage === 'sprout' ? 'sprout' : stage === 'young' ? 'ripe' : 'mature');
+if (custom) return custom.pix.toCanvas();
+}
+const f = ingredientAssetFrame(m?.wild?.key, stage, 64);
+if (!f) return ingredientSprite(m);
+const cv = f.pix.toCanvas(); cv.style.imageRendering = 'pixelated';
+cv.dataset.asset = ingredientAssetInfo(m.wild.key, stage).asset;
+return cv;
+}
+return { MIN_HIT, identityOfMaterial, speciesOf, variantOf, mountsOf, plantFrameOf, plantCanvas, plantGlow, emitColour, silhouetteOf, iconFrameOf, ingredientSprite, growthSprite, ICON_PX };
 })();
 // src/rendering/wild-scene.js
-const __m75 = (() => {
+const __m77 = (() => {
 const { artRevision } = __m16;
-const { sceneOf, SCENE_W, SCENE_H } = __m52;
-const { MIN_HIT } = __m76;
+const { sceneOf, SCENE_W, SCENE_H } = __m54;
+const { MIN_HIT } = __m78;
 const { hashString } = __m8;
 const { frameMount } = __m51;
 const canvases = new Map();
@@ -9363,9 +9481,20 @@ if (region !== 'moonfen') for (const [x, y] of meta.glows || []) halo(ctx, x, y,
 }
 function animateRegion(ctx, region, t, seed, authoredScene = null) {
 const W = SCENE_W, H = SCENE_H, meta = (authoredScene || sceneOf(region, seed)).meta;
-if (meta.artAtmosphere !== undefined) {
 if (meta.artAtmosphere === 0) return;
-ctx.save(); ctx.globalAlpha *= Math.min(1, meta.artAtmosphere);
+if (meta.artAtmosphere !== undefined) { ctx.save(); ctx.globalAlpha *= Math.min(1, meta.artAtmosphere); }
+const exotic = EXOTIC_ATMOSPHERE[region];
+if (exotic) {
+ctx.save();
+for (let i = 0; i < exotic.count; i++) {
+const phase = t * exotic.speed + i * 19.73;
+const x = ((i * 71 + Math.sin(phase * 0.2) * 9 + t * exotic.drift) % W + W) % W;
+const y = ((i * 43 - phase) % H + H) % H;
+px(ctx, x, y, exotic.colors[i % exotic.colors.length], 1, region === 'ghostglass' ? 2 : 1);
+}
+ctx.restore();
+}
+if (meta.artAtmosphere !== undefined) {
 for (let k = 0; k < Math.max(0, Math.floor((meta.artAtmosphere - 1) * 24)); k++) { ctx.fillStyle = '#b4e8d075'; ctx.fillRect((k * 71 + t * 4) % W, (k * 31 + t * 2) % H, 1, 1); }
 }
 cavern(ctx, region, t, meta);
@@ -9464,10 +9593,17 @@ trickles(ctx, meta.trickles || [], t, '#5a4e4c', '#3e3438');
 }
 if (meta.artAtmosphere !== undefined) ctx.restore();
 }
+const EXOTIC_ATMOSPHERE = {
+skyshard: { count: 20, speed: 2, drift: 10, colors: ['#d2f4fa', '#9ad9ed'] },
+morphgrove: { count: 18, speed: 3, drift: 2, colors: ['#edb3da', '#afdb89', '#e6d08d'] },
+veil: { count: 12, speed: 1, drift: -2, colors: ['#9faac080', '#bcb0d980'] },
+ghostglass: { count: 22, speed: 5, drift: 1, colors: ['#b2ecf5', '#73bacf', '#d5b0e8'] },
+chronoglass: { count: 20, speed: -3, drift: 3, colors: ['#f0ce88', '#cf9ce3', '#c39b64'] },
+};
 return { sceneCanvas, windAt, crosses, SceneTouch, sceneTouch, swayPixels, sceneFrame, findAnchors, PlantGround, mountOrder, plantBox, hitPlant, animateRegion, SCENE_W, SCENE_H };
 })();
 // src/studio/creature-runtime.js
-const __m79 = (() => {
+const __m81 = (() => {
 const { artDomain } = __m16;
 const { hex } = __m17;
 function directLook(look) {
@@ -9494,7 +9630,7 @@ const creatureClock = (look, time) => time * (artDomain('creatures', look?.kind 
 return { directLook, directAnatomy, creatureClock };
 })();
 // src/rendering/art.js
-const __m80 = (() => {
+const __m82 = (() => {
 const { Rng } = __m8;
 const PAL = {
 night0: '#0d0a10', night1: '#17121c', night2: '#221a28',
@@ -10096,7 +10232,7 @@ for (let k = 0; k < 14; k++) R(ctx, Math.round(v.ox + rng.range(-0.6, 0.6) * c.b
 return { PAL, hex2rgb, rgbStr, mixHex, paintBackground, drawJar, renderCauldron, renderLid, renderLidAside, makeCanvas, paintHearth, rect: R };
 })();
 // src/game/colony.js
-const __m81 = (() => {
+const __m83 = (() => {
 const { EFFECT_INDEX } = __m5;
 const { Rng, hashString } = __m8;
 const { kindOf, biasSpread, kindLook, RABBIT_SPREAD } = __m7;
@@ -10901,7 +11037,7 @@ return trials;
 return { RABBIT_MARKS, MARK_INDEX, KIT_DAYS, ADULT_DAYS, ELDER_DAYS, LIFESPAN_DAYS, FOUNDER_BORN, GESTATION_DAYS, DOSE_LIMIT, MEMORIAL_LIMIT, LEVEL_AT, TRAIT_AT, DEGEN_AT, MARK_MAX, LETHAL, AGGRO, FERAL, AGGRO_AT, LOVE_MATE, MATE_EVERY, MARK_TAU, BURNS, BURN_RATE, MAX_BONUS, DEGEN_RISE, ATTACK_EVERY, TRAITS, TRAIT_EXCLUSIVE, TRAIT_WORDS, COATS, rollLook, inheritLook, lookFromSeed, visibleLevel, stageOf, maxHealthOf, degenOf, degenAt, degenRate, aggroAt, aggroOf, isFeral, burnRate, mateEvery, mateCost, RABBIT_BIAS, rabbitSensitivity, rabbitSnap, encodeSnap, defaultSnap, decodeSnap, NAMES, createColony, findRabbit, PEN_MAX, penCount, livingOf, penHasRoom, livingRabbits, bodies, focusRabbit, pickName, makeRabbit, addBoughtRabbit, addWildRabbit, recordDose, related, STAGE_ERR, MARK_DECAY, rabbitResponse, colonyTick, purgeRabbit, cullRabbit, colonyDay, retireRabbit, trimMemorial, remainsSource, causeWord, rabbitCondition, normalizeRabbit, normalizeColony, installRabbitAlias };
 })();
 // src/rendering/punch.js
-const __m82 = (() => {
+const __m84 = (() => {
 const CONTRAST = 1.4, SATURATE = 1.3;
 const INK = [20, 12, 16, 235], HALO = [255, 244, 220, 70];
 function punchSprite(d, w, h, o = {}) {
@@ -10939,7 +11075,7 @@ for (const i of halo) d.set(HALO, i * 4);
 return { punchSprite };
 })();
 // src/rendering/native-creatures.js
-const __m83 = (() => {
+const __m85 = (() => {
 const { NATIVE_SPECIES } = __m9;
 function nativeBody(pen, look, snap, anchors) {
 const def = NATIVE_SPECIES[look.kind];
@@ -11001,15 +11137,15 @@ return true;
 return { nativeBody };
 })();
 // src/rendering/rabbit.js
-const __m78 = (() => {
-const { directLook, directAnatomy, creatureClock } = __m79;
+const __m80 = (() => {
+const { directLook, directAnatomy, creatureClock } = __m81;
 const { artRevision } = __m16;
 const { Rng, hashString } = __m8;
-const { PAL, makeCanvas } = __m80;
-const { RABBIT_MARKS } = __m81;
+const { PAL, makeCanvas } = __m82;
+const { RABBIT_MARKS } = __m83;
 const { KINDS } = __m7;
-const { punchSprite } = __m82;
-const { nativeBody } = __m83;
+const { punchSprite } = __m84;
+const { nativeBody } = __m85;
 const RABBIT_W = 48;
 const RABBIT_H = 40;
 const BAYER4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
@@ -12503,7 +12639,7 @@ ctx.fillRect(fx, fy, RABBIT_W, RABBIT_H);
 return { RABBIT_W, RABBIT_H, rabbitLevels, rabbitPose, rabbitPace, rabbitAnchors, rabbitSpriteKey, drawRabbitSprite, clearRabbitSprites, drawRabbit };
 })();
 // src/simulation/constants.js
-const __m85 = (() => {
+const __m87 = (() => {
 const PHASE = Object.freeze({ LIQUID: 0, POWDER: 1, PASTE: 2, SOLID: 3, GAS: 4 });
 const PHASE_NAMES = ['liquid', 'powder', 'paste', 'solid', 'gas'];
 const SIM = Object.freeze({
@@ -12544,7 +12680,7 @@ return PHASE.LIQUID;
 return { PHASE, PHASE_NAMES, SIM, TUNE, formPhase };
 })();
 // src/alchemy/arcane.js
-const __m88 = (() => {
+const __m90 = (() => {
 const { EFFECT_KEYS } = __m5;
 const ARCANE_SCALE = 0.1;
 const ARCANE_ZERO = 20;
@@ -12644,7 +12780,7 @@ return out;
 return { ARCANE_SCALE, ARCANE_ZERO, AWAKE_SUFFIX, thresholdToCelsius, celsiusToThreshold, isAwakenedId, awakenedId, baseIdOf, isMagical, awakenedDef, withAwakened, blendThreshold, pastThreshold, describeThreshold, awakenParts };
 })();
 // src/materials/shapes.js
-const __m89 = (() => {
+const __m91 = (() => {
 const LOOK = Object.freeze({
 ICE: 0, FIBRE: 1, LEAF: 2, STONE: 3, CRYSTAL: 4, CAP: 5, GLOSSY: 6, BONE: 7, FUR: 8, LUMP: 9,
 BARK: 10, BERRY: 11, GILLS: 12, SEED: 13, SHELL: 14, METAL: 15, GLASS: 16, SPOTS: 17, REED: 18, FLORET: 19,
@@ -12775,12 +12911,12 @@ return hasPieces(def) ? pieceSize(n) : n;
 return { LOOK, shapeOf, solidLook, chunkTemplate, hasPieces, grainSkinOf, skinOf, piece, chunkSize };
 })();
 // src/reactions/species.js
-const __m87 = (() => {
+const __m89 = (() => {
 const { rgbToOklab, srgbToLinear } = __m18;
 const { volatilityOf } = __m46;
 const { NE, effectVector } = __m5;
-const { isMagical, awakenedId } = __m88;
-const { solidLook } = __m89;
+const { isMagical, awakenedId } = __m90;
+const { solidLook } = __m91;
 const MAX_SPECIES = 24;
 const NO_BOIL = 1e6;
 class SpeciesTable {
@@ -12961,9 +13097,9 @@ return [0, 1, 2].map((k) => -Math.log(Math.max(0.003, srgbToLinear(def.color[k])
 return { MAX_SPECIES, NO_BOIL, SpeciesTable, absorbance };
 })();
 // src/simulation/particles.js
-const __m86 = (() => {
-const { MAX_SPECIES } = __m87;
-const { PHASE } = __m85;
+const __m88 = (() => {
+const { MAX_SPECIES } = __m89;
+const { PHASE } = __m87;
 const { NE } = __m5;
 const STATE_FIELDS_F32 = ['x', 'y', 'vx', 'vy', 'temp', 'lat', 'eph', 'restX', 'restY', 'agit', 'burn', 'wet', 'q', 'skinU', 'skinV'];
 const STATE_FIELDS_I32 = ['group'];
@@ -13086,7 +13222,7 @@ return this.phase[i] !== PHASE.GAS;
 return { STATE_FIELDS_F32, STATE_FIELDS_I32, STATE_FIELDS_U8, STATE_FIELDS_U16, STATE_FIELDS_U32, DERIVED_FIELDS, ARC_NONE, Particles };
 })();
 // src/simulation/grid.js
-const __m90 = (() => {
+const __m92 = (() => {
 class NeighborGrid {
 constructor(minX, minY, maxX, maxY, cell, capacity) {
 this.minX = minX;
@@ -13186,8 +13322,8 @@ for (let a = cellStart[c]; a < cellStart[c + 1]; a++) fn(sorted[a]);
 return { NeighborGrid };
 })();
 // src/simulation/cauldron.js
-const __m91 = (() => {
-const { SIM } = __m85;
+const __m93 = (() => {
+const { SIM } = __m87;
 const CAULDRON_SIZES = {
 pot: { key: 'pot', label: 'Iron Pot', mouth: 0.8, belly: 1.0, neck: 0.5, depth: 1.55, capacity: 310 },
 copper: { key: 'copper', label: 'Copper Cauldron', mouth: 0.95, belly: 1.2, neck: 0.6, depth: 1.8, capacity: 440 },
@@ -13423,8 +13559,8 @@ return s / this.lidCells;
 return { CAULDRON_SIZES, COLUMN, Cauldron };
 })();
 // src/reactions/mixture.js
-const __m93 = (() => {
-const { MAX_SPECIES, NO_BOIL } = __m87;
+const __m95 = (() => {
+const { MAX_SPECIES, NO_BOIL } = __m89;
 const { rgbToOklab, linearToSrgb } = __m18;
 function granularFraction(sp, comp, off, T) {
 let liquidPart = 0;
@@ -13522,13 +13658,13 @@ return new Float32Array(n);
 return { granularFraction, suspensionLnMult, mixtureProps, zeroComposition };
 })();
 // src/simulation/derived.js
-const __m92 = (() => {
-const { MAX_SPECIES, NO_BOIL } = __m87;
-const { granularFraction, suspensionLnMult } = __m93;
+const __m94 = (() => {
+const { MAX_SPECIES, NO_BOIL } = __m89;
+const { granularFraction, suspensionLnMult } = __m95;
 const { rgbToOklabInto, linearToSrgb } = __m18;
-const { PHASE } = __m85;
+const { PHASE } = __m87;
 const { compositionEffects, EFFECTS, NE } = __m5;
-const { ARC_NONE } = __m86;
+const { ARC_NONE } = __m88;
 const AURA_W = EFFECTS.map((e) => (e.kind === 'magic' ? 1 : 0.55));
 const AURA_COL = EFFECTS.map((e) => e.color);
 const auraFx = new Float64Array(NE);
@@ -13676,8 +13812,8 @@ p.auraI[i] = I / 100;
 return { STAIN, GAS_MASS, refreshParticle, refreshAura };
 })();
 // src/simulation/rigid.js
-const __m94 = (() => {
-const { PHASE } = __m85;
+const __m96 = (() => {
+const { PHASE } = __m87;
 const MAX_GROUPS = 2048;
 const BOND = 0.135;
 const FRESH = -2;
@@ -13870,8 +14006,8 @@ return this.active.length;
 return { FRESH, RigidBodies };
 })();
 // src/simulation/thermal.js
-const __m95 = (() => {
-const { PHASE, SIM } = __m85;
+const __m97 = (() => {
+const { PHASE, SIM } = __m87;
 const KPP = 34; // particle–particle conductance (game-scaled)
 const KW = 24; // particle–wall conductance
 const KA = 0.35; // free-surface loss to air
@@ -13987,11 +14123,11 @@ for (let k = 0; k < M + L; k++) Tw[k] += flow[k] / Cw[k];
 return { thermalStep, wallStep };
 })();
 // src/simulation/phase.js
-const __m96 = (() => {
-const { PHASE, PHASE_NAMES } = __m85;
-const { MAX_SPECIES, NO_BOIL } = __m87;
-const { refreshParticle } = __m92;
-const { FRESH } = __m94;
+const __m98 = (() => {
+const { PHASE, PHASE_NAMES } = __m87;
+const { MAX_SPECIES, NO_BOIL } = __m89;
+const { refreshParticle } = __m94;
+const { FRESH } = __m96;
 const { LIQUID, POWDER, PASTE, SOLID, GAS } = PHASE;
 const BOIL_VOLATILE = 0.8;
 const DRY_MIN = 0.12;
@@ -14276,9 +14412,9 @@ classifyFluid(sim, j);
 return { classifyFluid, isFrozenGrain, dominantId, phaseStep };
 })();
 // src/reactions/diffusion.js
-const __m97 = (() => {
-const { PHASE } = __m85;
-const { MAX_SPECIES } = __m87;
+const __m99 = (() => {
+const { PHASE } = __m87;
+const { MAX_SPECIES } = __m89;
 const { compatFactor } = __m6;
 const { LIQUID, POWDER, PASTE, SOLID, GAS } = PHASE;
 const RD = 0.16;
@@ -14433,10 +14569,10 @@ return w > 0 ? s / w : 0;
 return { diffusionStep };
 })();
 // src/simulation/arcane.js
-const __m99 = (() => {
-const { MAX_SPECIES } = __m87;
-const { ARCANE_SCALE, ARCANE_ZERO, awakenedId } = __m88;
-const { ARC_NONE } = __m86;
+const __m101 = (() => {
+const { MAX_SPECIES } = __m89;
+const { ARCANE_SCALE, ARCANE_ZERO, awakenedId } = __m90;
+const { ARC_NONE } = __m88;
 const RATE = 0.55;
 const HEAT = 24;
 const TAIL = 0.002;
@@ -14515,11 +14651,11 @@ return a;
 return { arcaneStep, awakeSlot };
 })();
 // src/reactions/reactions.js
-const __m98 = (() => {
-const { MAX_SPECIES } = __m87;
-const { PHASE } = __m85;
-const { awakenedId } = __m88;
-const { awakeSlot } = __m99;
+const __m100 = (() => {
+const { MAX_SPECIES } = __m89;
+const { PHASE } = __m87;
+const { awakenedId } = __m90;
+const { awakeSlot } = __m101;
 const { GAS, SOLID } = PHASE;
 class ReactionSystem {
 constructor(sim, rules) {
@@ -14794,9 +14930,9 @@ return best;
 return { ReactionSystem };
 })();
 // src/simulation/tools.js
-const __m100 = (() => {
-const { PHASE, SIM } = __m85;
-const { MAX_SPECIES } = __m87;
+const __m102 = (() => {
+const { PHASE, SIM } = __m87;
+const { MAX_SPECIES } = __m89;
 const { LIQUID, POWDER, PASTE, SOLID, GAS } = PHASE;
 const TOOL_SPECS = {
 spoon: { core: SIM.SPOON_CORE, reach: SIM.SPOON_RADIUS, entrain: [0.2, 0.09, 0.3, 0.035, 0.12], drag: 0.55 },
@@ -15051,10 +15187,10 @@ if (victims.length) sim.emit({ type: 'skim', count: victims.length, x: t.x, y: t
 return { TOOL_SPECS, ToolState, clampToInterior, toolForces, toolConstraints, LIQUID };
 })();
 // src/simulation/emitter.js
-const __m101 = (() => {
-const { PHASE, SIM, formPhase } = __m85;
-const { COLUMN } = __m91;
-const { chunkTemplate, chunkSize, hasPieces, skinOf, grainSkinOf, piece } = __m89;
+const __m103 = (() => {
+const { PHASE, SIM, formPhase } = __m87;
+const { COLUMN } = __m93;
+const { chunkTemplate, chunkSize, hasPieces, skinOf, grainSkinOf, piece } = __m91;
 const { registerSpecies } = __m44;
 class Emitter {
 constructor(sim) {
@@ -15222,8 +15358,8 @@ return true;
 return { Emitter };
 })();
 // src/simulation/electric.js
-const __m102 = (() => {
-const { PHASE } = __m85;
+const __m104 = (() => {
+const { PHASE } = __m87;
 const KQ = 26; // conduction rate (game scaled)
 const RE = 0.16; // contact distance
 const JOULE = 140; // heat per unit of charge moved per unit of potential difference
@@ -15270,22 +15406,22 @@ return s;
 return { electricStep, totalCharge };
 })();
 // src/simulation/world.js
-const __m84 = (() => {
-const { PHASE, SIM, TUNE, formPhase } = __m85;
-const { Particles } = __m86;
-const { NeighborGrid } = __m90;
-const { Cauldron, COLUMN } = __m91;
-const { SpeciesTable, MAX_SPECIES } = __m87;
-const { refreshParticle } = __m92;
-const { RigidBodies } = __m94;
-const { thermalStep } = __m95;
-const { phaseStep, classifyFluid } = __m96;
-const { diffusionStep } = __m97;
-const { ReactionSystem } = __m98;
-const { ToolState, toolForces, toolConstraints } = __m100;
-const { Emitter } = __m101;
-const { electricStep } = __m102;
-const { arcaneStep } = __m99;
+const __m86 = (() => {
+const { PHASE, SIM, TUNE, formPhase } = __m87;
+const { Particles } = __m88;
+const { NeighborGrid } = __m92;
+const { Cauldron, COLUMN } = __m93;
+const { SpeciesTable, MAX_SPECIES } = __m89;
+const { refreshParticle } = __m94;
+const { RigidBodies } = __m96;
+const { thermalStep } = __m97;
+const { phaseStep, classifyFluid } = __m98;
+const { diffusionStep } = __m99;
+const { ReactionSystem } = __m100;
+const { ToolState, toolForces, toolConstraints } = __m102;
+const { Emitter } = __m103;
+const { electricStep } = __m104;
+const { arcaneStep } = __m101;
 const { LIQUID, POWDER, PASTE, SOLID, GAS } = PHASE;
 const MODE = Object.freeze({ PBF: 0, GRAN: 1, COH: 2, RIGID: 3, GAS: 4 });
 const M_PBF = 0, M_GRAN = 1, M_COH = 2, M_RIGID = 3, M_GAS = 4;
@@ -16105,10 +16241,10 @@ if (p.sleep[i] >= SLEEP_STEPS) p.sleep[i] = 0;
 return { MODE, SLEEP_STEPS, Simulation, formPhase };
 })();
 // src/studio/material-runtime.js
-const __m105 = (() => {
+const __m107 = (() => {
 const { artDomain, artRevision } = __m16;
 const { hex } = __m17;
-const { PHASE } = __m85;
+const { PHASE } = __m87;
 let revision = -1, styles = {};
 const NAMES = { [PHASE.LIQUID]: 'liquid', [PHASE.POWDER]: 'powder', [PHASE.PASTE]: 'paste', [PHASE.SOLID]: 'solid', [PHASE.GAS]: 'gas' };
 function materialStyles() {
@@ -16132,7 +16268,7 @@ data[o + 3] *= c.opacity;
 return { materialStyles, directMaterialImage };
 })();
 // src/rendering/potion-fx.js
-const __m106 = (() => {
+const __m108 = (() => {
 const { artDomain } = __m16;
 const { hex } = __m17;
 const { EFFECTS, NE } = __m5;
@@ -16598,12 +16734,12 @@ break;
 return { PotionParticles };
 })();
 // src/rendering/brew-palette.js
-const __m107 = (() => {
-const { MAX_SPECIES } = __m87;
+const __m109 = (() => {
+const { MAX_SPECIES } = __m89;
 const { srgbToLinear, linearToSrgb } = __m18;
 const { PIECE_ART, piecePalette, registerSpecies, onPiecesChanged } = __m44;
-const { grainSkinOf } = __m89;
-const { STAIN } = __m92;
+const { grainSkinOf } = __m91;
+const { STAIN } = __m94;
 const bySpecies = new WeakMap();
 const bySkin = new Map();
 onPiecesChanged(() => bySkin.clear());
@@ -16722,15 +16858,15 @@ return true;
 return { dominantColour, preparePalettes, pc, paletteColour };
 })();
 // src/rendering/fluid.js
-const __m104 = (() => {
-const { directMaterialImage } = __m105;
-const { PHASE, SIM } = __m85;
-const { LOOK, piece } = __m89;
+const __m106 = (() => {
+const { directMaterialImage } = __m107;
+const { PHASE, SIM } = __m87;
+const { LOOK, piece } = __m91;
 const { PIECE_ART, PIECE_CELL, piecePalette, pieceSprite } = __m44;
 const { NE } = __m5;
-const { MAX_SPECIES } = __m87;
-const { PotionParticles } = __m106;
-const { preparePalettes, paletteColour, pc: palCol } = __m107;
+const { MAX_SPECIES } = __m89;
+const { PotionParticles } = __m108;
+const { preparePalettes, paletteColour, pc: palCol } = __m109;
 const { LIQUID, POWDER, PASTE, SOLID, GAS } = PHASE;
 const LS = 9;
 const LC = 6;
@@ -17707,8 +17843,8 @@ return v < 0 ? 0 : v > 255 ? 255 : v | 0;
 return { dropletCell, drawnGlow, drawnGlowTable, FluidRenderer };
 })();
 // src/rendering/effects.js
-const __m108 = (() => {
-const { PAL, hex2rgb } = __m80;
+const __m110 = (() => {
+const { PAL, hex2rgb } = __m82;
 const MAX = 900;
 const FIRE_RAMP = [PAL.fire5, PAL.fire4, PAL.fire3, PAL.fire2, PAL.fire1, PAL.fire0].map(hex2rgb);
 class Effects {
@@ -17821,12 +17957,12 @@ ctx.globalAlpha = 1;
 return { Effects };
 })();
 // src/rendering/renderer.js
-const __m103 = (() => {
-const { PAL, paintBackground, renderCauldron, renderLid, renderLidAside, paintHearth, makeCanvas, rgbStr, hex2rgb, drawJar, rect } = __m80;
-const { FluidRenderer, drawnGlow, drawnGlowTable } = __m104;
-const { Effects } = __m108;
-const { COLUMN } = __m91;
-const { PHASE } = __m85;
+const __m105 = (() => {
+const { PAL, paintBackground, renderCauldron, renderLid, renderLidAside, paintHearth, makeCanvas, rgbStr, hex2rgb, drawJar, rect } = __m82;
+const { FluidRenderer, drawnGlow, drawnGlowTable } = __m106;
+const { Effects } = __m110;
+const { COLUMN } = __m93;
+const { PHASE } = __m87;
 const { compositionEffects, dominantEffect, EFFECTS, NE } = __m5;
 const auraScratch = new Float64Array(NE);
 const VIEW_TOP = -1.25;
@@ -18269,7 +18405,7 @@ if (W >= 9) px(gx + 1, g0 + 1, GLASS_HI);
 return { Renderer, drawBottle, PHASE };
 })();
 // src/materials/reference.js
-const __m109 = (() => {
+const __m111 = (() => {
 const { completeMaterial } = __m46;
 const REF = {};
 const add = (d) => (REF[d.id] = completeMaterial(d));
@@ -18306,6 +18442,172 @@ density: 1.1, gasDensity: 2.2, compat: [0.6, 0.3], melt: -90, boil: 8, heatCapac
 const refLookup = (id) => REF[id];
 return { REF, refLookup };
 })();
+// src/rendering/ingredient-loader.js
+const __m112 = (() => {
+const { registerIngredientAtlas, ingredientAtlasLoaded } = __m52;
+const pending = new Map();
+async function loadIngredientBiome(biome) {
+if (ingredientAtlasLoaded(biome)) return;
+if (pending.has(biome)) return pending.get(biome);
+const task = (async () => {
+const base = new URL(`assets/ingredients/biomes/${biome}`, document.baseURI);
+const response = await fetch(base.href + '.json');
+if (!response.ok) throw new Error(`Ingredient metadata ${biome}: HTTP ${response.status}`);
+const atlas = await response.json();
+const image = new Image(); image.src = base.href + '.png';
+await image.decode();
+if (image.naturalWidth !== atlas.width || image.naturalHeight !== atlas.height) throw new Error('Ingredient PNG dimensions mismatch: ' + biome);
+const cv = document.createElement('canvas'); cv.width = atlas.width; cv.height = atlas.height;
+const ctx = cv.getContext('2d', { willReadFrequently: true });
+ctx.drawImage(image, 0, 0);
+registerIngredientAtlas(atlas, ctx.getImageData(0, 0, cv.width, cv.height).data);
+})();
+pending.set(biome, task);
+try { await task; } finally { pending.delete(biome); }
+}
+async function loadGameIngredients(st, all = false) {
+const biomes = new Set(all ? st.world.materials.filter((m) => m.wild).map((m) => m.wild.region) : st.unlockedBiomes);
+for (const [id, amount] of [...Object.entries(st.inventory), ...Object.entries(st.garden.seeds), ...Object.entries(st.found)]) if (Number(amount) > 0 && st.lookup(id)?.wild) biomes.add(st.lookup(id).wild.region);
+for (const p of st.garden.plots) if (p.crop && st.lookup(p.crop.materialId)?.wild) biomes.add(st.lookup(p.crop.materialId).wild.region);
+await Promise.all([...biomes].map(loadIngredientBiome));
+}
+return { loadIngredientBiome, loadGameIngredients };
+})();
+// src/rendering/exotic-interactions.js
+const __m113 = (() => {
+const { BIOME_BY_ID } = __m4;
+const { artDomain } = __m16;
+const { Pixels } = __m23;
+const { ingredientAssetFrame } = __m52;
+const FEATURE_HINTS = Object.freeze({
+ripple: 'Touch the water to send moonlit ripples across it.',
+spring: 'Push the small floating islands: they swing back into place.',
+morph: 'Touch the living sprouts to change their shape.',
+mist: 'Sweep the mist aside to reveal the ruins behind it.',
+phase: 'Touch a ghostglass crystal to shift it out of phase.',
+time: 'Swipe down to reverse the sandfalls, or up to accelerate them.',
+});
+function segmentDistance(x, y, x0, y0, x1, y1) {
+const dx = x1 - x0, dy = y1 - y0, n = dx * dx + dy * dy;
+const t = n ? Math.max(0, Math.min(1, ((x - x0) * dx + (y - y0) * dy) / n)) : 0;
+return Math.hypot(x - x0 - dx * t, y - y0 - dy * t);
+}
+class ExoticInteractions {
+constructor(region, scene) {
+this.kind = BIOME_BY_ID[region]?.interaction;
+const cfg = artDomain('environments', region)?.interaction;
+this.stiffness = cfg?.stiffness ?? 30; this.damping = cfg?.damping ?? 6; this.particleCount = cfg?.particles ?? 18;
+this.points = (scene.meta.interactionPoints || (scene.meta.glows || []).slice(0, 6)).map(([x, y]) => ({ x, y, dx: 0, dy: 0, vx: 0, vy: 0, touched: 0 }));
+if (!this.points.length) this.points = [{ x: 190, y: 125, dx: 0, dy: 0, vx: 0, vy: 0, touched: 0 }];
+this.ripples = []; this.clock = 0; this.reverse = 0; this.rate = 1;
+this.islands = typeof document === 'undefined' || this.kind !== 'spring' ? [] : this.points.map((p, i) => islandPixels(Math.round(p.x * 31 + p.y * 17 + i)).toCanvas());
+this.morphArt = typeof document === 'undefined' || this.kind !== 'morph' ? [] : ['morphleaf', 'formblossom'].map((key) => ingredientAssetFrame(key, 'mature', 30)?.pix.toCanvas());
+this.phaseArt = typeof document === 'undefined' || this.kind !== 'phase' ? null : ingredientAssetFrame('ghostglass-coral', 'icon', 24)?.pix.toCanvas();
+this.mist = null;
+if (typeof document !== 'undefined' && this.kind === 'mist') {
+const base = mistPixels().toCanvas(), layer = document.createElement('canvas');
+layer.width = base.width; layer.height = base.height;
+this.mist = { base, layer, ctx: layer.getContext('2d') };
+}
+}
+push(x0, y0, x1, y1) {
+if (!this.kind) return;
+if (![x0, y0, x1, y1].every(Number.isFinite)) return;
+const dx = Math.max(-35, Math.min(35, x1 - x0)), dy = Math.max(-35, Math.min(35, y1 - y0));
+for (const p of this.points) if (segmentDistance(p.x + p.dx, p.y + p.dy, x0, y0, x1, y1) < 23) {
+p.vx = Math.max(-140, Math.min(140, p.vx + (dx || 3) * 4)); p.vy = Math.max(-140, Math.min(140, p.vy + (dy || -5) * 4)); p.touched = 4;
+}
+if (this.kind === 'ripple' || this.kind === 'mist') { if (this.ripples.length >= 16) this.ripples.shift(); this.ripples.push({ x: x1, y: y1, age: 0 }); }
+if (this.kind === 'time') { this.reverse = 4; this.rate = dy < -2 ? 3 : -2; }
+}
+activate() { const p = this.points[0]; this.push(p.x, p.y + 1, p.x, p.y); }
+step(dt) {
+if (!Number.isFinite(dt) || dt <= 0) return;
+dt = Math.min(0.05, dt); this.clock += dt * (this.reverse > 0 ? this.rate : 1); this.reverse = Math.max(0, this.reverse - dt);
+for (const p of this.points) {
+p.vx += (-this.stiffness * p.dx - this.damping * p.vx) * dt; p.vy += (-this.stiffness * p.dy - this.damping * p.vy) * dt;
+p.dx = Math.max(-24, Math.min(24, p.dx + p.vx * dt)); p.dy = Math.max(-18, Math.min(18, p.dy + p.vy * dt));
+p.touched = Math.max(0, p.touched - dt);
+}
+for (const r of this.ripples) r.age += dt;
+this.ripples = this.ripples.filter((r) => r.age < 3);
+}
+draw(ctx) {
+if (!this.kind) return;
+ctx.save();
+const pixel = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), w, h); };
+for (let i = 0; i < this.points.length; i++) {
+const p = this.points[i], x = p.x + p.dx, y = p.y + p.dy;
+if (this.kind === 'spring') {
+if (this.islands[i]) { ctx.drawImage(this.islands[i], Math.round(x - 20), Math.round(y - 5)); continue; }
+for (let j = 0; j < 18; j++) {
+const w = Math.max(1, Math.round(25 * (1 - j / 18)));
+pixel(x - Math.floor(w / 2), y + j, w, 1, j < 2 ? '#71a34c' : j % 4 ? '#55607b' : '#8b95ac');
+if (j > 3 && j % 3 === 0) pixel(x - w / 3, y + j, Math.max(1, w / 4 | 0), 1, '#41465c');
+}
+pixel(x - 12, y - 2, 24, 2, '#a4d56e'); pixel(x + 2, y - 7, 2, 5, '#8de3f8');
+} else if (this.kind === 'morph') {
+const changed = p.touched > 0;
+if (this.morphArt[+changed]) { ctx.drawImage(this.morphArt[+changed], Math.round(x - 15), Math.round(y - 28)); continue; }
+for (let j = 0; j < 7; j++) pixel(x + Math.sin(j * (changed ? 2.4 : 0.9)) * (changed ? 8 : 4), y - j * 2, changed ? 5 : 3, 2, j % 2 ? '#d59aaf' : '#6fba87');
+} else if (this.kind === 'phase') {
+ctx.globalAlpha = p.touched > 0 ? 0.15 : 0.4 + 0.5 * Math.sin(this.clock * 0.7 + i) ** 2;
+if (this.phaseArt) { ctx.drawImage(this.phaseArt, Math.round(x - 12), Math.round(y - 20)); ctx.globalAlpha = 1; continue; }
+for (let j = 0; j < 15; j++) pixel(x - Math.min(j / 3, (15 - j) / 2), y - 15 + j, Math.max(1, Math.min(j / 1.5, 15 - j)), 1, j % 3 ? '#91e4f0' : '#d7f4ff');
+ctx.globalAlpha = 1;
+} else if (this.kind === 'time') {
+for (let j = 0; j < this.particleCount; j++) pixel(x + Math.sin(j + i) * 2, y + ((j * 5 + this.clock * 24) % 55 + 55) % 55, 1, 2, this.reverse > 0 ? '#d0a4ef' : '#f5d18b');
+}
+}
+if (this.mist) {
+const m = this.mist, c = m.ctx;
+c.globalCompositeOperation = 'source-over'; c.clearRect(0, 0, 96, 54);
+const drift = Math.floor(this.clock * 0.4) % 96;
+c.drawImage(m.base, drift, 0); c.drawImage(m.base, drift - 96, 0);
+c.globalCompositeOperation = 'destination-out'; c.fillStyle = '#000';
+for (const r of this.ripples) {
+const radius = 9.5 * (1 - r.age / 3), cx = Math.round(r.x / 4), cy = Math.round(r.y / 4);
+for (let y = -Math.floor(radius); y <= Math.floor(radius); y++) {
+const half = Math.floor(Math.sqrt(Math.max(0, radius * radius - y * y)));
+c.fillRect(cx - half, cy + y, half * 2 + 1, 1);
+}
+}
+ctx.imageSmoothingEnabled = false; ctx.drawImage(m.layer, 0, 0, 384, 216);
+}
+for (const r of this.ripples) if (this.kind === 'ripple') {
+ctx.globalAlpha = 1 - r.age / 3;
+for (let i = 0; i < 36; i++) { const a = i * Math.PI * 2 / 36; pixel(r.x + Math.cos(a) * r.age * 20, r.y + Math.sin(a) * r.age * 6, 2, 1, '#b2eaf4'); }
+}
+ctx.restore();
+}
+}
+function mistPixels() {
+const p = new Pixels(96, 54);
+for (let y = 0; y < p.h; y++) for (let x = 0; x < p.w; x++) {
+const cloud = Math.sin(x * 0.08 + Math.sin(y * 0.1)) * 0.5 + Math.sin(y * 0.18 - x * 0.025) * 0.3;
+const fade = Math.max(0, Math.min(1, (y - 5) / 8, (54 - y) / 6));
+const alpha = Math.round((46 + cloud * 28) * fade);
+p.set(x, y, ((alpha << 24) | 0x00bdB8a9) >>> 0);
+}
+return p;
+}
+function islandPixels(seed) {
+const p = new Pixels(40, 32), stone = [0xff514a40, 0xff73625a, 0xff97857c, 0xffc4b4a5];
+const hash = (x, y) => (Math.imul(x + seed, 374761393) ^ Math.imul(y + 17, 668265263)) >>> 0;
+for (let y = 3; y < 29; y++) {
+const u = (y - 3) / 26, half = Math.max(1, Math.round(16 * (1 - u ** 0.75) + Math.sin(y * 0.7 + seed) * 1.5));
+for (let x = 20 - half; x <= 20 + half; x++) {
+const hx = Math.floor((x + (Math.floor(y / 4) % 2) * 2) / 5), hy = Math.floor(y / 4);
+const rim = x === 20 - half || x === 20 + half;
+const c = y < 5 ? (y === 3 ? 0xff80c6a4 : 0xff4e9265) : rim ? stone[0] : y % 4 === 0 || x % 5 === hy % 2 * 2 ? 0xff29262c : stone[1 + hash(hx, hy) % 3];
+p.set(x, y, c);
+}
+}
+for (let j = 0; j < 7; j++) { p.set(23, j, 0xffeada8a); p.set(24, j + 1, 0xffac9a54); }
+return p;
+}
+return { FEATURE_HINTS, ExoticInteractions };
+})();
 // src/studio/workspaces.js
 const __m12 = (() => {
 const { h, btn, clear, confirmDialog } = __m13;
@@ -18318,20 +18620,25 @@ const { WILD_SPECS } = __m45;
 const { growthParams } = __m51;
 const { plantFrame, iconFrame, pieceArt } = __m50;
 const { FAMILIES } = __m31;
-const { sceneOf } = __m52;
-const { animateRegion } = __m75;
-const { drawRabbit } = __m78;
+const { sceneOf } = __m54;
+const { animateRegion } = __m77;
+const { drawRabbit } = __m80;
 const { kindLook } = __m7;
-const { rollLook } = __m81;
+const { rollLook } = __m83;
 const { Rng, hashString } = __m8;
-const { Simulation } = __m84;
-const { Renderer } = __m103;
-const { REF, refLookup } = __m109;
-const { PHASE } = __m85;
+const { Simulation } = __m86;
+const { Renderer } = __m105;
+const { REF, refLookup } = __m111;
+const { PHASE } = __m87;
 const { NE } = __m5;
 const { ICON_NAMES, iconUrl } = __m14;
 const { interfaceDecoration } = __m15;
 const { wordColor } = __m26;
+const { loadIngredientBiome } = __m112;
+const { ingredientAssetFrame, ingredientAssetInfo } = __m52;
+const { ingredientAtlasLoaded } = __m52;
+const { ExoticInteractions } = __m113;
+const { BIOME_BY_ID } = __m4;
 let nextToken = -1;
 const POSES = ['idle', 'hop', 'rear', 'eat', 'loaf', 'hurt', 'sick', 'flop', 'collapse', 'dead'];
 const TRAITS = ['', 'horns', 'antlers', 'unihorn', 'wings', 'scales', 'eye3', 'spines', 'tail-lizard', 'giant', 'tiny'];
@@ -18411,13 +18718,24 @@ this.draw();
 }
 ingredients(cfg) {
 const s = this.studio, inspector = s.inspector;
+const spec = WILD_SPECS.find((m) => m.key === this.target);
+const metadata = ingredientAssetInfo(this.target);
+if (!metadata && !this.loadingArtwork) {
+this.loadingArtwork = true;
+loadIngredientBiome(spec.region).then(() => { this.loadingArtwork = false; if (!this.destroyed) this.render(); }).catch((e) => { this.loadingArtwork = false; s.message(e.message, true); });
+}
+inspector.append(h('div', { class: 'art-atlas-info card', 'data-act': 'atlas-metadata' },
+h('b', { text: `${spec.noun} · ${spec.rarity}${spec.arcaneVariant ? ' · Arcane' : ''}` }),
+h('p', { text: `Biome: ${spec.region}. Permanent species: ${spec.baseKey || spec.key}. Shipped master: 64 × 64 native pixels; icon, propagation and five growth stages.` }),
+h('p', { text: metadata ? `Atlas: ${metadata.atlas} · frame ${metadata.rect.join(', ')}. The game and this preview read the same PNG pixels.` : 'Loading the species atlas…' }),
+h('a', { href: `assets/ingredients/biomes/${spec.region}.png`, download: `${spec.region}.png`, text: 'Export atlas PNG' })));
 const id = archetypeIdentity(this.target); id.seed = Number(this.seed);
 const d = this.scope(() => describe(id)), growth = this.scope(() => growthParams(d));
 inspector.append(this.select('Growth stage', String(this.stage), [['0', 'Sprout'], ['1', 'Ripe'], ['2', 'Mature']], (v) => { this.stage = +v; this.render(); }),
 this.select('Game construction', cfg.asset, [['', 'Native family grammar'], ...s.project.assets.map((a) => [a.id, a.name])], (v) => this.change('Bind species construction', () => { cfg.asset = v; })),
 btn('Use current component graph for this species', () => this.change('Bind graph to species', () => { cfg.asset = s.asset.id; }), { act: 'domain-bind-species' }),
 btn('Use current graph for this native family', () => this.change('Bind procedural family', () => { for (const spec of WILD_SPECS) if (describe(archetypeIdentity(spec.key)).family === d.family) s.project.domains.ingredients[spec.key] = { ...(s.project.domains.ingredients[spec.key] || { morph: {}, growth: {} }), asset: s.asset.id }; }), { act: 'domain-bind-family' }),
-h('p', { text: `Native family: ${d.family}. Its geometry, growth, icons and shards use the same identity. Parameter edits change the native generator; graph binding replaces the shared construction.` }));
+h('p', { text: `Source family: ${d.family}. Shipped species use fixed PNG artwork. Bind an edited component graph to explicitly replace its artwork in both the preview and game. The native parameters below are authoring controls for that family.` }));
 for (const [name, source, target] of [['Morphology', d.m, cfg.morph], ['Growth grammar', growth, cfg.growth]]) {
 const details = this.group('ingredient-' + name, name, name === 'Morphology' ? 'Fine-tune the native shape and proportions' : 'Fine-tune how the ingredient grows');
 for (const [key, value] of Object.entries(source)) {
@@ -18444,7 +18762,15 @@ this.studio.workspace = 'components'; this.destroy(); this.studio.domainEditor =
 }
 environments(cfg) {
 const s = this.studio, i = s.inspector;
+if (BIOME_BY_ID[this.target] && !ingredientAtlasLoaded(this.target)) loadIngredientBiome(this.target).then(() => { this.previewFeature = null; this.draw(); }).catch((e) => s.message(e.message, true));
 cfg.lights ??= [];
+cfg.interaction ??= { stiffness: 30, damping: 6, particles: 18 };
+const interaction = this.group('interaction-physics', 'Touch interaction', 'Shared decorative physics and bounded particles');
+interaction.append(this.sliderField('Spring stiffness', cfg.interaction, 'stiffness', 5, 60, 1),
+this.sliderField('Spring damping', cfg.interaction, 'damping', 2, 16, 1),
+this.sliderField('Temporal particles', cfg.interaction, 'particles', 4, 32, 1),
+btn('Try native interaction', () => { this.previewFeature?.activate(); this.draw(); }, { act: 'domain-interact', disabled: !BIOME_BY_ID[this.target]?.interaction }));
+i.append(interaction);
 this.canvas.dataset.editorTool = this.terrainTool;
 const tool = WILDS_TOOLS.find(([id]) => id === this.terrainTool) || WILDS_TOOLS[0];
 const chooseTool = (id) => { this.terrainTool = id; this.render(); };
@@ -18552,7 +18878,9 @@ if (!hit) { this.sceneSelection = null; this.draw(); return; }
 this.sceneSelection = { kind: hit.kind, index: hit.index };
 this.groupState.set(hit.kind === 'object' ? 'wilds-objects' : 'wilds-lights', true);
 const o = hit.kind === 'object' ? cfg.objects[hit.index] : cfg.lights[hit.index];
+const bounds = this.canvas.getBoundingClientRect();
 this.sceneDrag = { ...hit, before: clone(s.project), pointerId: e.pointerId, x: p[0], y: p[1],
+clientX: e.clientX, clientY: e.clientY, width: bounds.width, height: bounds.height,
 source: { x: o.x, y: o.y, scale: o.scale, radius: o.radius } };
 this.canvas.setPointerCapture(e.pointerId);
 this.draw(); return;
@@ -18575,14 +18903,15 @@ this.stroke = { kind: this.terrainTool, color: this.terrainColor, radius: this.r
 this.canvas.onpointermove = (e) => {
 const d = this.sceneDrag;
 if (d && e.pointerId === d.pointerId) {
-const p = point(e), o = d.kind === 'object' ? cfg.objects[d.index] : cfg.lights[d.index];
+const dx = (e.clientX - d.clientX) * 384 / d.width, dy = (e.clientY - d.clientY) * 216 / d.height;
+const o = d.kind === 'object' ? cfg.objects[d.index] : cfg.lights[d.index];
 if (!o) return;
 if (d.action === 'resize') {
-if (d.kind === 'object') o.scale = Math.max(0.1, Math.min(2, Math.round((d.source.scale + (p[0] - d.x) / 20) * 10) / 10));
-else o.radius = Math.max(2, Math.min(120, Math.round(d.source.radius + p[0] - d.x)));
+if (d.kind === 'object') o.scale = Math.max(0.1, Math.min(2, Math.round((d.source.scale + dx / 20) * 10) / 10));
+else o.radius = Math.max(2, Math.min(120, Math.round(d.source.radius + dx)));
 } else {
-o.x = Math.max(0, Math.min(383, Math.round(d.source.x + p[0] - d.x)));
-o.y = Math.max(0, Math.min(215, Math.round(d.source.y + p[1] - d.y)));
+o.x = Math.max(0, Math.min(383, Math.round(d.source.x + dx)));
+o.y = Math.max(0, Math.min(215, Math.round(d.source.y + dy)));
 }
 this.draw(); return;
 }
@@ -18677,10 +19006,17 @@ const id = archetypeIdentity(this.target); id.seed = Number(this.seed); const d 
 const frames = [plantFrame(d, this.stage), iconFrame(d), ...[0, 1, 2, 3].map((v) => ({ pix: pieceArt(d, v, 40) }))];
 for (const [i, frame] of frames.entries()) { const size = i === 0 ? 100 : 42, x = i === 0 ? 20 : 140 + (i - 1) * 46; ctx.drawImage(frame.pix.toCanvas(), x, 120 - size, size, size); }
 ctx.fillStyle = '#d7e4ce'; ctx.font = '9px sans-serif'; ctx.fillText('Growth stage        Icon           Four physical fragments', 20, 150);
+for (const [i, stage] of ['seed', 'sprout', 'young', 'developing', 'mature'].entries()) {
+const f = ingredientAssetFrame(this.target, stage, 40);
+if (f) ctx.drawImage(f.pix.toCanvas(), 20 + i * 64, 161, 40, 40);
+}
 } else if (this.kind === 'environments') {
 this.requestScene(); const sc = this.scene;
 if (!sc || !this.sceneCanvas) return;
 ctx.drawImage(this.sceneCanvas, 0, 0); if (this.play) animateRegion(ctx, this.target, this.time, String(this.seed), sc);
+const featureKey = `${this.target}:${this.seed}:${this.token}`;
+if (!this.previewFeature || this.previewFeatureKey !== featureKey) { this.previewFeatureKey = featureKey; this.previewFeature = new ExoticInteractions(this.target, sc); }
+this.previewFeature.step(dt); this.previewFeature.draw(ctx);
 if (this.mask) { ctx.fillStyle = '#ff606060'; for (let k = 0; k < sc.solid.length; k++) if (sc.solid[k]) ctx.fillRect(k % 384, Math.floor(k / 384), 1, 1); ctx.fillStyle = '#44ffbb'; for (let k = 0; k < sc.open.length; k++) if (sc.open[k]) ctx.fillRect(k % 384, Math.floor(k / 384), 1, 1); }
 if (this.stroke) { ctx.fillStyle = this.stroke.kind === 'erase' ? '#101f2b88' : this.stroke.color; for (const [x, y] of this.stroke.points) { ctx.beginPath(); ctx.arc(x, y, this.stroke.radius, 0, Math.PI * 2); ctx.fill(); } }
 if (this.terrainTool === 'select' || this.sceneSelection) {
@@ -18727,7 +19063,7 @@ destroy() { this.destroyed = true; this.sceneDrag = null; this.worker?.terminate
 return { DomainWorkspace };
 })();
 // src/studio/storage.js
-const __m110 = (() => {
+const __m114 = (() => {
 const { validateProject, clone, upgradeProject } = __m2;
 const DB = 'potion-art-studio';
 async function open() {
@@ -18773,7 +19109,7 @@ const { newProject, newAsset, newComponent, newNode, newLayer, clone, uid, valid
 const { componentPixels, generate } = __m20;
 const { Pixels } = __m23;
 const { colorWord, wordColor, line, region, inPolygon, transformed, validatePNGHeader } = __m26;
-const { saveProject, loadProject, listProjects, deleteProject, getSetting, putSetting } = __m110;
+const { saveProject, loadProject, listProjects, deleteProject, getSetting, putSetting } = __m114;
 const { artDirection, setArtDirection, artRevision } = __m16;
 const { archetypeIdentity } = __m44;
 const { describe } = __m28;
@@ -18900,7 +19236,7 @@ this.refresh();
 }
 showGuide() {
 const guides = {
-components: ['Choose a plant or component in the library.', 'Use Shape to drag generated geometry or its corner handle to resize; use Pencil or Eraser for pixel corrections.', 'Watch the assembled result on the right; adjust growth and attachments in the tabs below.'],
+components: ['Draw a component: choose a plant or component in the library.', 'Use Shape to drag generated geometry or its corner handle to resize; use Pencil or Eraser for pixel corrections.', 'Watch the assembled result on the right; adjust growth and attachments in the tabs below.'],
 ingredients: ['Choose an ingredient species in Domain target.', 'Select its growth stage and see the icon, plant and fragments together.', 'Bind a reusable component graph, or open the native morphology details for precise adjustments.'],
 environments: ['Choose a biome in Domain target.', 'Pick Rock, Soil, Erase, Water, Lava, Place prop or Add light above the preview.', 'After placement, drag a prop or light center to move it; drag the square handle to resize. Sliders adjust the rest.'],
 creatures: ['Choose a creature.', 'Adjust its anatomy and pose while watching the live animation.', 'Preview mutations and magical effects before applying the art profile.'],
@@ -19244,6 +19580,7 @@ this.geometryIndex = hit.index;
 const g = this.component.geometry[hit.index];
 this.geometryDrag = { before: clone(this.project), pointerId: e.pointerId,
 action: hit.action, index: hit.index, x: hit.x, y: hit.y,
+screenX: e.clientX, screenY: e.clientY, zoom: this.zoom,
 source: { x: g.x, y: g.y, width: g.width, height: g.height } };
 this.draw(); return;
 }
@@ -19265,10 +19602,7 @@ this.draw();
 cv.addEventListener('pointermove', (e) => {
 const d = this.geometryDrag;
 if (d && e.pointerId === d.pointerId) {
-const b = cv.getBoundingClientRect();
-const x = (e.clientX - b.left - this.origin[0]) / this.zoom;
-const y = (e.clientY - b.top - this.origin[1]) / this.zoom;
-const dx = x - d.x, dy = y - d.y, g = this.component.geometry[d.index];
+const dx = (e.clientX - d.screenX) / d.zoom, dy = (e.clientY - d.screenY) / d.zoom, g = this.component.geometry[d.index];
 if (!g) return;
 if (d.action === 'resize') {
 g.width = Math.max(1, Math.min(32, Math.round(d.source.width + dx * 2)));
@@ -19434,7 +19768,7 @@ this.bitmapCanvas = null; this.componentKey = ''; this.el.remove();
 return { StudioScreen };
 })();
 // src/materials/names.js
-const __m113 = (() => {
+const __m117 = (() => {
 const { hueOf } = __m18;
 const HUE_PREFIXES = [
 [25, ['Bloodroot', 'Crimson', 'Wyrmblood', 'Rosehip', 'Cardinal']],
@@ -19521,15 +19855,15 @@ return n;
 return { NOUNS, makeName, PRODUCT_WORDS, makeProductName };
 })();
 // src/materials/generator.js
-const __m112 = (() => {
+const __m116 = (() => {
 const { attachVisuals } = __m30;
 const { Rng } = __m8;
 const { hslToRgb } = __m18;
 const { completeMaterial } = __m46;
-const { makeName, makeProductName } = __m113;
+const { makeName, makeProductName } = __m117;
 const { applyProfile } = __m47;
 const { generateWild, generateLaws, WILD_FX_VERSION, WILD_BY_KEY } = __m45;
-const { withAwakened } = __m88;
+const { withAwakened } = __m90;
 const r2 = (v) => Math.round(v * 100) / 100;
 function generateWorld(seed) {
 const seedStr = String(seed);
@@ -19895,11 +20229,11 @@ return map.get(id);
 return { generateWorld, addAlchemy, SOLVENT_ROLES, LAB_ROLES, sandboxIngredients, makeLookup };
 })();
 // src/game/predict.js
-const __m115 = (() => {
-const { SpeciesTable, MAX_SPECIES } = __m87;
-const { mixtureProps } = __m93;
+const __m119 = (() => {
+const { SpeciesTable, MAX_SPECIES } = __m89;
+const { mixtureProps } = __m95;
 const { compositionEffects, extractedEffects, NE } = __m5;
-const { isMagical, awakenedId, thresholdToCelsius } = __m88;
+const { isMagical, awakenedId, thresholdToCelsius } = __m90;
 const ACTIVATION_MARGIN = 6;
 const tables = new WeakMap();
 function predictPlan(world, lookup, plan) {
@@ -20043,7 +20377,7 @@ return c;
 return { ACTIVATION_MARGIN, predictPlan, reduceTemp, arcaneRegime, activationMargin, planCost };
 })();
 // src/game/customers.js
-const __m116 = (() => {
+const __m120 = (() => {
 const { Rng } = __m8;
 const ARCHETYPES = [
 {
@@ -20172,7 +20506,7 @@ return ARCHETYPES.find((a) => a.key === key) || ARCHETYPES[0];
 return { ARCHETYPES, shortName, makeCustomer, archetypeOf, Rng };
 })();
 // src/game/evaluate.js
-const __m117 = (() => {
+const __m121 = (() => {
 const { EFFECTS, EFFECT_INDEX, EFFECT_KEYS, NE } = __m5;
 const PROPERTY_LABELS = {
 temperature: 'Temperature', quantity: 'Quantity', purity: 'Purity', ...Object.fromEntries(EFFECTS.map((e) => [e.key, e.label])),
@@ -20264,7 +20598,7 @@ return { rows, quality, stars, perfect, payment, repDelta };
 return { PROPERTY_LABELS, strongestUnwanted, isEffectKey, scoreRequirement, describeValue, evaluatePotion };
 })();
 // src/game/requests.js
-const __m118 = (() => {
+const __m122 = (() => {
 const REQUESTS = [
 { id: 'healing', title: 'Healing Draught', fx: [{ key: 'vitality' }], who: ['healer', 'farmer', 'innkeeper', 'knight', 'hunter'], minTier: 0,
 story: ['My patients are wasting with fever. I need something that truly heals — and nothing else in it.', 'The goats are poorly and so is my back. A healing draught, plain and honest.', 'A traveller collapsed in my common room. Something to bring the colour back to his face.'] },
@@ -20329,17 +20663,17 @@ return REQUESTS.find((r) => r.id === id);
 return { REQUESTS, TIER_TARGET, PURITY_LIMIT, requestById };
 })();
 // src/game/commissions.js
-const __m114 = (() => {
+const __m118 = (() => {
 const { Rng } = __m8;
 const { describeColor } = __m18;
-const { predictPlan, planCost, arcaneRegime, ACTIVATION_MARGIN } = __m115;
-const { ARCHETYPES, makeCustomer, archetypeOf } = __m116;
-const { evaluatePotion } = __m117;
-const { SIM } = __m85;
+const { predictPlan, planCost, arcaneRegime, ACTIVATION_MARGIN } = __m119;
+const { ARCHETYPES, makeCustomer, archetypeOf } = __m120;
+const { evaluatePotion } = __m121;
+const { SIM } = __m87;
 const { EFFECT_INDEX, EFFECT_BY_KEY, EFFECT_KEYS, NE, interact } = __m5;
-const { thresholdToCelsius, isMagical } = __m88;
+const { thresholdToCelsius, isMagical } = __m90;
 const { compatFactor } = __m6;
-const { REQUESTS, TIER_TARGET, PURITY_LIMIT, requestById } = __m118;
+const { REQUESTS, TIER_TARGET, PURITY_LIMIT, requestById } = __m122;
 function effectRequirement(key, sign, min) {
 if (sign < 0) {
 const max = -Math.max(3, Math.round(min));
@@ -20956,7 +21290,7 @@ return /^[aeiou]/i.test(w) ? 'an' : 'a';
 return { purityRequirement, prepFor, coldFloor, TEST_MARGIN, checkSupply, TECHNIQUES, techniqueById, migrateTechniques, generateCommission, TUTORIAL_HERBS, tutorialCommission, unwantedMax };
 })();
 // src/game/equipment.js
-const __m119 = (() => {
+const __m123 = (() => {
 const EQUIPMENT = [
 { id: 'hearth', name: 'Stone Hearth', category: 'heat', price: 0, rank: 0, icon: 'fire', mechanics: ['steeping', 'concentration', 'awakening'], desc: 'A wood fire under the cauldron. It brings a pot to the boil in seconds and takes lamp oil past 200°C — every steep, boil and heat-awakening in the guild’s books.', effect: { maxFlame: 340, heatPower: 3.5 } },
 { id: 'basin', name: 'Cold-Water Basin', category: 'cold', price: 0, rank: 0, icon: 'basin', mechanics: ['cold-extraction'], desc: 'Cool well water under the cauldron: chills a brew to about 9°C — cold enough for most ice-cold steeps, never colder.', effect: { minCool: 4, coolPower: 4 } },
@@ -21039,10 +21373,10 @@ return cap;
 return { EQUIPMENT, STARTING_EQUIPMENT, BASE_STORAGE, BASE_BOTTLES, BASE_HUTCH, RETIRED_EQUIPMENT, equipmentById, RANKS, rankIndex, capabilities };
 })();
 // src/game/experiments.js
-const __m120 = (() => {
+const __m124 = (() => {
 const { EFFECTS, EFFECT_KEYS, EFFECT_INDEX, NE, potencyWord } = __m5;
 const { Rng, hashString } = __m8;
-const { createColony, normalizeColony, installRabbitAlias, rabbitResponse, findRabbit, focusRabbit, recordDose, rabbitSnap, encodeSnap, stageOf, addBoughtRabbit, STAGE_ERR, rabbitSensitivity, RABBIT_BIAS, maxHealthOf } = __m81;
+const { createColony, normalizeColony, installRabbitAlias, rabbitResponse, findRabbit, focusRabbit, recordDose, rabbitSnap, encodeSnap, stageOf, addBoughtRabbit, STAGE_ERR, rabbitSensitivity, RABBIT_BIAS, maxHealthOf } = __m83;
 const { biasSpread, noiseFactor, kindOf } = __m7;
 function readingSteadiness(rabbit, day) {
 const stage = STAGE_ERR[stageOf(rabbit, day)] || 1;
@@ -21309,7 +21643,7 @@ return `${e.label} ${Math.round(v)} (${potencyWord(v, key)})`;
 return { readingSteadiness, SUBJECTS, SUBJECT_BY_ID, RECORD_LIMIT, DOSES, DOSE_NOISE, READ_NOISE, driftTolerance, createTrials, normalizeTrials, rabbitReading, doseErr, EVIDENCE_LEVELS, EVIDENCE_TEXT, evidenceRank, summarize, effectEvidence, requirementEvidence, EVIDENCE_STATE_TEXT, addSamples, runTrial, resetSubject, certification, requiredEffects, missingEffects, suggestSubjects, knownLaws, describeReading };
 })();
 // src/game/gathering.js
-const __m121 = (() => {
+const __m125 = (() => {
 const { Rng, hashString } = __m8;
 const { isBotanical, familyOf, habitatOf } = __m29;
 const { BIOMES } = __m4;
@@ -21685,9 +22019,9 @@ return `${Math.floor(m / 60)} h ${m % 60} min`;
 return { REGIONS, REGION_BY_ID, STAGES, SPROUT_SHARE, generateDeposits, thirstOf, createGathering, GATHER_VERSION, normalizeGathering, GROW_FLOOR, GROW_MAX, WATER_DOSE, moistureEnv, growthOf, matureIn, checkpoint, standOf, plantStage, depositStatus, water, setSky, migrateGathering, SCAR_SLOWDOWN, METHODS, methodOf, dayPart, DAY_PART_NAME, DAY_PART_HINT, WEATHERS, weatherOn, gatherPlan, harvestable, weatherRegrowth, harvest, newDayRegrowth, SANDBOX_PACE, sandboxWilds, sandboxDeposit, formatWait };
 })();
 // src/game/measure.js
-const __m123 = (() => {
-const { MAX_SPECIES } = __m87;
-const { PHASE, SIM } = __m85;
+const __m127 = (() => {
+const { MAX_SPECIES } = __m89;
+const { PHASE, SIM } = __m87;
 const { compatFactor } = __m6;
 const { oklabToRgb } = __m18;
 const { sampleEffects } = __m5;
@@ -21812,12 +22146,12 @@ return stability >= 90 ? 'evenly mixed' : stability >= 70 ? 'a little uneven' : 
 return { measureParticles, tapSelection, probeSelection, viscosityClass, densityWord, evennessWord };
 })();
 // src/game/vial.js
-const __m122 = (() => {
-const { Simulation } = __m84;
-const { PHASE, SIM } = __m85;
-const { MAX_SPECIES } = __m87;
-const { measureParticles } = __m123;
-const { refreshParticle } = __m92;
+const __m126 = (() => {
+const { Simulation } = __m86;
+const { PHASE, SIM } = __m87;
+const { MAX_SPECIES } = __m89;
+const { measureParticles } = __m127;
+const { refreshParticle } = __m94;
 const ROOM = SIM.AMBIENT;
 const COOL_TAU = 480;
 function makeVial(sim, indices, meta) {
@@ -21993,13 +22327,50 @@ return { ...v, species, particles, ml: n * SIM.ML_PER_PARTICLE, bottledMl: v.bot
 }
 return { makeVial, appendParticles, measureVial, updateVial, takeDose, pourBack, pourBackParts, relaxVial, vialInventory, migrateVial };
 })();
+// src/game/orders.js
+const __m129 = (() => {
+const ORDERS = Object.freeze({ basePatience: 600, minPatience: 300, maxPatience: 1500, minPayment: 0.7, specialMultiplier: 2.5, pickupGraceDays: 3 });
+function startService(com, rank = 0) {
+if (!com || com.tutorial || com.special) return com;
+if (com.service && Number.isFinite(com.service.duration) && com.service.duration >= ORDERS.minPatience) {
+com.service.duration = Math.min(ORDERS.maxPatience, com.service.duration);
+com.service.elapsed = Number.isFinite(com.service.elapsed) ? Math.max(0, Math.min(com.service.duration, com.service.elapsed)) : 0;
+return com;
+}
+const complexity = (com.requirements || []).filter((r) => r.key !== 'purity').length + (com.techniques?.length || 0);
+const personality = Number(com.customer?.persona?.patience) || 3;
+com.service = { elapsed: 0, duration: Math.min(ORDERS.maxPatience, Math.max(ORDERS.minPatience, ORDERS.basePatience + complexity * 90 + (personality - 3) * 60 + rank * 30)) };
+return com;
+}
+function serviceStatus(com) {
+const s = com?.service;
+const fraction = s ? Math.max(0, Math.min(1, 1 - s.elapsed / s.duration)) : 1;
+return { fraction, expired: !!s && fraction === 0, payment: ORDERS.minPayment + (1 - ORDERS.minPayment) * fraction };
+}
+function waitForService(com, dt, active = true) {
+if (!active || !com?.service || !Number.isFinite(dt) || dt <= 0) return false;
+if (dt > 1) return false;
+com.service.elapsed = Math.min(com.service.duration, com.service.elapsed + dt);
+return serviceStatus(com).expired;
+}
+function normalizeSpecialOrders(raw) {
+if (!Array.isArray(raw)) return [];
+const seen = new Set();
+return raw.filter((o) => {
+if (!o || typeof o.id !== 'string' || seen.has(o.id) || !o.request?.requirements?.length || !Number.isSafeInteger(o.pickupDay) || o.pickupDay < 1 || !Number.isFinite(o.reward) || o.reward <= 0) return false;
+seen.add(o.id); return true;
+}).slice(0, 4).map((o) => ({ ...o, request: { ...o.request, special: true } }));
+}
+return { ORDERS, startService, serviceStatus, waitForService, normalizeSpecialOrders };
+})();
 // src/game/commerce.js
-const __m124 = (() => {
+const __m128 = (() => {
 const { Rng, hashString } = __m8;
 const { EFFECT_KEYS, EFFECT_INDEX, NE, EFFECT_BY_KEY } = __m5;
-const { evaluatePotion, strongestUnwanted, PROPERTY_LABELS } = __m117;
-const { PURITY_LIMIT } = __m118;
-const { summarize, evidenceRank, EVIDENCE_TEXT } = __m120;
+const { evaluatePotion, strongestUnwanted, PROPERTY_LABELS } = __m121;
+const { PURITY_LIMIT } = __m122;
+const { serviceStatus } = __m129;
+const { summarize, evidenceRank, EVIDENCE_TEXT } = __m124;
 function draftLabel(vial, theory, day) {
 const claims = {};
 const cert = vial.cert || {}, recs = vial.certRecords || {};
@@ -22180,7 +22551,7 @@ const fit = fitEv.quality;
 const tr = trustReport(com, label, rank);
 const trust = tr.trust;
 const qty = Math.min(1, vial.ml / com.bottleMl);
-const reservation = Math.round(com.budget * Math.pow(fit, 1.3) * trust * Math.pow(qty, 1.4) * rng.range(0.92, 1.08) * 10) / 10;
+const reservation = Math.round(com.budget * serviceStatus(com).payment * Math.pow(fit, 1.3) * trust * Math.pow(qty, 1.4) * rng.range(0.92, 1.08) * 10) / 10;
 const offer = Math.round(reservation * (0.58 + 0.27 * (1 - persona.haggle)) * 10) / 10;
 const misses = fitEv.rows.filter((r) => r.score < 0.999).map((r) => r.req.key);
 const reasons = [
@@ -22317,7 +22688,7 @@ return (Math.round(v * 10) / 10).toLocaleString('en-US', { maximumFractionDigits
 return { draftLabel, applyTrials, evidenceOf, STAR_STEPS, MAX_STARS, accuracyStars, claimSigma, claimStars, labelStars, trialClaim, sameClaim, editClaim, claimedEffects, relevantEffects, EVIDENCE_WEIGHT, trustReport, labelTrust, unprovenWanted, proofGaps, claimedMeasurement, openNegotiation, proposePrice, acceptOffer, recordSale, resolveFollowUp, EVIDENCE_TEXT };
 })();
 // src/materials/remains.js
-const __m125 = (() => {
+const __m130 = (() => {
 const { completeMaterial } = __m46;
 const { arcaneProfile, jitter } = __m47;
 function remainsId(rabbitId, part) {
@@ -22416,7 +22787,7 @@ return m;
 return { remainsId, isRemains, remainsPlan, remainsMaterials };
 })();
 // src/game/patrons.js
-const __m126 = (() => {
+const __m131 = (() => {
 const RETURN_CHANCE = 0.3;
 const BANNED_TRUST = -0.75;
 const clamp1 = (v) => Math.max(-1, Math.min(1, v));
@@ -22484,7 +22855,7 @@ return Math.round(v * 100) / 100;
 return { RETURN_CHANCE, BANNED_TRUST, notePatron, patronVerdict, returningPatron, welcomePatron, recentStyles, noveltyFactor };
 })();
 // src/game/recipes.js
-const __m127 = (() => {
+const __m132 = (() => {
 const TRACE_DT = 1;
 const TRACE_MAX = 1200;
 const HOLD_MIN = 6, HOLD_BAND = 4, ROOM = 20;
@@ -22717,7 +23088,7 @@ return Math.round(v * 10) / 10;
 return { TRACE_DT, TRACE_MAX, SAME, traceSample, buildProcedure, procedureLimits, approximateSteps, migrateRecipe, holds, procedureShape, compareRecipe, matchRecipe, recipeConfidence, CONFIDENCE_TEXT, checkReproduction, describeStep };
 })();
 // src/game/legacy-materials.js
-const __m128 = (() => {
+const __m133 = (() => {
 function archiveLegacyMaterials(data) {
 const old = (data.world?.materials || []).filter((m) => m.id?.startsWith('wild-') && !m.speciesId);
 if (!old.length) return data;
@@ -22744,10 +23115,10 @@ return out;
 return { archiveLegacyMaterials };
 })();
 // src/game/travel.js
-const __m129 = (() => {
+const __m134 = (() => {
 const { Rng, hashString } = __m8;
-const { RARITIES } = __m49;
-const { BIOME_BY_ID } = __m4;
+const { RARITIES, RARITY_KEYS } = __m49;
+const { BIOME_BY_ID, ingredientRank } = __m4;
 const TRAVEL = Object.freeze({ capacity: 3, initial: 3, rechargeMs: 25 * 60000, excellentGiftChance: 0.18, arcaneSeedFactor: 0.35 });
 const ARCANE_FREQUENCY = Object.freeze({ common: 0.06, uncommon: 0.04, rare: 0.025, unique: 0.01, legendary: 0.004 });
 const validTime = (now) => Number.isFinite(now) && now >= 0;
@@ -22781,11 +23152,16 @@ return true;
 }
 function makeBiomeInstance(world, lookup, region, revision, rank) {
 const seed = `${world.seed}:biome-v1:${region}:${revision}`, rng = new Rng(seed), biome = BIOME_BY_ID[region];
-const pool = (world.wild || []).map(lookup).filter((m) => m?.wild?.region === region && !m.arcaneVariant && (m.wild.rank || 0) <= rank);
-const chosen = [], candidates = pool.slice();
-while (chosen.length < Math.min(6, pool.length) && candidates.length) {
-const m = rng.weighted(candidates, candidates.map((m) => RARITIES[m.rarity]?.spawnWeight * (m.dominant === biome.dominant ? 8 : 1) || 1));
-candidates.splice(candidates.indexOf(m), 1); chosen.push(m);
+const pool = (world.wild || []).map(lookup).filter((m) => m?.wild?.region === region && !m.arcaneVariant && ingredientRank(m) <= rank);
+const chosen = [], draws = new Map();
+for (let i = 0; i < Math.min(6, pool.length); i++) {
+const tiers = RARITY_KEYS.filter((r) => pool.some((m) => m.rarity === r));
+if (!tiers.length) break;
+const tier = rng.weighted(tiers, tiers.map((r) => RARITIES[r].spawnWeight));
+const eligible = pool.filter((m) => m.rarity === tier);
+const m = rng.weighted(eligible, eligible.map((m) => m.dominant === biome.dominant ? 8 : 1));
+draws.set(m.id, (draws.get(m.id) || 0) + 1);
+if (!chosen.includes(m)) chosen.push(m);
 }
 if (region === 'forest' && revision === 0) {
 const leaf = lookup('wild-silverleaf');
@@ -22794,7 +23170,7 @@ if (leaf && !chosen.includes(leaf)) { if (chosen.length === 6) chosen.pop(); cho
 const roster = [];
 for (const m of chosen) {
 const r = RARITIES[m.rarity] || RARITIES.common;
-roster.push({ id: m.id, count: rng.int(r.specimens[0], r.specimens[1]) });
+roster.push({ id: m.id, count: Math.min(6, rng.int(r.specimens[0], r.specimens[1]) * (draws.get(m.id) || 1)) });
 const chance = ARCANE_FREQUENCY[m.rarity] * (biome.category === 'exotic' ? 1.5 : 1);
 if (rng.chance(chance) && lookup(m.id + '@arcane')) roster.push({ id: m.id + '@arcane', count: 1 });
 }
@@ -22808,19 +23184,20 @@ return hashString(`${worldSeed}:seed-v1:${event}:${material.id}`) / 4294967296 <
 return { TRAVEL, ARCANE_FREQUENCY, createTraveller, normalizeTraveller, settleTraveller, spendTraveller, awardTravellerGift, makeBiomeInstance, seedDrop };
 })();
 // src/game/garden.js
-const __m130 = (() => {
+const __m135 = (() => {
 const { RARITIES } = __m49;
-const { checkpoint, growthOf } = __m121;
-const { seedDrop } = __m129;
+const { checkpoint, growthOf } = __m125;
+const { seedDrop } = __m134;
 const GARDEN = Object.freeze({ initialPlots: 3, maxPlots: 18, offlineCapMs: 8 * 3600000, harvestMl: 50 });
 const FACILITIES = Object.freeze({ soil: { label: 'Soil plot', price: 0, rank: 0 }, fungal: { label: 'Fungal chamber', price: 80, rank: 1 }, mineral: { label: 'Mineral bed', price: 90, rank: 1 }, exotic: { label: 'Exotic planter', price: 240, rank: 3 }, arcane: { label: 'Arcane chamber', price: 180, rank: 2 } });
 function createGarden(now = Date.now()) {
-return { version: 1, seeds: /** @type {Record<string, number>} */ ({}), plots: /** @type {any[]} */ (Array.from({ length: GARDEN.initialPlots }, (_, i) => ({ id: 'plot-' + i, facility: 'soil', crop: null }))), serial: 0, time: 0, wall: now, unlocked: false };
+return { version: 1, seeds: /** @type {Record<string, number>} */ ({}), plots: /** @type {any[]} */ (Array.from({ length: GARDEN.initialPlots }, (_, i) => ({ id: 'plot-' + i, facility: 'soil', crop: null }))), serial: 0, time: 0, wall: now, unlocked: false, demoUsed: false };
 }
 function normalizeGarden(raw, lookup, now = Date.now()) {
 const g = createGarden(now);
 if (!raw || typeof raw !== 'object') return g;
 g.unlocked = !!raw.unlocked;
+g.demoUsed = !!raw.demoUsed || (Array.isArray(raw.plots) && raw.plots.some((p) => p?.crop?.tutorial));
 if (Number.isFinite(raw.wall) && raw.wall >= 0) g.wall = raw.wall;
 if (Number.isFinite(raw.time) && raw.time >= 0) g.time = raw.time;
 if (Number.isSafeInteger(raw.serial) && raw.serial >= 0) g.serial = raw.serial;
@@ -22860,7 +23237,9 @@ const g = st.garden, p = g.plots.find((p) => p.id === plotId), m = st.lookup(id)
 settleGarden(g, now);
 if (!g.unlocked || !p || p.crop || !(g.seeds[id] > 0) || !m || !canCultivate(p, m)) return { ok: false, reason: 'Choose an empty compatible plot and an available propagation material.' };
 g.seeds[id]--;
-p.crop = { id: `${st.seed}:crop:${g.serial++}`, materialId: id, x: 0, y: 0, born: g.time, g: 0, t: g.time, w: 0.25, tutorial: st.tutorial.active && !st.tutorial.done };
+const demo = !g.demoUsed && id === 'wild-silverleaf' && st.tutorial.active && !st.tutorial.done && st.stats.served === 0;
+if (demo) g.demoUsed = true;
+p.crop = { id: `${st.seed}:crop:${g.serial++}`, materialId: id, x: 0, y: 0, born: g.time, g: 0, t: g.time, w: 0.25, tutorial: demo };
 return { ok: true };
 }
 function waterPlot(st, plotId, now = Date.now()) {
@@ -22888,34 +23267,36 @@ return { ok: true, amount: GARDEN.harvestMl, seed };
 return { GARDEN, FACILITIES, createGarden, normalizeGarden, settleGarden, gardenStatus, canCultivate, plantSeed, waterPlot, harvestGarden };
 })();
 // src/game/state.js
-const __m111 = (() => {
+const __m115 = (() => {
 const { Rng, hashString } = __m8;
-const { generateWorld, makeLookup, addAlchemy, LAB_ROLES } = __m112;
+const { generateWorld, makeLookup, addAlchemy, LAB_ROLES } = __m116;
 const { serializeMaterial, deserializeMaterial } = __m46;
-const { generateCommission, tutorialCommission } = __m114;
-const { EQUIPMENT, STARTING_EQUIPMENT, RANKS, rankIndex, capabilities, equipmentById, RETIRED_EQUIPMENT } = __m119;
-const { SIM } = __m85;
-const { createTrials, normalizeTrials, runTrial, SUBJECT_BY_ID, knownLaws, certification, summarize } = __m120;
-const { createGathering, normalizeGathering, generateDeposits, harvest, gatherPlan, weatherOn, weatherRegrowth, newDayRegrowth, depositStatus, migrateGathering, setSky, water } = __m121;
-const { predictPlan } = __m115;
+const { generateCommission, tutorialCommission } = __m118;
+const { EQUIPMENT, STARTING_EQUIPMENT, RANKS, rankIndex, capabilities, equipmentById, RETIRED_EQUIPMENT } = __m123;
+const { SIM } = __m87;
+const { createTrials, normalizeTrials, runTrial, SUBJECT_BY_ID, knownLaws, certification, summarize } = __m124;
+const { createGathering, normalizeGathering, generateDeposits, harvest, gatherPlan, weatherOn, weatherRegrowth, newDayRegrowth, depositStatus, migrateGathering, setSky, water } = __m125;
+const { predictPlan } = __m119;
 const { EFFECT_INDEX, EFFECT_KEYS } = __m5;
-const { migrateVial } = __m122;
-const { recordSale, resolveFollowUp, applyTrials, evidenceOf } = __m124;
-const { colonyDay, colonyTick, livingRabbits, livingOf, findRabbit, addBoughtRabbit, addWildRabbit, penHasRoom, PEN_MAX, retireRabbit, remainsSource, purgeRabbit, cullRabbit, maxHealthOf, FOUNDER_BORN } = __m81;
+const { migrateVial } = __m126;
+const { recordSale, resolveFollowUp, applyTrials, evidenceOf } = __m128;
+const { colonyDay, colonyTick, livingRabbits, livingOf, findRabbit, addBoughtRabbit, addWildRabbit, penHasRoom, PEN_MAX, retireRabbit, remainsSource, purgeRabbit, cullRabbit, maxHealthOf, FOUNDER_BORN } = __m83;
 const { kindOf } = __m7;
-const { remainsMaterials, remainsPlan, isRemains } = __m125;
-const { returningPatron, welcomePatron, recentStyles, notePatron, patronVerdict, noveltyFactor } = __m126;
-const { techniqueById, migrateTechniques } = __m114;
-const { migrateRecipe } = __m127;
-const { archiveLegacyMaterials } = __m128;
-const { BIOMES, biomeUnlocked, refreshBiomeUnlocks } = __m4;
-const { normalizeTraveller, settleTraveller, spendTraveller, awardTravellerGift, makeBiomeInstance, seedDrop } = __m129;
-const { normalizeGarden, settleGarden, plantSeed: gardenPlant, waterPlot, harvestGarden, FACILITIES, GARDEN } = __m130;
-const SAVE_VERSION = 8;
+const { remainsMaterials, remainsPlan, isRemains } = __m130;
+const { returningPatron, welcomePatron, recentStyles, notePatron, patronVerdict, noveltyFactor } = __m131;
+const { techniqueById, migrateTechniques } = __m118;
+const { migrateRecipe } = __m132;
+const { archiveLegacyMaterials } = __m133;
+const { startService, waitForService, normalizeSpecialOrders, ORDERS } = __m129;
+const { evaluatePotion } = __m121;
+const { BIOMES, biomeUnlocked, refreshBiomeUnlocks, ingredientRank } = __m4;
+const { normalizeTraveller, settleTraveller, spendTraveller, awardTravellerGift, makeBiomeInstance, seedDrop } = __m134;
+const { normalizeGarden, settleGarden, plantSeed: gardenPlant, waterPlot, harvestGarden, FACILITIES, GARDEN } = __m135;
+const SAVE_VERSION = 9;
 const PURGE_PRICE = 8;
 const PURGE_BREW_COST = 1;
 const PURGE_BREW_TIME = 40;
-const WORLD_GEN_VERSION = 2;
+const WORLD_GEN_VERSION = 3;
 const STARTER_HERBS = { silverleaf: 200, sunthistle: 150, heartpetal: 150, ironroot: 150, emberbark: 100, frostcap: 100, riverchalk: 100, nettle: 100 };
 const ASPECT_KEY_MAP = { vitality: 'vitality', ardor: 'fire', arcana: 'arcana', fortitude: 'strength' };
 const MARKET_EVENTS = [
@@ -22991,7 +23372,7 @@ constructor(data) {
 /** @type {any} */ this.current = data.current;
 this.found = data.found || Object.fromEntries(Object.entries(data.inventory || {}).filter(([id, n]) => id.startsWith('wild-') && Number(n) > 0).map(([id]) => [id, 1]));
 this.stats = { served: 0, perfect: 0, earned: 0, spent: 0, brews: 0, declined: 0, bestQuality: 0, ...(data.stats || {}) };
-/** @type {{active:boolean, step:number, done:boolean, tips?:Record<string, boolean>}} */ this.tutorial = { active: false, step: 0, done: true, ...(data.tutorial || {}) };
+/** @type {{active:boolean, step:number, done:boolean, version?:number, replay?:boolean, arcane?:boolean, resourcesGranted?:boolean, tips?:Record<string, boolean>}} */ this.tutorial = { active: false, step: 0, done: true, ...(data.tutorial || {}) };
 /** @type {{event:string, mods:Record<string, number>}} */ this.market = data.market || { event: 'none', mods: {} };
 /** @type {any} */ this.cauldron = data.cauldron || null;
 /** @type {any[]} */ this.brewLog = data.brewLog || [];
@@ -23012,6 +23393,14 @@ this.lookup = makeLookup(this.world);
 /** @type {string[]} */ this.unlockedBiomes = Array.isArray(data.unlockedBiomes) ? data.unlockedBiomes.filter((id) => BIOMES.some((b) => b.id === id)) : ['forest'];
 this.traveller = normalizeTraveller(data.traveller);
 this.garden = normalizeGarden(data.garden, this.lookup);
+if (this.tutorial.active && !this.tutorial.done && !this.tutorial.resourcesGranted && this.stats.served === 0) {
+this.inventory['wild-silverleaf@arcane'] = Math.max(25, this.inventory['wild-silverleaf@arcane'] || 0);
+this.tutorial.resourcesGranted = true;
+}
+this.specialOrders = normalizeSpecialOrders(data.specialOrders);
+this.specialOffer = data.specialOffer?.request?.requirements?.length ? data.specialOffer : null;
+this.specialOfferDay = Number.isSafeInteger(data.specialOfferDay) ? data.specialOfferDay : 0;
+startService(this.current, this.rank);
 settleTraveller(this.traveller); settleGarden(this.garden);
 this._deposits = null;
 migrateGathering(this.gathering, this.deposits);
@@ -23083,7 +23472,7 @@ has(id) {
 return this.equipment.includes(id);
 }
 purchasable() {
-return this.world.ingredients.filter((id) => { const m = this.lookup(id); return m && !m.legacy && !isRemains(m) && (!m.wild || (!m.arcaneVariant && biomeUnlocked(this, m.wild.region))) && !(m.wild && m.wild.gatherOnly) && !m.product && (m.tier || 0) <= this.rank; });
+return this.world.ingredients.filter((id) => { const m = this.lookup(id); return m && !m.legacy && !isRemains(m) && (!m.wild || (!m.arcaneVariant && biomeUnlocked(this, m.wild.region))) && (!m.wild || ingredientRank(m) <= this.rank) && !(m.wild && m.wild.gatherOnly) && !m.product && (m.tier || 0) <= this.rank; });
 }
 availableSet() {
 const s = new Set(this.purchasable());
@@ -23378,6 +23767,7 @@ return this.inventory[id] ?? 0;
 canBuy(id) {
 const m = this.lookup(id);
 if (!m) return { ok: false, reason: 'Unknown ingredient.' };
+if (m.wild && ingredientRank(m) > this.rank) return { ok: false, reason: 'This species needs a higher exploration rank.' };
 if (id === this.world.roles.water) return { ok: false, reason: 'Well water is free.' };
 if (isRemains(m)) return { ok: false, reason: 'Remains are never sold.' };
 if (m.legacy) return { ok: false, reason: 'Legacy finds can be used from your stores, but are no longer traded.' };
@@ -23528,7 +23918,7 @@ if (this.customerIndex >= this.customersPerDay) return null;
 this.opened = true;
 for (let guard = 0; guard < 4 && this.customerIndex < this.customersPerDay; guard++) {
 const com = this._makeCustomer();
-if (com) { this.current = com; return com; }
+if (com) { this.current = startService(com, this.rank); return com; }
 this.customerIndex++;
 }
 return null;
@@ -23578,6 +23968,42 @@ if (this.current.tutorial) return;
 this.current = null;
 this.customerIndex++;
 this.stats.declined++;
+}
+tickCustomer(dt, active = true) {
+if (!waitForService(this.current, dt, active)) return false;
+this.declineCustomer(); return true;
+}
+get specialCapacity() { return Math.min(4, Math.max(1, this.rank)); }
+offerSpecial() {
+if (this.rank < 2 || this.day < 3 || this.specialOfferDay === this.day) return this.specialOffer;
+this.specialOfferDay = this.day;
+this.specialOffer = null;
+if (this.specialOrders.length >= this.specialCapacity) return null;
+const rng = new Rng(`${this.seed}:special-v1:${this.day}`);
+const request = generateCommission(this.commissionContext(), rng, { tier: this.rank, contract: true });
+if (!request) return null;
+request.special = true;
+this.specialOffer = { id: `special:${this.seed}:${this.day}`, request, acceptedDay: this.day,
+pickupDay: this.day + 2 + Math.min(3, request.techniques?.length || 0), reward: Math.round(request.budget * ORDERS.specialMultiplier) };
+return this.specialOffer;
+}
+acceptSpecial(id) {
+const o = this.specialOffer;
+if (!o || o.id !== id || this.specialOrders.some((x) => x.id === id) || this.specialOrders.length >= this.specialCapacity) return { ok: false, reason: 'No commission slot available.' };
+this.specialOrders.push(o); this.specialOffer = null; return { ok: true };
+}
+declineSpecial(id) { if (this.specialOffer?.id === id) this.specialOffer = null; }
+deliverSpecial(id, bottleId) {
+const o = this.specialOrders.find((x) => x.id === id), index = this.bottles.findIndex((b) => b.id === bottleId), b = this.bottles[index];
+if (!o || !b?.m || this.day < o.pickupDay || this.day > o.pickupDay + ORDERS.pickupGraceDays) return { ok: false, reason: 'A stored bottle and a customer in their pickup window are required.' };
+const ev = evaluatePotion(o.request, b.m);
+if (ev.rows.some((r) => r.score < 0.999)) return { ok: false, reason: 'This bottle does not meet every requested effect, purity and quantity.' };
+this.bottles.splice(index, 1); this.specialOrders.splice(this.specialOrders.indexOf(o), 1);
+this.coins = round1(this.coins + o.reward); this.stats.earned += o.reward; this.stats.served++; this.dayEarnings += o.reward;
+this.adjustReputation(Math.max(5, ev.repDelta));
+this.history.unshift({ day: this.day, customer: o.request.customer.name, potion: o.request.potionName, quality: ev.quality, stars: ev.stars, paid: o.reward, ml: b.ml, special: true });
+this.history.length = Math.min(this.history.length, 60);
+return { ok: true, paid: o.reward };
 }
 completeSale(ev, measurement) {
 const com = this.current;
@@ -23699,6 +24125,8 @@ this.followUps = this.followUps.filter((f) => !f.resolved || f.day >= this.day -
 const summary = { day: this.day, earned: this.dayEarnings, spent: this.daySpending, served: this.servedToday, settled: settled.length };
 weatherRegrowth(this.gathering, this.deposits, weatherOn(this.seed, this.day), this.lookup);
 this.day++;
+this.specialOrders = this.specialOrders.filter((o) => this.day <= o.pickupDay + ORDERS.pickupGraceDays);
+this.specialOffer = null;
 this.customerIndex = 0;
 this.servedToday = 0;
 this.dayEarnings = 0;
@@ -23815,6 +24243,9 @@ gathering: this.gathering,
 unlockedBiomes: this.unlockedBiomes,
 traveller: this.traveller,
 garden: this.garden,
+specialOrders: this.specialOrders,
+specialOffer: this.specialOffer,
+specialOfferDay: this.specialOfferDay,
 vial: this.vial,
 bottles: this.bottles,
 batch: this.batch,
@@ -23930,6 +24361,13 @@ const rank = rankIndex(d.reputation || 0);
 d.unlockedBiomes ||= ['forest', 'meadow', 'river', 'quarry', ...(rank >= 1 ? ['netherwood'] : []), ...(rank >= 2 ? ['moonfen'] : []), ...(rank >= 3 ? ['crags'] : [])];
 d.version = 8;
 }
+if (d.version < 9) {
+if (d.tutorial?.active && !d.tutorial.done) d.tutorial.step = 0;
+d.tutorial.version = 2;
+d.specialOrders ||= [];
+d.specialOfferDay ||= 0;
+d.version = 9;
+}
 for (const id of STARTING_EQUIPMENT) if (!d.equipment.includes(id)) d.equipment = [...d.equipment, id];
 d.equipment = d.equipment.filter((id) => id !== 'mortar');
 if (d.world && Array.isArray(d.world.materials) && d.world.materials.length === 0) throw new Error('The save has no reagents');
@@ -23981,8 +24419,8 @@ return Math.round(v * 10) / 10;
 return { SAVE_VERSION, PURGE_PRICE, PURGE_BREW_COST, PURGE_BREW_TIME, WORLD_GEN_VERSION, STARTER_HERBS, MARKET_EVENTS, ACHIEVEMENTS, GameState, migrateCommission, migrate, retireEquipment, retireRequirements, EQUIPMENT, SIM };
 })();
 // src/game/persistence.js
-const __m131 = (() => {
-const { GameState } = __m111;
+const __m136 = (() => {
+const { GameState } = __m115;
 const KEYS = {
 save: 'alchemist-shop.save',
 backup: 'alchemist-shop.save.backup',
@@ -24105,11 +24543,11 @@ if (s) s.removeItem(key);
 return { KEYS, storageAvailable, saveGame, loadGame, hasSave, deleteSave, exportSave, parseImport, loadJSON, saveJSON, removeKey };
 })();
 // src/simulation/snapshot.js
-const __m133 = (() => {
-const { MAX_SPECIES } = __m87;
-const { refreshParticle } = __m92;
-const { Simulation } = __m84;
-const { CAULDRON_SIZES } = __m91;
+const __m138 = (() => {
+const { MAX_SPECIES } = __m89;
+const { refreshParticle } = __m94;
+const { Simulation } = __m86;
+const { CAULDRON_SIZES } = __m93;
 const F32_FIELDS_V1 = ['x', 'y', 'vx', 'vy', 'temp', 'lat', 'eph', 'restX', 'restY', 'agit', 'burn', 'wet'];
 const F32_FIELDS = [...F32_FIELDS_V1, 'q'];
 const SNAPSHOT_VERSION = 2;
@@ -24240,7 +24678,7 @@ for (let i = 0; i < n; i++) if (p.group[i] >= 0) sim.rigid.used[p.group[i]] = 1;
 return { SNAPSHOT_VERSION, toBase64, fromBase64, snapshotSim, restoreSim, applySnapshot };
 })();
 // src/rendering/portraits.js
-const __m134 = (() => {
+const __m139 = (() => {
 const { Rng } = __m8;
 const S = 32;
 const shade = (c, f) => `rgb(${Math.round(Math.min(255, c[0] * 255 * f))},${Math.round(Math.min(255, c[1] * 255 * f))},${Math.round(Math.min(255, c[2] * 255 * f))})`;
@@ -24358,7 +24796,7 @@ if (rng.chance(0.5)) P(hx - 1, 8, 2, 10, hc);
 return { drawPortrait };
 })();
 // src/game/journal.js
-const __m135 = (() => {
+const __m140 = (() => {
 function processEvent(state, e) {
 const entries = [];
 const achievements = [];
@@ -24471,9 +24909,9 @@ return { entries, achievements };
 return { processEvent };
 })();
 // src/game/autobrew.js
-const __m136 = (() => {
-const { PHASE, SIM } = __m85;
-const { MAX_SPECIES } = __m87;
+const __m141 = (() => {
+const { PHASE, SIM } = __m87;
+const { MAX_SPECIES } = __m89;
 function condensedCount(sim) {
 const p = sim.p;
 let n = 0;
@@ -24755,7 +25193,7 @@ return t / Math.max(1, sim.p.count);
 return { condensedCount, stageGoal, AutoBrewer, runPlanHeadless, speciesFraction };
 })();
 // src/game/mechanics.js
-const __m138 = (() => {
+const __m143 = (() => {
 const MECHANICS = [
 { id: 'formulation', name: 'Formulation and neutralisation', role: 'core', stage: 'formulation', rank: 0,
 decision: 'Which natural ingredients, in what proportions, to carry the wanted effects and cancel their side effects.',
@@ -24841,29 +25279,30 @@ const SANDBOX_CONTROLS = ['skimmer', 'alembic', 'heatmap', 'readouts'];
 return { MECHANICS, MECHANIC_BY_ID, IMMERSION, SANDBOX_CONTROLS };
 })();
 // src/ui/panels.js
-const __m137 = (() => {
-const { recipeConfidence, CONFIDENCE_TEXT, describeStep } = __m127;
-const { MECHANIC_BY_ID } = __m138;
-const { evidenceRank } = __m120;
+const __m142 = (() => {
+const { recipeConfidence, CONFIDENCE_TEXT, describeStep } = __m132;
+const { MECHANIC_BY_ID } = __m143;
+const { evidenceRank } = __m124;
 const { h, btn, modal, toast, coins, starsText, confirmDialog, clear, keepScroll } = __m13;
 const { icon } = __m14;
-const { drawPortrait } = __m134;
-const { drawJar } = __m80;
-const { EQUIPMENT, RANKS } = __m119;
-const { ACHIEVEMENTS } = __m111;
-const { viscosityClass, densityWord, evennessWord } = __m123;
+const { drawPortrait } = __m139;
+const { drawJar } = __m82;
+const { EQUIPMENT, RANKS } = __m123;
+const { ACHIEVEMENTS } = __m115;
+const { viscosityClass, densityWord, evennessWord } = __m127;
 const { EFFECTS, EFFECT_BY_KEY, EFFECT_KEYS, dominantEffect } = __m5;
-const { ingredientSprite } = __m76;
+const { ingredientSprite } = __m78;
 const { compatFactor } = __m6;
 const { describeColor, rgbToHex } = __m18;
-const { SIM } = __m85;
-const { exportSave, parseImport, saveGame } = __m131;
+const { SIM } = __m87;
+const { exportSave, parseImport, saveGame } = __m136;
 const { audio } = __m27;
-const { isMagical } = __m88;
-const { causeWord } = __m81;
+const { isMagical } = __m90;
+const { RARITIES } = __m49;
+const { causeWord } = __m83;
 const CAT_LABEL = { heat: 'Fire', cold: 'Cooling', vessel: 'Cauldrons', tool: 'Tools', instrument: 'Instruments', trials: 'Trials room', gathering: 'Foraging', storage: 'Potion storage', guild: 'Guild' };
 function jarCanvas(m, w = 22, hh = 30) {
-if ((m.wild || m.remains) && m.form === 'solid') {
+if (m.wild || m.remains) {
 const cv = ingredientSprite(m);
 cv.style.width = w * 2 + 'px';
 cv.style.height = w * 2 + 'px';
@@ -25005,6 +25444,7 @@ const m = st.lookup(id);
 if (!m) return;
 const k = st.knowledge[id] || {};
 const tags = [];
+if (m.rarity) tags.push(RARITIES[m.rarity].label, m.arcaneVariant ? 'Arcane variant' : 'ordinary', `${st.garden.seeds[id] || 0} propagation materials`);
 tags.push(m.form);
 if (m.form === 'powder') tags.push(m.friction > 0.68 ? 'piles steeply' : 'pours like sand');
 else if (m.form === 'liquid') tags.push(m.viscosity < 3 ? 'thin' : m.viscosity < 300 ? 'syrupy' : 'very thick');
@@ -25041,7 +25481,7 @@ h('div', { class: 'card parch ing-card' }, jarCanvas(m, 22, 30), h('div', {}, h(
 h('div', { class: 'card parch' }, facts),
 h('div', { class: 'card parch' }, h('div', { class: 'small muted', text: m.remains ? 'Effects' : m.product ? 'Effects of this pure substance (as the guild knows it)' : 'Known effects of the pure ingredient (mixtures must be tested)' }), asp,
 (m.wild || m.remains) && m.form === 'solid' ? h('div', { class: 'small', text: 'Supplied whole: crush it in the pot with the pestle (Crush). Only what dissolves takes effect.' }) : null),
-balance.length ? h('div', { class: 'card parch' }, h('div', { class: 'small muted', text: 'Nothing that grows is pure. Its side effects cancel against their opposites:' }), ...balance.map((t) => h('div', { class: 'small', text: '• ' + t }))) : null,
+balance.length ? h('div', { class: 'card parch' }, h('div', { class: 'small muted', text: 'This species carries secondary effects. Cancel them with their opposites:' }), ...balance.map((t) => h('div', { class: 'small', text: '• ' + t }))) : null,
 reactions.length ? h('div', { class: 'card parch' }, h('div', { class: 'small muted', text: 'Known reactions' }), ...reactions.map((r) => h('div', { class: 'small', text: `• ${r.name}: ${r.hint || ''}` }))) : null,
 ],
 });
@@ -25354,11 +25794,12 @@ h('ol', { class: 'small' }, ...[
 'When the last customer has gone (dusk), close the shop for the night.',
 ].map((t) => h('li', { text: t })))),
 sec('Orders and selling', 'stall', ['Customers ask for an effect — healing, strength, love, fire… — at a strength in percent (everyday orders want about 8–15 %).', 'Most orders forbid side effects: “no other effect above 1.2 %”. Every other kind of magic in the bottle must stay that faint.', 'Before a sale you write the label — tested values, the guild theory’s estimates, “none” or unknown — and bargain over the price. The customer comes back the next day: pleased, or with a complaint. Refund them, dispute it with your trial records, or turn them away.', 'Bottle onto the potion shelves whenever there is room (3 bottles; more with a Bottle Shelf, Potion Cabinet or Bottle Cellar). Bottles of one batch share its trials.', 'Honest, well-tested potions earn reputation. Reputation raises your rank, which opens regions, ingredients, equipment and harder orders.'], true),
-sec('Ingredients and side effects', 'leaf', ['The Shop sells no prepared reagents — only free well water and two plain solvents, oil and spirit. Every effect comes from what you gather.', 'Nothing that grows is pure: each herb or mineral brings side effects. Cancel them with their opposites — fire and frost, life and death (life also mends poison, two parts to one), acid and alkali.', 'Long-press (or right-click) a jar to see what it does and what cancels its side effects.', 'You know what each plain ingredient does. You do NOT know what a mixture does: extraction, heat, reactions and hidden laws change it.']),
+sec('Ingredients and side effects', 'leaf', ['The Shop sells no prepared reagents — only free well water and two plain solvents, oil and spirit. Every effect comes from what you gather.', 'Common and Uncommon ingredients bring side effects; Rare ingredients carry one faint secondary effect. Unique and Legendary species are naturally pure. Cancel them with their opposites — fire and frost, life and death (life also mends poison, two parts to one), acid and alkali.', 'Long-press (or right-click) a jar to see what it does and what cancels its side effects.', 'You know what each plain ingredient does. You do NOT know what a mixture does: extraction, heat, reactions and hidden laws change it.']),
 sec('Brewing', 'cauldron', ['Pour: tap a jar, then a dose button (25–250 ml) — or hold your finger in the cauldron, or drag a jar onto it.', 'Crush: whole roots, leaves and stones go into the pot whole and give up almost nothing until you break them up with Crush (the pestle).', 'Steep at the right heat: most herbs give two to three times as much held warm in their steeping window (see the herb’s card and your journal). Some want ice-cold water: Frostcap near 9 °C gives about three times as much — but frozen solid gives less. Heartpetal wilts above about 85 °C.', 'Stir after every addition: an unstirred brew pours unevenly, so later bottles may not match the tested dose. Auto stirs for you (the Clockwork Stirrer about three times as fast).', 'The fire control: right heats, left cools; tap Off beside it (or press 0) to put it out at once. The lid keeps steam in; boiling with the lid off makes a brew smaller and stronger — side effects too. Add water to weaken it.', 'Tap the ml · °C readout over the cauldron to see what is in it; Inspect reads one spot; Sample measures what a bottle would hold.']),
-sec('Arcane awakening', 'awaken', ['Magical ingredients carry a hidden arcane threshold. Heat the brew past it (or, for cold magic, chill it below) and the magic awakens: it glows and acts two to three times stronger — side effects too.', 'In a blend the threshold is the mix of its magical ingredients’ thresholds, by volume. Mix first at room temperature, then heat or chill; a half-mixed brew awakens unevenly.', 'Awakened magic stays awake when it cools, is bottled or kept. Only dilution and reactions undo it. The Arcanometer reads a brew’s threshold.']),
+sec('Arcane awakening', 'awaken', ['Only Arcane variants carry an activation threshold; ordinary ingredients can never awaken. Heat the brew past it (or, for cold magic, chill it below) and the magic awakens: it glows and acts two to three times stronger — side effects too.', 'In a blend the threshold is the mix of its Arcane ingredients’ thresholds, by volume. Mix first at room temperature, then heat or chill; a half-mixed brew awakens unevenly.', 'Awakened magic stays awake when it cools, is bottled or kept. Only dilution and reactions undo it. The Arcanometer reads a brew’s threshold.']),
 sec('Trials and rabbits', 'rabbit', ['Choose a rabbit and give it a dose (5, 10 or 25 ml) from the cauldron tap or the sealed vial. One trial reads every effect at once.', 'Each reading is uncertain: the ± margin is how far the truth may lie. One reading is a rough guess; repeating it on the same rabbit helps a little; other rabbits help most (detected once → repeated → corroborated).', '“Not detected” is not proof of absence: a faint effect can hide below the noise. Cautious customers want readings repeated or corroborated, and every customer pays more for a well-tested label.', 'Effects pile up in a rabbit and fade slowly. Past its own hidden limit an effect runs out of control and can kill it; fire and acid burn; strength and vitality can make it attack; love makes it mate. A purging draught washes everything out. Rabbits can be fed, bred, bought and put down; a body’s remains can be recovered once as an ingredient.', 'When a trial surprises you, a hidden law may be at work. Confirm it twice and your theory learns it.']),
-sec('Wilds', 'tree', ['Tap a mature plant in the picture, or its button, to gather. Every plant grows from sprout to ripe to mature, and only a mature one can be harvested. A harvest leaves a mark on the ground that fades; new sprouts come up at random spots until the region is full again, even while the game is closed.', 'Thorough digs the plant out for twice as much, but its kind then sprouts at half pace. Roots, seams, mosses and dust need the Forager’s Kit for a full harvest.', 'Twilight plants open only at dawn (before you open the shop) or at dusk (after the last customer). The weather changes daily. New regions open with rank.']),
+sec('Wilds and cultivation', 'tree', ['Whisperwood is your first biome. Each environment has one native creature and a dominant magical effect. Further biomes unlock through successful sales and guild rank.', 'Wild specimens are finite: they do not regrow with waiting, rain, shop days or watering. Spend one Traveller Coin to create new terrain, resources and wildlife; collected items stay yours.', 'Up to three Traveller Coins recharge, one every 25 minutes including time away. Excellent customers sometimes bring an extra coin.', 'Harvesting may drop a species-specific seed, spore or mineral propagule. The personal garden opens after your first harvest. Plant, water and harvest there; Arcane seeds preserve their variant, and rare crops need more time and specialist beds.', 'A garden harvest consumes its crop. Moist soil accelerates botanical growth; offline growth is capped at eight hours.']),
+sec('Customer patience and commissions', 'clock', ['Immediate customers have a visible patience bar. Waiting during active play lowers their offer; eventually they leave. Suspended time and dialogs do not count.', 'From Adept onward, special commissions appear on the counter. Accept or decline without a penalty. Prepare a complete bottle, keep it on your potion shelves and deliver it during the displayed pickup days for a larger reward.', 'Several commissions can be active at once. Game-day scheduling, crop progress, remaining wild resources and seed identities are saved.']),
 sec('Recipes and the Book', 'book', ['After a sale you can save the brew as a recipe: what went in, and every step in order. Prepare pours it again; the Brass Homunculus replays every step.', 'The Book also keeps every trial, the laws you discovered, all ingredients, your journal, awards and sales.']),
 sec('Keys and tips', 'bulb', ['Keys: 1 pour · 2 stir · 3 crush · 5 inspect · L lid · B bottle · F speed · A auto-stir · arrows fire · 0 fire off · S shop · R recipes · C/V/W/T/J rooms · Esc menu.', 'Advice at the Counter buys a hint for a hard order.', 'Orders far below your rank earn little reputation; a technique sold well for the first time earns a bonus.', 'Out of money? The guild helps a struggling apprentice once a day — and well water is always free.', 'The Free Experiment has every tool, the skimmer, the alembic, a heat map and exact physical readings.']),
 );
@@ -25432,15 +25873,15 @@ h('div', { class: 'small muted credits', text: 'The Alchemist’s Shop — all a
 return { jarCanvas, fxChips, openShop, openIngredient, openHint, openBottleSize, showDaySummary, showAnalysis, openRecipes, renderRecipes, openJournal, renderJournal, openPause, openReceiver, openHelp, openSettings };
 })();
 // src/ui/trade.js
-const __m139 = (() => {
+const __m144 = (() => {
 const { h, btn, modal, toast, coins, clear, starsText } = __m13;
 const { icon } = __m14;
-const { drawPortrait } = __m134;
+const { drawPortrait } = __m139;
 const { audio } = __m27;
 const { EFFECTS, EFFECT_BY_KEY } = __m5;
-const { draftLabel, openNegotiation: beginNegotiation, proposePrice, acceptOffer, relevantEffects, trustReport, editClaim, proofGaps, claimSigma, claimStars, labelStars, MAX_STARS } = __m124;
-const { PURITY_LIMIT } = __m118;
-const { shortName } = __m116;
+const { draftLabel, openNegotiation: beginNegotiation, proposePrice, acceptOffer, relevantEffects, trustReport, editClaim, proofGaps, claimSigma, claimStars, labelStars, MAX_STARS } = __m128;
+const { PURITY_LIMIT } = __m122;
+const { shortName } = __m120;
 function openIdentify(lab, vial, onDone) {
 const st = lab.state;
 const draft = vial.label ? JSON.parse(JSON.stringify(vial.label)) : draftLabel(vial, lab.vialTheory(vial), st.day);
@@ -25654,11 +26095,11 @@ return `${n === null ? '' : starsText(n, MAX_STARS) + ' '}${claimSummary(label.c
 return { openIdentify, openNegotiation, showDeal, followUpCard, claimSummary, accuracyTitle, labelLine, EFFECT_BY_KEY };
 })();
 // src/ui/tutorial.js
-const __m140 = (() => {
+const __m145 = (() => {
 const { h, btn, placeToasts } = __m13;
-const { PHASE } = __m85;
-const { TUTORIAL_HERBS } = __m114;
-const { shortName } = __m116;
+const { PHASE } = __m87;
+const { TUTORIAL_HERBS } = __m118;
+const { shortName } = __m120;
 class Tutorial {
 constructor(lab) {
 this.lab = lab;
@@ -25667,6 +26108,7 @@ this.index = 0;
 this.box = null;
 this.target = null;
 this.flags = {};
+this.replay = !!lab.state.tutorial.replay;
 }
 get steps() {
 const lab = this.lab;
@@ -25692,48 +26134,47 @@ const q = (sel) => () => /** @type {HTMLElement|null} */ (lab.el.querySelector(s
 const inView = (id) => () => lab.view === id;
 const rabbitTested = () => st.trials.records.some((r) => r.subjectId === 'rabbit' && r.batchId === st.batch.id);
 const who = st.current && st.current.customer ? shortName(st.current.customer.name) : 'the customer';
-return [
-{ text: 'Welcome to your shop, alchemist! This tour shows every part of it while you brew your first order. Follow the glowing outline: do what it asks, or press Next.', button: 'Let’s begin' },
-{ text: 'The top bar: ☰ opens the menu (how to play, settings, this tour). Then your coins, your rank (its bar fills with reputation), the day and which customer of the day this is. Shop sells ingredients and equipment.', target: () => lab.topbar, button: 'Next' },
-{ text: 'Five rooms along the edge: Counter (customers), Brew (the cauldron), Wilds (gathering), Trials (testing on rabbits) and Book (recipes and notes). A red mark means something is waiting there.', target: () => lab.tabbar, button: 'Next' },
-{ text: 'A customer is waiting. Open the Counter.', target: tab('counter'), done: inView('counter') },
-{ text: 'The order: every line must be met — the effect and its strength, purity (no other effect above a limit) and the quantity. “?” means not tested yet. Advice buys a hint; Decline sends a customer away.', target: q('.customer-card .reqs'), button: 'Next' },
-{ text: 'Let’s brew it. Press “Brew it”.', target: () => lab.el.querySelector('[data-act=go-brew]') || tab('brew')(), done: inView('brew') },
-{ text: 'The order strip stays above the cauldron: each chip fills as the brew meets that line of the order. Tap the strip to go back to the Counter.', target: () => lab.strip, button: 'Next' },
-{ text: `Tap the jar of ${water.name} on the shelf to pick it up. The small number on a jar is how many ml you have.`, target: () => lab.jarEls[R.water] && lab.jarEls[R.water].el, done: () => lab.selected === R.water },
-{ text: 'Pour about 110 ml: tap 100, then 25. You can also hold your finger in the cauldron to pour freely, or drag a jar onto it.', target: () => lab.doseEl, done: () => poured(R.water) >= 95 },
-{ text: `Now pick up the ${leaf.name}. Tip: long-press (or right-click) any jar to read what it does — this one heals, but leaves a frosty bite.`, target: () => lab.jarEls[H.healer] && lab.jarEls[H.healer].el, done: () => lab.selected === H.healer },
-{ text: 'Pour 50 ml. The leaves go in whole — and whole leaves give up almost nothing, so you will crush them in a moment.', target: () => lab.doseEl, done: () => poured(H.healer) >= 45 && !lab.sim.emitter.pouring },
-{ text: `Nothing that grows is pure, but opposites cancel: fire–frost, life–death, acid–alkali. Pick up the ${sun.name}: its fire cancels the leaf’s frost.`, target: () => lab.jarEls[H.warmer] && lab.jarEls[H.warmer].el, done: () => lab.selected === H.warmer },
-{ text: 'Pour 25 ml — half as much as the leaf, so fire and frost balance out.', target: () => lab.doseEl, done: () => poured(H.warmer) >= 20 && !lab.sim.emitter.pouring },
-{ text: 'Now choose Crush (the pestle) and drag it back and forth over the leaves at the bottom of the pot. Only crushed herbs give up their magic — nothing is ground for you.', target: () => lab.toolBtns.pestle, done: () => wholeSolids() <= 3 || (lab.tool === 'pestle' && (lab.sim.tool.stirDistance - (this.flags.crush0 ?? (this.flags.crush0 = lab.sim.tool.stirDistance))) > 25) },
-{ text: 'Choose Stir and drag circles through the brew: stirring spreads the magic evenly. (Auto, further along, stirs for you while you hold it.)', target: () => lab.toolBtns.spoon, done: () => (lab.sim.tool.stirDistance - (this.flags.stir0 ?? (this.flags.stir0 = lab.sim.tool.stirDistance))) > 12 || lab.sim.tool.auto || brewT() >= 40 },
-{ text: 'Herbs steep only when warm. Slide the fire control right (left cools) and bring the brew to about 60 °C. The lid keeps steam in; with the lid off, boiling makes a brew smaller and stronger.', target: () => lab.controls, done: () => brewT() >= 50 },
-{ text: 'The other tools: Crush (whole herbs, stones, ice), Inspect (tap a spot to read it), Sample (what a bottle would hold), 1× (speeds up time), Empty. Tap the ml · °C readout over the cauldron to see what is inside.', target: () => lab.toolbar, button: 'Next' },
-{ text: 'Does it really heal? What a mixture does is unknown until it is tested. Open the Trials room.', target: tab('trials'), done: inView('trials') },
-{ text: 'Choose a rabbit (tap it) and press Give — or drag the dropper onto it. The dose is real potion from the cauldron’s tap.', target: () => document.querySelector('[data-act=test-rabbit]') || lab.views.trials.hutch.el, done: rabbitTested },
-{ text: 'The result: each effect the rabbit showed, with a ± margin. One reading is a rough guess; a second rabbit narrows it most — and demanding customers insist on that.', target: q('.estimate-card'), button: 'Next' },
-{ text: 'Look after your rabbits here: buy, feed, breed, and purge one to wash a potion out. Too much of an effect can make a rabbit sick, wild or dead — every rabbit has its own hidden limits.', target: q('.hutch-manage'), button: 'Next' },
-{ text: 'Back to the cauldron.', target: tab('brew'), done: inView('brew') },
-{ text: 'Press Bottle and choose 100 ml (the order’s quantity). A bottle goes to the counter, or onto your potion shelves for later.', target: () => lab.bottleFab, done: () => this.flags.bottled },
-{ text: `Your vial is on the counter, labelled from your trial. Press “Sell to ${who}”, agree on a price, then save the recipe to your book.`, target: () => document.querySelector('[data-act=serve]') || tab('counter')(), done: () => this.flags.sold },
-{ text: 'Splendid — your first sale! The customer comes back tomorrow: pleased, or with a complaint you can refund, dispute with your trial records, or refuse. The potion shelves below keep sealed bottles for later customers.', target: () => lab.el.querySelector('.view-counter .shelf-card') || tab('counter')(), button: 'Next' },
-{ text: 'Ingredients run out. Open the Wilds to gather more.', target: tab('wilds'), done: inView('wilds') },
-{ text: 'Slide a finger across a mature plant in the picture to shake it: its fruit or bloom falls to the ground, and a tap on it gathers it. Each ingredient is listed below once you have gathered it. Plants grow from sprout to ripe to mature; only mature ones can be harvested, and new sprouts come up until the ground is full. Thorough digs a plant out for twice as much, but its kind sprouts slowly. Some flowers open only at dawn or at dusk. New regions open as your rank rises.', target: q('.view-wilds .deposits'), button: 'Next' },
-{ text: 'Now open the Book.', target: tab('book'), done: inView('book') },
-{ text: 'The Book keeps your recipes (Prepare pours one again), every trial, the laws of magic you discover, all ingredients, your journal, awards and sales.', target: q('.book-tabs'), button: 'Next' },
-{ text: 'The Shop sells ingredients, buys your surplus, and offers equipment: each piece lets you do something new (deep cold, a stirrer, a bigger cauldron, more shelves…).', target: q('[data-act=shop]'), button: 'Next' },
-{ text: 'That is a day: at dawn gather in the Wilds, then open the door at the Counter; brew, test, bottle and sell; when the last customer has gone, close the shop. ☰ → How to play explains everything in detail. Good luck!', target: tab('counter'), button: 'Run my shop!' },
+const arcaneId = H.healer + '@arcane';
+const hasFox = () => st.colony.rabbits.some((r) => r.look?.kind === 'fox' && r.alive !== false);
+const steps = [
+{ text: 'Welcome to Potion Brewer Studio. Explore, cultivate, experiment and run your own shop. This tour is skippable and can be replayed from the menu.', button: 'Let’s begin' },
+{ text: 'The rooms share one world: Counter, Brew, Wilds, Garden, Trials and Book. Your first customer waits patiently during this tour.', target: () => lab.tabbar, button: 'Next' },
+{ text: 'Start in Whisperwood. Open the Wilds.', target: tab('wilds'), done: inView('wilds') },
+{ text: 'Gather Silverleaf: swipe a mature plant, then tap what falls, or use its Gather control. Your first harvest guarantees a garden seed.', target: q('.view-wilds .deposits'), done: () => st.garden.unlocked },
+{ text: 'The fox is Whisperwood’s native animal. Use “Welcome fox” for this first encounter; it goes to its own woodland pen.', target: q('[data-act=tutorial-fox]'), done: hasFox },
+{ text: 'Open your personal Garden. Wild plants do not grow back: seeds let you cultivate selected discoveries at home.', target: tab('garden'), done: inView('garden') },
+{ text: 'Select an empty soil bed, choose Silverleaf and Plant. A seed always preserves its species, rarity and Arcane status.', target: q('[data-act=garden-plant]'), done: () => st.garden.plots.some((p) => p.crop) },
+{ text: 'Water the crop. Moist soil speeds growth. This demonstration crop matures quickly; you never have to wait through a normal growing cycle in the tour.', target: q('[data-act=garden-water]'), done: () => st.garden.plots.some((p) => p.crop && p.crop.w > 0.5) },
+{ text: 'Your crop will continue growing while you brew. Higher rarities take longer and fungi, minerals, exotic and Arcane species need suitable beds.', target: q('.garden-plots'), button: 'Next' },
+{ text: 'Open Brew for an Arcane practice batch. Only ingredients marked Arcane can awaken; ordinary ingredients keep their normal effects at every temperature.', target: tab('brew'), done: inView('brew') },
+{ text: 'Select water and add 100 ml. The dose buttons are below the shelf; dragging a jar or holding inside the cauldron also pours.', target: () => lab.doseEl, done: () => poured(R.water) >= 95 },
+{ text: 'Select Arcane Silverleaf and pour 25 ml. This introductory portion is guaranteed; Arcane is a variant, not a sixth rarity.', target: () => lab.jarEls[arcaneId]?.el, done: () => poured(arcaneId) >= 20 && !lab.sim.emitter.pouring },
+{ text: 'Crush the leaves, stir and heat to 60 °C. Only the effects carried by the Arcane material amplify. Ordinary matter in a mixture does not gain eligibility.', target: () => lab.controls, done: () => { const awake = Object.keys(lab.sim.inventory()).some((id) => id.endsWith('~a') && st.lookup(id)?.speciesId === 'silverleaf'); if (awake) { st.tutorial.arcane = true; return true; } return false; } },
+{ text: 'Awakening persists after cooling and bottling. Cold Arcane ingredients use negative thresholds; a blend weights only its Arcane ingredients. Empty this practice batch before the customer’s tonic.', target: q('[data-act=empty]'), done: () => lab.sim.p.count === 0 },
+{ text: 'Open the Counter and read the first order: healing, a small bottle, and a reasonable limit on unwanted effects.', target: tab('counter'), done: inView('counter') },
+{ text: 'Return to Brew. Add 125 ml water, 50 ml Silverleaf and 25 ml Sunthistle. Common herbs have side effects: fire and frost cancel one another.', target: tab('brew'), done: () => lab.view === 'brew' && poured(H.healer) >= 45 && poured(H.warmer) >= 20 && poured(R.water) >= 120 },
+{ text: 'Crush the herbs with the pestle, stir and warm the tonic to about 60 °C to extract their magic. Whole solids release almost nothing.', target: () => lab.controls, done: () => brewT() >= 50 && wholeSolids() <= 3 },
+{ text: 'Open Trials. Select a rabbit and Give a measured dose from the tap. The existing rabbit colony is your first testing habitat.', target: tab('trials'), done: rabbitTested },
+{ text: 'Every effect has a reading and uncertainty. Testing a second rabbit improves confidence. Feed and rest your animals between trials.', target: q('.estimate-card'), button: 'Next' },
+{ text: 'Return to Brew and Bottle 100 ml. The bottle and its control remain separate and accessible below the cauldron.', target: () => lab.bottleFab, done: () => !!st.vial || this.flags.bottled },
+{ text: `At the Counter, label the vial from your trials and sell it to ${who}. Agree on a price, then keep the recipe in your Book.`, target: q('[data-act=serve]'), done: () => this.flags.sold || st.stats.served > 0 },
+{ text: 'Excellent. Traveller Coins regenerate depleted biomes: one coin makes new scenery, specimens and creatures without changing your stored items, seeds or crops. Up to three coins recharge, one every 25 minutes.', target: tab('wilds'), button: 'Next' },
+{ text: 'Successful sales and guild rank unlock more Natural biomes, then Exotic worlds. Later customers have visible patience. Special commissions return on saved game days: accept or decline, then store a finished bottle for pickup.', target: tab('counter'), button: 'Next' },
+{ text: 'Explore → harvest → cultivate → experiment → test → sell. Your Book keeps ingredients, recipes, trials and discoveries. Revisit the garden to harvest your demonstration crop.', target: tab('book'), button: 'Run my shop!' },
 ];
+return this.replay ? steps.map(({ done, ...s }) => ({ ...s, button: 'Next' })) : steps;
 }
 start(restart = false) {
 if (restart) {
 this.lab.state.tutorial.done = false;
 }
+this.replay = restart || !!this.lab.state.tutorial.replay;
+this.lab.state.tutorial.replay = this.replay;
 this.active = true;
-this.index = 0;
+this.index = restart ? 0 : Math.max(0, Math.min(this.steps.length - 1, this.lab.state.tutorial.step || 0));
 this.flags = {};
 this.lab.state.tutorial.active = true;
+this.lab.state.tutorial.version = 2;
 this.show();
 }
 stop() {
@@ -25744,6 +26185,9 @@ finish() {
 this.stop();
 this.lab.state.tutorial.active = false;
 this.lab.state.tutorial.done = true;
+this.lab.state.tutorial.replay = false;
+this.replay = false;
+this.lab.save();
 }
 clearUi() {
 if (this.box) this.box.remove();
@@ -25775,6 +26219,8 @@ placeToasts();
 }
 advance() {
 this.index++;
+this.lab.state.tutorial.step = this.index;
+this.lab.save();
 this.show();
 }
 notify(kind, data) {
@@ -25801,22 +26247,23 @@ if (t && t !== this.target) { if (this.target) this.target.classList.remove('hig
 return { Tutorial };
 })();
 // src/ui/views/counter.js
-const __m141 = (() => {
-const { h, btn, clear, coins, confirmDialog, starsText } = __m13;
+const __m146 = (() => {
+const { h, btn, clear, coins, confirmDialog, starsText, toast } = __m13;
+const { serviceStatus, ORDERS } = __m129;
 const { icon } = __m14;
-const { drawPortrait } = __m134;
-const { drawBottle } = __m103;
-const { PROPERTY_LABELS, scoreRequirement } = __m117;
-const { techniqueById } = __m114;
+const { drawPortrait } = __m139;
+const { drawBottle } = __m105;
+const { PROPERTY_LABELS, scoreRequirement } = __m121;
+const { techniqueById } = __m118;
 const { EFFECT_INDEX, NE } = __m5;
 const { EFFECT_BY_KEY } = __m5;
-const { missingEffects, summarize, requirementEvidence } = __m120;
-const { labelStars, MAX_STARS } = __m124;
-const trade = __m139;
+const { missingEffects, summarize, requirementEvidence } = __m124;
+const { labelStars, MAX_STARS } = __m128;
+const trade = __m144;
 const { describeColor, rgbToHex } = __m18;
-const { viscosityClass } = __m123;
-const panels = __m137;
-const { shortName } = __m116;
+const { viscosityClass } = __m127;
+const panels = __m142;
+const { shortName } = __m120;
 class CounterView {
 constructor(lab) {
 this.lab = lab;
@@ -25834,6 +26281,7 @@ this.vialCard(el);
 return;
 }
 for (const f of st.dueFollowUps()) el.append(trade.followUpCard(lab, f));
+this.specialBoard(el);
 const com = st.current;
 if (!com) {
 el.append(h('div', { class: 'card parch counter-empty' },
@@ -25866,6 +26314,9 @@ h('div', { class: 'budget' }, icon('coin', 'sm'), ` up to ${coins(com.budget)}`)
 com.patron ? h('div', { class: 'small patron ' + (com.patron.trust > 0.2 ? 'ok' : com.patron.trust < -0.2 ? 'warn' : 'muted'), text: `A returning customer (${com.patron.visits} earlier visit${com.patron.visits === 1 ? '' : 's'}): ${com.patron.trust > 0.2 ? 'they trust your shop — less haggling, a bigger purse' : com.patron.trust < -0.2 ? 'they were let down before and want proof this time' : 'they know your shop'}.` }) : null,
 h('div', { class: 'speech', text: '“' + com.dialogue + '”' }),
 h('div', { class: 'potion-name', text: com.potionName }),
+com.service ? h('div', { class: 'customer-patience row', title: 'Patience counts visible active play only; it pauses while suspended or in a dialog.' },
+icon('clock', 'sm'), h('progress', { max: 1, value: serviceStatus(com).fraction, 'aria-label': 'Customer patience' }),
+h('span', { class: 'small', text: 'Service patience' })) : null,
 list,
 this.techCard(com),
 this.supplyCard(com),
@@ -25876,6 +26327,31 @@ btn(com.hintCost ? `Advice · ${com.hintCost}` : 'Advice', () => panels.openHint
 com.tutorial ? null : btn('Decline', () => lab.decline(), { icon: 'door', act: 'decline', title: 'Send this customer away (no penalty)' }))));
 this.vialCard(el);
 this.shelfCard(el);
+}
+specialBoard(el) {
+const lab = this.lab, st = lab.state, offer = st.offerSpecial();
+if (!offer && !st.specialOrders.length) return;
+const board = h('details', { class: 'card parch special-board', open: true }, h('summary', { text: `Special commissions · ${st.specialOrders.length}/${st.specialCapacity}` }));
+const act = (fn) => { const r = fn(); if (r && !r.ok) toast('Commission', r.reason, 'scroll'); lab.save(); lab.refreshHud(true); this.refresh(); };
+const card = (o, offered) => {
+const com = o.request;
+const box = h('article', { class: 'special-order', 'data-order': o.id }, h('b', { text: com.potionName }),
+h('p', { class: 'small', text: `${com.customer.name} · ${com.bottleMl} ml · ${o.reward} coins · pickup day ${o.pickupDay}–${o.pickupDay + ORDERS.pickupGraceDays}` }),
+h('ul', { class: 'small' }, ...com.requirements.map((r) => h('li', { text: `${PROPERTY_LABELS[r.key] || r.key}: ${r.label}` }))),
+h('p', { class: 'small muted', text: 'Keep one complete sealed bottle on the potion shelves. Refusal has no penalty.' }));
+if (offered) box.append(h('div', { class: 'row wrap' },
+btn('Accept commission', () => act(() => st.acceptSpecial(o.id)), { act: 'special-accept', cls: 'gold' }),
+btn('Decline', () => act(() => st.declineSpecial(o.id)), { act: 'special-decline' })));
+else {
+const select = h('select', { 'aria-label': 'Commission bottle' }, ...st.bottles.map((b) => h('option', { value: b.id, text: `${Math.round(b.ml)} ml · Stored potion` })));
+box.append(select, btn(st.day < o.pickupDay ? `Returns day ${o.pickupDay}` : 'Deliver stored potion', () => act(() => st.deliverSpecial(o.id, select.value)),
+{ act: 'special-deliver', cls: 'primary', disabled: st.day < o.pickupDay || !st.bottles.length }));
+}
+return box;
+};
+if (offer) board.append(card(offer, true));
+for (const o of st.specialOrders) board.append(card(o, false));
+el.append(board);
 }
 techCard(com) {
 const ts = (com.techniques || []).map(techniqueById).filter(Boolean);
@@ -25892,7 +26368,7 @@ const where = { shelf: 'on the shelf', wilds: 'in the wilds', market: 'in the Sh
 return h('details', { class: 'small supply-card' }, h('summary', { text: `Plan for about ${sup.brewMl} ml of brew (the bottle and a few test doses)` }),
 ...sup.carriers.map((c) => h('div', {}, h('b', { text: `${EFFECT_BY_KEY[c.key].label}${c.sign < 0 ? ' (alkaline)' : ''}: ` }),
 c.carriers.length ? c.carriers.map((x) => `${st.lookup(x.id).name} (${where[x.where] || x.where})`).join(', ') : 'nothing you can get today carries it')),
-h('div', { class: 'muted', text: 'Every one of them brings side effects: plan what will cancel them. Long-press a jar on the shelf to see its effects.' }));
+h('div', { class: 'muted', text: 'Check each species for side effects and plan what will cancel them. Unique and Legendary species are naturally pure. Long-press a jar on the shelf to see its effects.' }));
 }
 shelfMatches(com) {
 const st = this.lab.state;
@@ -26009,7 +26485,7 @@ unseen ? h('span', { class: 'muted', text: ` ${seen.length ? '· ' : ''}${unseen
 return { CounterView };
 })();
 // src/rendering/crisp.js
-const __m143 = (() => {
+const __m148 = (() => {
 const RESOLUTIONS = /** @type {const} */ ([1, 2, 3, 4]);
 const VERT = `#version 300 es
 in vec2 p;
@@ -26195,7 +26671,7 @@ this.src.style.opacity = '0';
 return { RESOLUTIONS, UpscaledCanvas };
 })();
 // src/rendering/ragdoll.js
-const __m144 = (() => {
+const __m149 = (() => {
 const GRAVITY = 640;
 const STEP = 1 / 120;
 const FRICTION = 380;
@@ -26449,9 +26925,9 @@ ctx.imageSmoothingEnabled = smooth;
 return { GRAVITY, STEP, FRICTION, Ragdoll };
 })();
 // src/game/wild-rabbits.js
-const __m145 = (() => {
+const __m150 = (() => {
 const { Rng, hashString } = __m8;
-const { rollLook } = __m81;
+const { rollLook } = __m83;
 const { pickKind, kindLook } = __m7;
 const { NATIVE_SPECIES } = __m9;
 const HOP_GRAVITY = 300, BLOOD_GRAVITY = 260;
@@ -26936,110 +27412,30 @@ return out;
 }
 return { HOP_GRAVITY, WILD_HP, BLEED_OUT, NEAR_MISS, WARREN_SIZE, RESPAWN, BLOOD, wildLook, GAITS, WildRabbit, Warren, warrenSpots };
 })();
-// src/rendering/exotic-interactions.js
-const __m146 = (() => {
-const { BIOME_BY_ID } = __m4;
-const FEATURE_HINTS = Object.freeze({
-ripple: 'Touch the water to send moonlit ripples across it.',
-spring: 'Push the small floating islands: they swing back into place.',
-morph: 'Touch the living sprouts to change their shape.',
-mist: 'Sweep the mist aside to reveal the ruins behind it.',
-phase: 'Touch a ghostglass crystal to shift it out of phase.',
-time: 'Swipe down to reverse the sandfalls, or up to accelerate them.',
-});
-function segmentDistance(x, y, x0, y0, x1, y1) {
-const dx = x1 - x0, dy = y1 - y0, n = dx * dx + dy * dy;
-const t = n ? Math.max(0, Math.min(1, ((x - x0) * dx + (y - y0) * dy) / n)) : 0;
-return Math.hypot(x - x0 - dx * t, y - y0 - dy * t);
-}
-class ExoticInteractions {
-constructor(region, scene) {
-this.kind = BIOME_BY_ID[region]?.interaction;
-this.points = (scene.meta.interactionPoints || (scene.meta.glows || []).slice(0, 6)).map(([x, y]) => ({ x, y, dx: 0, dy: 0, vx: 0, vy: 0, touched: 0 }));
-if (!this.points.length) this.points = [{ x: 190, y: 125, dx: 0, dy: 0, vx: 0, vy: 0, touched: 0 }];
-this.ripples = []; this.clock = 0; this.reverse = 0; this.rate = 1;
-}
-push(x0, y0, x1, y1) {
-if (!this.kind) return;
-if (![x0, y0, x1, y1].every(Number.isFinite)) return;
-const dx = Math.max(-35, Math.min(35, x1 - x0)), dy = Math.max(-35, Math.min(35, y1 - y0));
-for (const p of this.points) if (segmentDistance(p.x + p.dx, p.y + p.dy, x0, y0, x1, y1) < 23) {
-p.vx = Math.max(-140, Math.min(140, p.vx + (dx || 3) * 4)); p.vy = Math.max(-140, Math.min(140, p.vy + (dy || -5) * 4)); p.touched = 4;
-}
-if (this.kind === 'ripple' || this.kind === 'mist') { if (this.ripples.length >= 16) this.ripples.shift(); this.ripples.push({ x: x1, y: y1, age: 0 }); }
-if (this.kind === 'time') { this.reverse = 4; this.rate = dy < -2 ? 3 : -2; }
-}
-activate() { const p = this.points[0]; this.push(p.x, p.y + 1, p.x, p.y); }
-step(dt) {
-if (!Number.isFinite(dt) || dt <= 0) return;
-dt = Math.min(0.05, dt); this.clock += dt * (this.reverse > 0 ? this.rate : 1); this.reverse = Math.max(0, this.reverse - dt);
-for (const p of this.points) {
-p.vx += (-30 * p.dx - 6 * p.vx) * dt; p.vy += (-30 * p.dy - 6 * p.vy) * dt;
-p.dx = Math.max(-24, Math.min(24, p.dx + p.vx * dt)); p.dy = Math.max(-18, Math.min(18, p.dy + p.vy * dt));
-p.touched = Math.max(0, p.touched - dt);
-}
-for (const r of this.ripples) r.age += dt;
-this.ripples = this.ripples.filter((r) => r.age < 3);
-}
-draw(ctx) {
-if (!this.kind) return;
-ctx.save();
-const pixel = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), w, h); };
-for (let i = 0; i < this.points.length; i++) {
-const p = this.points[i], x = p.x + p.dx, y = p.y + p.dy;
-if (this.kind === 'spring') {
-for (let j = 0; j < 18; j++) {
-const w = Math.max(1, Math.round(25 * (1 - j / 18)));
-pixel(x - Math.floor(w / 2), y + j, w, 1, j < 2 ? '#71a34c' : j % 4 ? '#55607b' : '#8b95ac');
-if (j > 3 && j % 3 === 0) pixel(x - w / 3, y + j, Math.max(1, w / 4 | 0), 1, '#41465c');
-}
-pixel(x - 12, y - 2, 24, 2, '#a4d56e'); pixel(x + 2, y - 7, 2, 5, '#8de3f8');
-} else if (this.kind === 'morph') {
-const changed = p.touched > 0;
-for (let j = 0; j < 7; j++) pixel(x + Math.sin(j * (changed ? 2.4 : 0.9)) * (changed ? 8 : 4), y - j * 2, changed ? 5 : 3, 2, j % 2 ? '#d59aaf' : '#6fba87');
-} else if (this.kind === 'phase') {
-ctx.globalAlpha = p.touched > 0 ? 0.15 : 0.4 + 0.5 * Math.sin(this.clock * 0.7 + i) ** 2;
-for (let j = 0; j < 15; j++) pixel(x - Math.min(j / 3, (15 - j) / 2), y - 15 + j, Math.max(1, Math.min(j / 1.5, 15 - j)), 1, j % 3 ? '#91e4f0' : '#d7f4ff');
-ctx.globalAlpha = 1;
-} else if (this.kind === 'time') {
-for (let j = 0; j < 18; j++) pixel(x + Math.sin(j + i) * 2, y + ((j * 5 + this.clock * 24) % 55 + 55) % 55, 1, 2, this.reverse > 0 ? '#d0a4ef' : '#f5d18b');
-}
-}
-if (this.kind === 'mist') for (let y = 38; y < 200; y += 4) for (let x = -7; x < 384; x += 7) {
-if (this.ripples.some((r) => Math.hypot(x - r.x, y - r.y) < 38 * (1 - r.age / 3))) continue;
-pixel(x + Math.sin(this.clock * 0.3 + y) * 7, y, 10, 3, '#a9b8bd45');
-}
-for (const r of this.ripples) if (this.kind === 'ripple') {
-ctx.globalAlpha = 1 - r.age / 3;
-for (let i = 0; i < 36; i++) { const a = i * Math.PI * 2 / 36; pixel(r.x + Math.cos(a) * r.age * 20, r.y + Math.sin(a) * r.age * 6, 2, 1, '#b2eaf4'); }
-}
-ctx.restore();
-}
-}
-return { FEATURE_HINTS, ExoticInteractions };
-})();
 // src/ui/views/wilds.js
-const __m142 = (() => {
-const { UpscaledCanvas } = __m143;
+const __m147 = (() => {
+const { UpscaledCanvas } = __m148;
 const { h, btn, clear, toast, keepScroll } = __m13;
 const { icon } = __m14;
 const { audio } = __m27;
-const { REGIONS, sandboxDeposit, depositStatus, formatWait, gatherPlan, harvestable, dayPart, weatherOn, moistureEnv, DAY_PART_NAME } = __m121;
-const { equipmentById } = __m119;
-const { RANKS } = __m119;
-const { sceneCanvas, sceneFrame, animateRegion, PlantGround, hitPlant, windAt, sceneTouch, crosses, SCENE_W, SCENE_H } = __m75;
-const { Ragdoll } = __m144;
-const { sceneOf } = __m52;
-const { plantCanvas, plantFrameOf, plantGlow, emitColour, silhouetteOf, ingredientSprite, speciesOf, mountsOf, variantOf, MIN_HIT } = __m76;
+const { REGIONS, sandboxDeposit, depositStatus, formatWait, gatherPlan, harvestable, dayPart, weatherOn, moistureEnv, DAY_PART_NAME } = __m125;
+const { equipmentById } = __m123;
+const { RANKS } = __m123;
+const { sceneCanvas, sceneFrame, animateRegion, PlantGround, hitPlant, windAt, sceneTouch, crosses, SCENE_W, SCENE_H } = __m77;
+const { Ragdoll } = __m149;
+const { sceneOf } = __m54;
+const { plantCanvas, plantFrameOf, plantGlow, emitColour, silhouetteOf, ingredientSprite, speciesOf, mountsOf, variantOf, MIN_HIT } = __m78;
 const { EFFECT_BY_KEY } = __m5;
 const { hashString } = __m8;
-const { Warren, warrenSpots, BLOOD, WILD_HP } = __m145;
-const { drawRabbit, rabbitSpriteKey, RABBIT_W, RABBIT_H } = __m78;
-const { defaultSnap, penHasRoom, PEN_MAX } = __m81;
+const { Warren, warrenSpots, BLOOD, WILD_HP } = __m150;
+const { drawRabbit, rabbitSpriteKey, RABBIT_W, RABBIT_H } = __m80;
+const { defaultSnap, penHasRoom, PEN_MAX } = __m83;
 const { KINDS } = __m7;
-const { settleTraveller, TRAVEL } = __m129;
+const { settleTraveller, TRAVEL } = __m134;
+const { NATIVE_SPECIES } = __m9;
 const { RARITIES } = __m49;
-const { ExoticInteractions, FEATURE_HINTS } = __m146;
+const { ExoticInteractions, FEATURE_HINTS } = __m113;
+const { loadIngredientBiome } = __m112;
 const SHADOW = { forest: 'rgba(8,16,10,0.32)', netherwood: 'rgba(6,4,16,0.4)', meadow: 'rgba(24,30,10,0.26)', river: 'rgba(4,14,16,0.34)', quarry: 'rgba(26,18,10,0.3)', moonfen: 'rgba(2,6,18,0.42)', crags: 'rgba(30,6,4,0.4)' };
 function litSprite(d, light) {
 const dark = light.length >= 6 ? [light[3] * 255, light[4] * 255, light[5] * 255] : null;
@@ -27082,6 +27478,8 @@ return `rgb(${ch((n >> 16) & 255)},${ch((n >> 8) & 255)},${ch(n & 255)})`;
 class WildsView {
 constructor(lab) {
 this.lab = lab;
+this.disposed = false;
+/** @type {any} */ this.warmIdle = 0;
 this.el = h('section', { class: 'view view-wilds', 'data-view': 'wilds' });
 this.region = 'forest';
 this.time = 0;
@@ -27116,6 +27514,16 @@ this.bunnyHalf = null;
 this.wildSprites = null;
 this.told = new Set();
 this.drag = null;
+}
+dispose() {
+this.disposed = true;
+clearTimeout(this.warmTimer); this.warmTimer = 0;
+if (this.warmIdle) {
+if (typeof cancelIdleCallback === 'function') cancelIdleCallback(this.warmIdle);
+else clearTimeout(this.warmIdle);
+this.warmIdle = 0;
+}
+this.crisp?.dispose();
 }
 build() {
 const el = clear(this.el);
@@ -27196,15 +27604,17 @@ this.pinch.mx = mx; this.pinch.my = my;
 this.setZoom(this.pinch.z0 * d / Math.max(10, this.pinch.d0), mx, my);
 }
 prewarm() {
-if (this.warmTimer) return;
+if (this.disposed || this.warmTimer || this.warmIdle) return;
 const st = this.lab.state, seed = st.seed;
 const todo = REGIONS.filter((r) => this.unlocked(r) && r.id !== this.region).map((r) => r.id);
 const idle = typeof requestIdleCallback === 'function' ? (fn) => requestIdleCallback(fn) : (fn) => setTimeout(fn, 50);
 const tick = () => {
 this.warmTimer = 0;
-if (this.lab.state !== st || !todo.length) return;
+if (this.disposed || this.lab.state !== st || !todo.length) return;
 if (this.lab.view !== 'wilds' || performance.now() - this.lastInput < 1500) { this.warmTimer = setTimeout(tick, 1500); return; }
-idle(() => {
+this.warmIdle = idle(() => {
+this.warmIdle = 0;
+if (this.disposed) return;
 if (this.lab.view !== 'wilds' || performance.now() - this.lastInput < 1500) { this.warmTimer = setTimeout(tick, 1500); return; }
 const region = /** @type {string} */ (todo.shift());
 sceneCanvas(region, st.sceneSeed(region));
@@ -27227,14 +27637,15 @@ if (!this.tabs) return;
 const tabs = clear(this.tabs);
 for (const r of REGIONS) {
 const ok = this.unlocked(r);
-tabs.appendChild(btn(r.name, () => {
+tabs.appendChild(btn(r.name, async () => {
 if (!ok) { toast(r.name, `${RANKS[r.rank].name} · ${r.sales} successful sales unlock passage.`, 'lock'); return; }
+try { await loadIngredientBiome(r.id); } catch (e) { toast('Artwork unavailable', e.message, 'close'); return; }
 this.region = r.id; this.bgKey = ''; this.fallen = {}; this.shakes = {}; this.energy = {}; this.hits = {}; this.rubble = []; this.puffs = []; this.pops = []; this.flashes = []; this.drag = null; audio.play('page'); this.refresh();
 }, { cls: (this.region === r.id ? 'active ' : '') + (ok ? '' : 'locked'), icon: ok ? (r.magical ? 'wisp' : r.id === 'quarry' ? 'pick' : r.id === 'river' ? 'drop' : r.id === 'meadow' ? 'rose' : r.id === 'netherwood' ? 'shroom' : 'tree') : 'lock', act: 'region-' + r.id }));
 }
 const region = REGIONS.find((r) => r.id === this.region);
 settleTraveller(st.traveller);
-clear(this.info).append(h('b', { text: region.name }), ` · ${region.category} · ${EFFECT_BY_KEY[region.dominant].label} · ${region.creature}`,
+clear(this.info).append(h('b', { text: region.name }), ` · ${region.category} · ${EFFECT_BY_KEY[region.dominant].label} · ${NATIVE_SPECIES[region.creature]?.label || region.creature}`,
 btn(lab.sandbox ? 'Regenerate sandbox' : `Regenerate · 1 Traveller Coin (${st.traveller.balance}/${TRAVEL.capacity})`, () => {
 const r = st.regenerateBiome(this.region, Date.now(), lab.sandbox);
 if (!r.ok) { toast('Travel', r.reason, 'coin'); return; }
@@ -27242,6 +27653,13 @@ this.bgKey = ''; this.fallen = {}; this.shakes = {}; this.energy = {}; this.hits
 if (lab.sandbox) for (const d of st.deposits) sandboxDeposit(d);
 this.interaction = null; this.refresh(); lab.save(); lab.tutorial?.notify('regenerate');
 }, { act: 'regenerate-biome', icon: 'coin', disabled: !lab.sandbox && st.traveller.balance < 1 }));
+if (this.region === 'forest' && st.tutorial.active && !st.tutorial.done && !st.colony.rabbits.some((r) => r.look.kind === 'fox' && r.alive)) {
+this.info.append(btn('Welcome fox', () => {
+const w = this.warren(), fox = w?.rabbits.find((r) => !r.dead && r.kind === 'fox');
+if (!fox) { toast('Fox', 'Look around Whisperwood for its native fox.', 'rabbit'); return; }
+fox.hits = 0; this.takeHome(w, fox); this.refresh();
+}, { act: 'tutorial-fox', icon: 'rabbit' }));
+}
 if (region.interaction) this.info.append(btn('Touch scenery', () => this.interaction?.activate(), { act: 'biome-feature', title: FEATURE_HINTS[region.interaction], icon: 'wisp' }), h('span', { class: 'feature-hint', text: FEATURE_HINTS[region.interaction] }));
 const list = clear(this.list);
 const now = Date.now();
@@ -27255,7 +27673,7 @@ h('span', { class: 'spacer' }), icon(weather.icon, 'sm'), h('b', { text: lab.san
 lab.sandbox || weather.id === 'clear' ? null : h('div', { class: 'muted', text: !lab.sandbox && weather.id === 'rain' ? 'Rain wets the living growth. Harvested specimens stay depleted until this biome is regenerated.' : !lab.sandbox && weather.id === 'storm' ? 'Wind scatters a quarter of every outdoor harvest. Depleted mineral seams remain empty.' : weather.desc }),
 h('div', { class: 'row wrap seg tap-mode' }, h('span', { text: 'Tap to:' }),
 btn('Harvest', () => { this.mode = 'harvest'; audio.play('click'); this.refresh(); }, { cls: 'small' + (this.mode === 'harvest' ? ' active' : ''), icon: 'rose', act: 'mode-harvest' }),
-lab.sandbox ? btn('Water', () => { this.mode = 'water'; audio.play('click'); this.refresh(); }, { cls: 'small' + (this.mode === 'water' ? ' active' : ''), icon: 'drop', act: 'mode-water' }) : null,
+null,
 this.mode === 'water' ? h('span', { class: 'muted', text: 'tap or drag across the scene to water the plants there' }) : null),
 this.mode === 'harvest' && !lab.sandbox ? h('div', { class: 'row wrap seg harvest-mode' }, h('span', { text: 'Harvest:' }), mode('Careful', false, 'harvest-careful'), mode('Thorough ×2', true, 'harvest-thorough'),
 this.thorough ? h('span', { class: 'muted', text: 'takes the whole specimen for twice the yield' }) : null) : null].filter(Boolean));
@@ -27277,7 +27695,7 @@ const g = btn(locked ? RANKS[d.rank].name : `${plan.method.verb} +${take} ml`, (
 const barI = h('i', { style: { width: Math.round(s.fraction * 100) + '%' } });
 const meta = h('div', { class: 'meta', text: `${stock} · ${when}` });
 const soil = lab.sandbox && d.botanical ? h('div', { class: 'meta soil', text: this.soilText(d, s) }) : null;
-const wbtn = lab.sandbox && d.botanical && !locked ? btn('Water', () => this.waterStand(d), { cls: 'small water', icon: 'drop', disabled: s.plants.every((p) => p.stage === 'mature'), act: 'water-' + d.id, title: 'Water every growing plant of this stand' }) : null;
+const wbtn = null;
 this.rows[d.id] = { barI, meta, g, locked, take, soil, wbtn, card: /** @type {HTMLElement | null} */ (null) };
 const notes = lab.sandbox ? [] : plan.factors.filter((f) => f.why !== 'satchel' && !f.why.startsWith('thorough')).map((f) => f.why);
 const tool = plan.method.tool ? equipmentById(plan.method.tool) : null;
@@ -27301,7 +27719,7 @@ list.appendChild(card);
 }
 if (!list.childElementCount) list.appendChild(h('div', { class: 'muted small empty-list', text: 'Nothing gathered here yet. Slide a finger across a ripe plant to shake its fruit loose, then tap what falls. Each ingredient is listed here once you have gathered it for the first time.' }));
 clear(this.foot).append(lab.sandbox
-? 'Sandbox plants regrow and can be watered. Campaign populations are finite.'
+? 'Sandbox plants regrow for free experiments. Watering belongs to the personal garden.'
 : `Room for ${st.cap.storage} ml of each ingredient. This generation never regrows. Gather propagation materials for your garden, or spend a Traveller Coin for a new population. Coins recharge over time and may be gifted by delighted customers.`);
 this.paintBg();
 this.grow();
@@ -28246,12 +28664,12 @@ this.grow();
 return { WildsView };
 })();
 // src/visual/env/pens.js
-const __m150 = (() => {
-const { Canvas } = __m54;
-const { col, silhouette, treeShape } = __m56;
-const { finish } = __m55;
-const { grade } = __m61;
-const { cobble } = __m57;
+const __m154 = (() => {
+const { Canvas } = __m56;
+const { col, silhouette, treeShape } = __m58;
+const { finish } = __m57;
+const { grade } = __m63;
+const { cobble } = __m59;
 const { fbm1, fbm2, hash2, noise2 } = __m24;
 const { mixPacked } = __m17;
 const { Rng, hashString } = __m8;
@@ -29498,7 +29916,7 @@ return p;
 return { PEN_W, PEN_H, BACK, GROUND_Y0, PENS_VERSION, PEN_KINDS, penTitle, penOf };
 })();
 // src/rendering/pen-anim.js
-const __m151 = (() => {
+const __m155 = (() => {
 function hash(a, b = 0) {
 let n = Math.imul(a | 0, 0x27d4eb2d) ^ Math.imul(b | 0, 0x165667b1);
 n = Math.imul(n ^ (n >>> 15), 0x2c1b3c6d);
@@ -29621,13 +30039,13 @@ if (f) f(ctx, a, t);
 return { drawPenAnim };
 })();
 // src/rendering/hutch-scene.js
-const __m149 = (() => {
+const __m153 = (() => {
 const { Rng, hashString } = __m8;
-const { PAL, makeCanvas } = __m80;
-const { drawRabbit, rabbitAnchors, rabbitLevels, rabbitPace, RABBIT_W } = __m78;
+const { PAL, makeCanvas } = __m82;
+const { drawRabbit, rabbitAnchors, rabbitLevels, rabbitPace, RABBIT_W } = __m80;
 const { kindOf } = __m7;
-const { penOf } = __m150;
-const { drawPenAnim } = __m151;
+const { penOf } = __m154;
+const { drawPenAnim } = __m155;
 const { NATIVE_SPECIES } = __m9;
 const WALKERS = { cat: 12, salamander: 5, deer: 10, badger: 8, dove: 8, fox: 14, snail: 1.5, rat: 16 };
 for (const [id, n] of Object.entries(NATIVE_SPECIES)) if (n.gait !== 'rabbit' && n.gait !== 'ermine') WALKERS[id] = WALKERS[n.gait] || 7;
@@ -30059,19 +30477,19 @@ ctx.drawImage(this.bg, 0, 0);
 return { HUTCH_W, HUTCH_H, HUTCH_BODIES, penFor, paintHutch, paintHutchFront, onGround, HutchScene };
 })();
 // src/ui/views/hutch.js
-const __m148 = (() => {
-const { readingSteadiness } = __m120;
+const __m152 = (() => {
+const { readingSteadiness } = __m124;
 const { kindDef, kindOf, KINDS, KIND_IDS } = __m7;
 const { h, btn, clear, toast, modal, confirmDialog, keepScroll } = __m13;
 const { icon } = __m14;
 const { audio } = __m27;
-const { drawRabbit, RABBIT_W, RABBIT_H } = __m78;
-const { HutchScene, HUTCH_W, HUTCH_H } = __m149;
-const { penTitle } = __m150;
-const { UpscaledCanvas } = __m143;
+const { drawRabbit, RABBIT_W, RABBIT_H } = __m80;
+const { HutchScene, HUTCH_W, HUTCH_H } = __m153;
+const { penTitle } = __m154;
+const { UpscaledCanvas } = __m148;
 const { EFFECT_BY_KEY } = __m5;
-const { livingRabbits, bodies, rabbitSnap, rabbitCondition, stageOf, findRabbit, colonyDay, maxHealthOf, degenOf, isFeral, RABBIT_MARKS, LETHAL, TRAIT_WORDS, LOVE_MATE, BURNS, PEN_MAX, penHasRoom, livingOf } = __m81;
-const { PURGE_BREW_TIME } = __m111;
+const { livingRabbits, bodies, rabbitSnap, rabbitCondition, stageOf, findRabbit, colonyDay, maxHealthOf, degenOf, isFeral, RABBIT_MARKS, LETHAL, TRAIT_WORDS, LOVE_MATE, BURNS, PEN_MAX, penHasRoom, livingOf } = __m83;
+const { PURGE_BREW_TIME } = __m115;
 const STAGE_WORD = { kit: 'kit', young: 'youngster', adult: 'adult', elder: 'elder' };
 const CHANNELS = RABBIT_MARKS.map((k) => {
 const e = EFFECT_BY_KEY[k === 'acid' || k === 'alkali' ? 'acidity' : k];
@@ -30442,21 +30860,21 @@ if (this._live >= 0.25) { this._live = 0; this.live(); }
 return { CHANNELS, HutchPanel };
 })();
 // src/ui/views/trials.js
-const __m147 = (() => {
+const __m151 = (() => {
 const { h, btn, clear, toast } = __m13;
 const { icon } = __m14;
 const { audio } = __m27;
-const { SUBJECT_BY_ID, DOSES, missingEffects } = __m120;
+const { SUBJECT_BY_ID, DOSES, missingEffects } = __m124;
 const { EFFECTS, EFFECT_BY_KEY, EFFECT_INDEX, EFFECT_KEYS, potencyWord } = __m5;
-const { SIM } = __m85;
-const { applyTrials } = __m124;
-const { summarize, addSamples, EVIDENCE_TEXT, evidenceRank, requirementEvidence } = __m120;
-const { evidenceOf } = __m124;
-const { shortName } = __m116;
+const { SIM } = __m87;
+const { applyTrials } = __m128;
+const { summarize, addSamples, EVIDENCE_TEXT, evidenceRank, requirementEvidence } = __m124;
+const { evidenceOf } = __m128;
+const { shortName } = __m120;
 const LEVEL_SHORT = { preliminary: '1 reading', repeated: 'repeated', corroborated: 'corroborated', certified: 'certified' };
-const { drawRabbit } = __m78;
-const { focusRabbit, findRabbit, rabbitSnap, decodeSnap, lookFromSeed, RABBIT_MARKS } = __m81;
-const { HutchPanel } = __m148;
+const { drawRabbit } = __m80;
+const { focusRabbit, findRabbit, rabbitSnap, decodeSnap, lookFromSeed, RABBIT_MARKS } = __m83;
+const { HutchPanel } = __m152;
 const REPLAY_T = 3.2;
 class TrialsView {
 constructor(lab) {
@@ -30484,6 +30902,7 @@ doseMl() {
 const d = Math.min(this.lab.trialDose, this.available());
 return d < SIM.ML_PER_PARTICLE ? this.lab.trialDose : Math.floor(d / SIM.ML_PER_PARTICLE) * SIM.ML_PER_PARTICLE;
 }
+dispose() { this.hutch.crisp?.dispose(); }
 build() {
 const lab = this.lab, st = lab.state;
 const el = clear(this.el);
@@ -30833,15 +31252,16 @@ return `rgb(${Math.round(c[0] * 255)},${Math.round(c[1] * 255)},${Math.round(c[2
 return { TrialsView, EFFECTS, EFFECT_INDEX };
 })();
 // src/ui/views/book.js
-const __m152 = (() => {
+const __m156 = (() => {
 const { KINDS } = __m7;
 const { h, btn, clear } = __m13;
 const { icon } = __m14;
 const { audio } = __m27;
-const panels = __m137;
-const { SUBJECT_BY_ID } = __m120;
+const panels = __m142;
+const { SUBJECT_BY_ID } = __m124;
 const { EFFECTS, EFFECT_BY_KEY, EFFECT_KEYS } = __m5;
 const { rgbToHex } = __m18;
+const { RARITIES } = __m49;
 const TABS = [
 ['recipes', 'Recipes', 'book'], ['trials', 'Trials', 'dropper'], ['laws', 'Laws', 'eye'], ['ingredients', 'Ingredients', 'leaf'],
 ['journal', 'Journal', 'scroll'], ['achievements', 'Awards', 'trophy'], ['history', 'Sales', 'coin'],
@@ -30925,9 +31345,10 @@ const m = st.lookup(id);
 const seen = lab.sandbox || (st.knows(id) && (m.tier <= st.rank || st.stock(id) > 0 || !!m.wild));
 const fx = m.remains ? [] : EFFECT_KEYS.map((k) => [k, (m.effects && m.effects[k]) || 0]).filter(([, v]) => Math.abs(v) >= 1).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
 list.appendChild(h('div', { class: 'item parch' + (seen ? '' : ' locked') },
-panels.jarCanvas(m, 18, 24),
+seen ? panels.jarCanvas(m, 18, 24) : icon('help'),
 h('div', {},
 h('div', { class: 'title', text: seen ? m.name : '???' }),
+seen && m.rarity ? h('div', { class: 'meta', text: `${RARITIES[m.rarity].label}${m.arcaneVariant ? ' · Arcane' : ' · Ordinary'} · ${st.garden.seeds[id] || 0} seeds` }) : null,
 seen ? h('div', { class: 'meta' }, m.remains ? h('span', { class: 'muted', text: 'effects unknown — test it' }) : fx.length ? fx.map(([k, v]) => h('span', { class: 'fx-chip', title: EFFECT_BY_KEY[k].label }, icon(EFFECT_BY_KEY[k].icon, 'sm'), ` ${Math.round(v)}`)) : h('span', { class: 'muted', text: 'no magical effect' })) : h('div', { class: 'meta', text: m.wild && !st.knows(id) ? 'Not yet gathered.' : 'Not yet available.' }),
 seen ? h('div', { class: 'meta muted', text: `${m.remains ? `remains of ${m.remains.rabbitName}` : m.wild ? `wild · ${m.wild.region}` : m.form}${m.solubility > 0.03 ? ' · dissolves' : ''}${m.binder > 0.3 ? ' · forms dough' : ''}` }) : null),
 seen ? btn('', () => panels.openIngredient(lab, id), { icon: 'lens', cls: 'icon', title: 'Inspect', act: 'inspect-' + id }) : icon('lock')));
@@ -30938,11 +31359,11 @@ body.appendChild(list);
 return { BookView };
 })();
 // src/ui/views/garden.js
-const __m153 = (() => {
+const __m157 = (() => {
 const { h, btn, clear, toast, keepScroll } = __m13;
-const { ingredientSprite } = __m76;
-const { sceneCanvas } = __m75;
-const { gardenStatus, canCultivate, FACILITIES } = __m130;
+const { ingredientSprite, growthSprite } = __m78;
+const { sceneCanvas } = __m77;
+const { gardenStatus, canCultivate, FACILITIES } = __m135;
 const { RARITIES } = __m49;
 class GardenView {
 constructor(lab) { this.lab = lab; this.selected = 'plot-0'; this.el = h('section', { class: 'view view-garden', 'data-view': 'garden' }); this.elapsed = 0; }
@@ -30957,16 +31378,22 @@ refresh() { keepScroll(this.el, () => this.render()); }
 render() {
 const st = this.lab.state, g = st.garden, root = clear(this.el);
 const bg = sceneCanvas('garden', st.seed), canvas = h('canvas', { class: 'garden-scene', width: 384, height: 216, 'aria-label': 'Personal garden beside the shop' });
-canvas.getContext('2d').drawImage(bg, 0, 0); root.append(canvas);
+const ctx = canvas.getContext('2d'); ctx.imageSmoothingEnabled = false; ctx.drawImage(bg, 0, 0);
+for (const [i, plot] of g.plots.slice(0, 5).entries()) {
+const crop = gardenStatus(g, plot, st.lookup), x = 55 + i * 65;
+ctx.fillStyle = crop.moisture > 0.5 ? '#30291f' : '#68482f'; ctx.fillRect(x + 4, 159, 41, 6);
+if (crop.material) ctx.drawImage(growthSprite(crop.material, crop.stage), x, 115, 50, 50);
+}
+root.append(canvas);
 root.append(h('div', { class: 'garden-heading row wrap' }, h('h2', { text: 'Personal garden' }), h('span', { class: 'spacer' }),
 btn('Water all', () => this.act(() => { let watered = 0; for (const p of g.plots) if (st.waterPlot(p.id).ok) watered++; return { ok: watered > 0, reason: 'No planted beds need water.' }; }, 'garden-water'), { icon: 'drop', act: 'garden-water-all', disabled: !g.unlocked })));
 if (!g.unlocked) { root.append(h('p', { class: 'card parch', text: 'Gather your first ingredient in Whisperwood to receive a propagation material and open these three beds.' })); return; }
 const grid = h('div', { class: 'garden-plots' });
 for (const p of g.plots) {
 const s = gardenStatus(g, p, st.lookup), selected = p.id === this.selected;
-const card = h('button', { class: 'garden-plot parch' + (selected ? ' selected' : ''), 'data-act': 'select-' + p.id, 'aria-pressed': selected, onclick: () => { this.selected = p.id; this.refresh(); } },
+const card = h('button', { class: 'garden-plot parch' + (selected ? ' selected' : ''), 'data-act': 'select-' + p.id, 'aria-pressed': selected, 'data-stage': s.stage, 'data-moisture': s.moisture > 0.5 ? 'wet' : 'dry', onclick: () => { this.selected = p.id; this.refresh(); } },
 h('b', { text: `${Number(p.id.split('-')[1]) + 1} · ${FACILITIES[p.facility].label}` }),
-s.material ? ingredientSprite(s.material, s.growth) : h('span', { class: 'plot-empty', text: 'Empty bed' }),
+s.material ? growthSprite(s.material, s.stage) : h('span', { class: 'plot-empty', text: 'Empty bed' }),
 h('span', { text: s.material ? `${s.material.name} · ${s.stage}` : 'Choose a propagation material' }),
 h('progress', { max: 1, value: s.growth, 'aria-label': 'Growth' }),
 h('span', { class: 'small', text: s.material ? `${Math.round(s.growth * 100)}% grown · ${Math.round(s.moisture * 100)}% moisture` : 'Ready to plant' }));
@@ -30983,7 +31410,12 @@ const seeds = Object.entries(g.seeds).filter(([id, n]) => n > 0 && st.lookup(id)
 const select = h('select', { 'aria-label': 'Propagation material', 'data-act': 'garden-seed' }, ...seeds.map(([id, n]) => {
 const m = st.lookup(id); return h('option', { value: id, disabled: !canCultivate(p, m), text: `${m.name} · ${RARITIES[m.rarity].label} ×${n}${canCultivate(p, m) ? '' : ' · specialist bed needed'}` });
 }));
-if (seeds.length) panel.append(select, btn('Plant', () => this.act(() => st.plantSeed(p.id, select.value), 'garden-plant'), { cls: 'gold', act: 'garden-plant', icon: 'leaf' }));
+if (seeds.length) {
+const preview = h('div', { class: 'garden-seed-preview' });
+const showSeed = () => { clear(preview); const m = st.lookup(select.value); if (m) preview.append(growthSprite(m, 'seed')); };
+select.addEventListener('change', showSeed); showSeed();
+panel.append(preview, select, btn('Plant', () => this.act(() => st.plantSeed(p.id, select.value), 'garden-plant'), { cls: 'gold', act: 'garden-plant', icon: 'leaf' }));
+}
 else panel.append(h('p', { text: 'No seeds yet. Wild harvesting is the main source of propagation materials.' }));
 const facility = h('select', { 'aria-label': 'Growing structure' }, ...Object.entries(FACILITIES).filter(([id]) => id !== p.facility).map(([id, f]) => h('option', { value: id, text: `${f.label} · ${f.price} coins · rank ${f.rank}` })));
 panel.append(h('div', { class: 'row wrap' }, facility, btn('Install', () => this.act(() => st.upgradeGarden(p.id, facility.value), 'garden-upgrade'), { act: 'garden-upgrade' })));
@@ -30996,44 +31428,45 @@ frame(dt) { this.elapsed += dt; if (this.elapsed > 2) { this.elapsed = 0; if (!t
 return { GardenView };
 })();
 // src/ui/lab.js
-const __m132 = (() => {
-const { Simulation } = __m84;
-const { PHASE, SIM } = __m85;
-const { snapshotSim, applySnapshot } = __m133;
-const { clampToInterior } = __m100;
-const { MAX_SPECIES } = __m87;
+const __m137 = (() => {
+const { Simulation } = __m86;
+const { PHASE, SIM } = __m87;
+const { snapshotSim, applySnapshot } = __m138;
+const { clampToInterior } = __m102;
+const { MAX_SPECIES } = __m89;
 const { compatFactor } = __m6;
-const { Renderer } = __m103;
-const { drawPortrait } = __m134;
-const { drawJar } = __m80;
-const { ingredientSprite } = __m76;
-const { measureParticles, tapSelection, probeSelection, viscosityClass, densityWord } = __m123;
-const { scoreRequirement, PROPERTY_LABELS } = __m117;
-const { processEvent } = __m135;
-const { saveGame, saveJSON, KEYS } = __m131;
-const { AutoBrewer, condensedCount } = __m136;
-const { traceSample, buildProcedure, procedureLimits, matchRecipe, compareRecipe, checkReproduction, TRACE_DT } = __m127;
-const { proofGaps, draftLabel, applyTrials, evidenceOf } = __m124;
-const { RANKS } = __m119;
-const { certification, missingEffects, requirementEvidence } = __m120;
-const { sandboxIngredients } = __m112;
-const { makeVial, appendParticles, updateVial, takeDose, pourBack, pourBackParts, relaxVial } = __m122;
+const { Renderer } = __m105;
+const { drawPortrait } = __m139;
+const { drawJar } = __m82;
+const { ingredientSprite } = __m78;
+const { RARITIES } = __m49;
+const { measureParticles, tapSelection, probeSelection, viscosityClass, densityWord } = __m127;
+const { scoreRequirement, PROPERTY_LABELS } = __m121;
+const { processEvent } = __m140;
+const { saveGame, saveJSON, KEYS } = __m136;
+const { AutoBrewer, condensedCount } = __m141;
+const { traceSample, buildProcedure, procedureLimits, matchRecipe, compareRecipe, checkReproduction, TRACE_DT } = __m132;
+const { proofGaps, draftLabel, applyTrials, evidenceOf } = __m128;
+const { RANKS } = __m123;
+const { certification, missingEffects, requirementEvidence } = __m124;
+const { sandboxIngredients } = __m116;
+const { makeVial, appendParticles, updateVial, takeDose, pourBack, pourBackParts, relaxVial } = __m126;
 const { theoryOf, EFFECTS, EFFECT_BY_KEY, EFFECT_INDEX, dominantEffect, NE } = __m5;
-const { awakenParts, describeThreshold } = __m88;
-const { ARC_NONE } = __m86;
+const { awakenParts, describeThreshold } = __m90;
+const { ARC_NONE } = __m88;
 const { describeColor, rgbToHex } = __m18;
 const { h, btn, clear, keepScroll, toast, coins, confirmDialog, modal, setNoteDock, recentNotes } = __m13;
 const { icon } = __m14;
 const { audio } = __m27;
-const panels = __m137;
-const trade = __m139;
-const { Tutorial } = __m140;
-const { CounterView } = __m141;
-const { WildsView } = __m142;
-const { TrialsView } = __m147;
-const { BookView } = __m152;
-const { GardenView } = __m153;
-const { shortName } = __m116;
+const panels = __m142;
+const trade = __m144;
+const { Tutorial } = __m145;
+const { CounterView } = __m146;
+const { WildsView } = __m147;
+const { TrialsView } = __m151;
+const { BookView } = __m156;
+const { GardenView } = __m157;
+const { shortName } = __m120;
 const REQ_ICON = { temperature: 'thermo', quantity: 'flask', purity: 'pure' };
 const TOOL_DEFS = [
 { id: 'spoon', label: 'Stir', icon: 'spoon', key: '2', title: 'Spoon: drag in the brew to stir' },
@@ -31171,6 +31604,7 @@ document.removeEventListener('visibilitychange', this.onVis);
 window.removeEventListener('pagehide', this.onUnload);
 window.removeEventListener('storage', this.onStorage);
 if (this.resizeObs) this.resizeObs.disconnect();
+for (const view of Object.values(this.views)) if (view && 'dispose' in view && typeof view.dispose === 'function') view.dispose();
 if (this.tutorial) this.tutorial.stop();
 audio.update({ fire: 0, stir: 0, pour: 0, boil: 0, cold: 0 }, 0);
 this.el.remove();
@@ -31417,7 +31851,7 @@ const labels = shelfLabels(ids.map((id) => st.lookup(id).name));
 for (const [n, id] of ids.entries()) {
 const m = st.lookup(id);
 let cv;
-if ((m.wild || m.remains) && m.form === 'solid') {
+if (m.wild || m.remains) {
 cv = ingredientSprite(m);
 cv.classList.add('raw');
 } else {
@@ -31427,6 +31861,12 @@ drawJar(cv.getContext('2d'), 1, 0, 13, 20, m.look || m.color, m.form);
 const stock = h('span', { class: 'jstock' });
 const el = h('button', { class: 'jar' + (m.wild ? ' wild' : '') + (m.remains ? ' remains' : ''), title: m.name, 'aria-label': m.name, 'data-id': id, role: 'option' }, stock, cv, h('span', { class: 'jname', text: m.remains ? m.remains.short : labels[n] }));
 this.bindJar(el, id);
+if (m.speciesId) {
+const quality = RARITIES[m.rarity].label, seeds = st.garden.seeds[id] || 0;
+el.dataset.rarity = m.rarity; el.dataset.arcane = String(!!m.arcaneVariant);
+el.title = `${m.name} · ${quality}${m.arcaneVariant ? ' · Arcane' : ''} · ${seeds} seeds`;
+el.append(h('span', { class: 'ingredient-quality', title: `${quality}${m.arcaneVariant ? ' · Arcane' : ''} · ${seeds} seeds`, text: quality[0] + (m.arcaneVariant ? ' ✦' : '') }));
+}
 this.jarEls[id] = { el, stock };
 sh.appendChild(el);
 }
@@ -32188,9 +32628,9 @@ if (matchRecipe(r, parts, steps, this.state.lookup) === 'procedure') return r;
 return null;
 }
 brewAdvice() {
-if (this._advice && this.time - this._advice.t < 1) return this._advice.list;
+if (this._advice && this._advice.count === this.sim.p.count && this.time - this._advice.t < 1) return this._advice.list;
 const list = this.computeAdvice();
-this._advice = { t: this.time, list };
+this._advice = { t: this.time, count: this.sim.p.count, list };
 return list;
 }
 computeAdvice() {
@@ -32484,6 +32924,7 @@ const tw0 = performance.now();
 const pf = this.perf;
 pf.intervals[pf.n % 600] = t - this.lastT;
 let dt = (t - this.lastT) / 1000;
+const serviceDt = dt;
 const battery = this.effectiveQuality() === 'low' && this.app.settings.quality === 'low';
 if (battery && dt < 1 / 34) return;
 this.lastT = t;
@@ -32493,6 +32934,12 @@ const fa = this.fpsAcc;
 fa.t += dt; fa.n++;
 if (fa.t >= 1) { fa.fps = Math.round(fa.n / fa.t); fa.t = 0; fa.n = 0; }
 const modalOpen = !!document.querySelector('.overlay');
+if (!this.sandbox && this.state.tickCustomer(serviceDt, !document.hidden && !modalOpen && !this.tutorial?.active)) {
+toast('Customer left', 'Their patience ran out. Your potion stays yours.', 'clock');
+this.views.counter.refresh(); this.refreshHud(true); this.save();
+}
+const patience = this.el.querySelector('.customer-patience progress');
+if (patience && this.state.current?.service) patience.value = Math.max(0, 1 - this.state.current.service.elapsed / this.state.current.service.duration);
 const sim = this.sim;
 const brewing = this.view === 'brew';
 this._colonyAcc = (this._colonyAcc || 0) + dt;
@@ -32798,12 +33245,12 @@ void dominantEffect;
 return { VIEWS, LabScreen };
 })();
 // src/ui/menu.js
-const __m154 = (() => {
+const __m158 = (() => {
 const { h, btn } = __m13;
-const { Renderer } = __m103;
-const { Simulation } = __m84;
-const { REF, refLookup } = __m109;
-const { hasSave, loadGame } = __m131;
+const { Renderer } = __m105;
+const { Simulation } = __m86;
+const { REF, refLookup } = __m111;
+const { hasSave, loadGame } = __m136;
 const { audio } = __m27;
 class MenuScreen {
 constructor(app) {
@@ -32886,22 +33333,23 @@ return { MenuScreen };
 const __m1 = (() => {
 const { compileProfile } = __m2;
 const { StudioScreen } = __m10;
-const { getSetting } = __m110;
+const { getSetting } = __m114;
 const { artDirection, setArtDirection } = __m16;
 const { h, btn, modal, toast, setOverlayRoot, setToastRoot, confirmDialog, clear } = __m13;
 const { icon } = __m14;
 const { audio } = __m27;
-const { GameState } = __m111;
-const { sandboxIngredients } = __m112;
-const { EQUIPMENT } = __m119;
-const { loadGame, saveGame, hasSave, deleteSave, loadJSON, saveJSON, KEYS, storageAvailable } = __m131;
-const { LabScreen } = __m132;
-const { MenuScreen } = __m154;
-const { openSettings, openHelp } = __m137;
+const { GameState } = __m115;
+const { sandboxIngredients } = __m116;
+const { EQUIPMENT } = __m123;
+const { loadGame, saveGame, hasSave, deleteSave, loadJSON, saveJSON, KEYS, storageAvailable } = __m136;
+const { LabScreen } = __m137;
+const { MenuScreen } = __m158;
+const { openSettings, openHelp } = __m142;
 const { Rng } = __m8;
-const { normalizeTrials } = __m120;
-const { sandboxWilds } = __m121;
+const { normalizeTrials } = __m124;
+const { sandboxWilds } = __m125;
 const { BIOMES } = __m4;
+const { loadGameIngredients } = __m112;
 const DEFAULT_SETTINGS = { master: 0.8, sfx: 0.8, music: 0.35, musicOn: true, muted: false, quality: 'auto', showFps: false, resolution: 3 };
 const SEED_WORDS = ['amber', 'ashen', 'brine', 'copper', 'dusk', 'elder', 'fen', 'gloam', 'hollow', 'iron', 'juniper', 'kelp', 'lantern', 'moon', 'nettle', 'oak', 'pewter', 'quill', 'raven', 'sage', 'thorn', 'umber', 'vale', 'willow', 'wyrm', 'yarrow'];
 class App {
@@ -32949,18 +33397,19 @@ setArtDirection(before); this._swap(studio); return;
 }
 this._swap(new MenuScreen(this));
 }
-continueGame() {
+async continueGame() {
 const { state, error } = loadGame();
-if (state) this.startGame(state);
+if (state) await this.startGame(state);
 if (error) toast('Save problem', error, 'scroll', 6000);
 }
-startGame(state) {
+async startGame(state) {
 try {
+await loadGameIngredients(state);
 this._swap(new LabScreen(this, state));
 } catch (e) {
 console.error(e);
-toast('Could not start', String(e && e.message), 'close', 6000);
 this.showMenu();
+toast('Could not start', String(e && e.message), 'close', 6000);
 }
 }
 newGameDialog() {
@@ -32979,7 +33428,7 @@ const st = GameState.create(seed, { tutorial: tut.checked });
 deleteSave();
 saveGame(st);
 m.close();
-this.startGame(st);
+await this.startGame(st);
 };
 m = modal({
 title: 'A New Shop',
@@ -32997,7 +33446,7 @@ previewStudio(studio) {
 this.studioPreview = { studio, before: artDirection() };
 setArtDirection(compileProfile(studio.project)); this.startSandbox(true);
 }
-startSandbox(preview = false) {
+async startSandbox(preview = false) {
 const saved = preview ? null : loadJSON(KEYS.sandbox, null);
 const existing = loadGame().state;
 const seed = existing ? existing.seed : saved && saved.seed ? saved.seed : 'experiment';
@@ -33016,6 +33465,8 @@ st.colony.seed = st.colony.seed || String(seed);
 st.restoreRemains();
 for (const id of sandboxIngredients(st.world)) st.inventory[id] = Infinity;
 }
+try { await loadGameIngredients(st, true); }
+catch (e) { toast('Could not load ingredient artwork', String(e.message), 'close', 6000); return; }
 this._swap(new LabScreen(this, st, { sandbox: true, artPreview: preview }));
 toast('Free Experiment', 'Unlimited reagents, wild ingredients, tools and test subjects. Nothing here affects your shop.', 'flask', 4500);
 }
@@ -33029,7 +33480,7 @@ openHelp();
 return { App, icon };
 })();
 // src/ui/textures.js
-const __m155 = (() => {
+const __m159 = (() => {
 const { Rng } = __m8;
 function texture(w, h, paint) {
 const cv = document.createElement('canvas');
@@ -33073,7 +33524,7 @@ return { installTextures };
 // src/main.js
 const __m0 = (() => {
 const { App } = __m1;
-const { installTextures } = __m155;
+const { installTextures } = __m159;
 installTextures();
 const root = document.getElementById('app');
 const app = new App(root);

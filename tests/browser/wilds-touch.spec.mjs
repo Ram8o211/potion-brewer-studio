@@ -6,7 +6,7 @@
 import { test, expect } from '@playwright/test';
 import { watchErrors, shot, startSandbox, newGame, lab, drag } from './helpers.mjs';
 
-test('sandbox wilds: shake, gather by tap, regrow at random spots, water by dragging', async ({ page }, info) => {
+test('sandbox wilds: shake, gather by tap, regrow at random spots; watering stays in the garden', async ({ page }, info) => {
   const errors = watchErrors(page);
   await startSandbox(page);
   await page.click('[data-act=tab-wilds]');
@@ -60,7 +60,7 @@ test('sandbox wilds: shake, gather by tap, regrow at random spots, water by drag
   // the finger sets the scenery's hanging strands swinging (the trees and bushes behind stay put)
   const leaves = await page.evaluate(async () => {
     const S = await import(new URL('src/rendering/wild-scene.js', document.baseURI).href);
-    const st = window.__alchemist.screen.state, t = S.sceneTouch('meadow', st.seed);
+    const st = window.__alchemist.screen.state, t = S.sceneTouch('meadow', st.sceneSeed('meadow'));
     if (!t) return null;
     const ys = [];
     for (let g = 0; g < t.G; g++) if (t.hang[g] > 0) ys.push((t.box[g * 4 + 1] + t.box[g * 4 + 3]) / 2);
@@ -72,7 +72,7 @@ test('sandbox wilds: shake, gather by tap, regrow at random spots, water by drag
     await drag(page, row, 12);
     const moving = await page.evaluate(async () => {
       const S = await import(new URL('src/rendering/wild-scene.js', document.baseURI).href);
-      const t = S.sceneTouch('meadow', window.__alchemist.screen.state.seed);
+      const t = S.sceneTouch('meadow', window.__alchemist.screen.state.sceneSeed('meadow'));
       let n = 0;
       for (let g = 0; g < t.G; g++) if (t.moving(g)) n++;
       return n;
@@ -80,7 +80,7 @@ test('sandbox wilds: shake, gather by tap, regrow at random spots, water by drag
     expect(moving, 'the strands the finger went through are swinging').toBeGreaterThan(0);
     expect(await page.evaluate(async () => {
       const S = await import(new URL('src/rendering/wild-scene.js', document.baseURI).href);
-      const t = S.sceneTouch('meadow', window.__alchemist.screen.state.seed);
+      const t = S.sceneTouch('meadow', window.__alchemist.screen.state.sceneSeed('meadow'));
       let n = 0;
       for (let g = 0; g < t.G; g++) if (!(t.hang[g] > 0) && t.moving(g)) n++;
       return n;
@@ -119,25 +119,8 @@ test('sandbox wilds: shake, gather by tap, regrow at random spots, water by drag
     l.views.wilds.grow();
     return d;
   });
-  await page.click('[data-act=mode-water]');
-  await page.locator('.view-wilds canvas.scene').scrollIntoViewIfNeeded();
-  Object.assign(cv, await page.locator('.view-wilds canvas.scene').boundingBox());
-  const spots = await lab(page, (l, id) => l.views.wilds.field.filter((p) => p.dep.id === id).map((p) => ({ x: p.x * 384, y: p.y * 216 })), dep.id);
-  spots.sort((a, b) => a.x - b.x);
-  // (a finger wandering from one plant to the next, a little above each one's foot)
-  const path = [];
-  for (let i = 0; i < spots.length - 1; i++) for (let k = 0; k < 12; k++) { const u = k / 12; path.push(at(spots[i].x + (spots[i + 1].x - spots[i].x) * u, spots[i].y - 4 + (spots[i + 1].y - spots[i].y) * u)); }
-  path.push(at(spots[spots.length - 1].x, spots[spots.length - 1].y - 4));
-  await drag(page, path, 16);
-  const ws = await lab(page, (l, id) => l.state.gathering.nodes[id].plants.map((q) => q.w), dep.id);
-  expect(ws.length).toBe(3);
-  expect(Math.min(...ws), 'each plant along the drag drank').toBeGreaterThan(0.6);
-  await expect(page.locator('.toast, .note-dock', { hasText: 'Nothing to water here' })).toHaveCount(0);
-  await expect(page.locator(`[data-deposit="${dep.id}"] .soil`)).toBeVisible();
-  // a tap far from any plant says so
-  await drag(page, [at(4, 6), at(4, 6)], 30);
-  await expect(page.locator('.toast, .note-dock', { hasText: 'Nothing to water here' })).toBeVisible();
-  await shot(page, info, 'sandbox-wilds-watered');
+  await expect(page.locator('[data-act=mode-water]')).toHaveCount(0);
+  await shot(page, info, 'sandbox-wilds-regrown');
   expect(errors).toEqual([]);
 });
 

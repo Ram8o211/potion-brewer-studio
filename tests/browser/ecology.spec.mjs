@@ -93,8 +93,18 @@ test('all exotic scenery controls activate their native scene and keep sandbox r
   const coins = await lab(page, (l) => l.state.traveller.balance);
   for (const region of ['moonfen', 'skyshard', 'morphgrove', 'veil', 'ghostglass', 'chronoglass']) {
     await page.click(`[data-act=region-${region}]`);
+    const fogCoverage = async () => lab(page, (l) => {
+      const cv = document.createElement('canvas'); cv.width = 384; cv.height = 216;
+      const ctx = cv.getContext('2d'); l.views.wilds.interaction.draw(ctx);
+      const data = ctx.getImageData(0, 64, 384, 120).data;
+      let covered = 0; for (let i = 3; i < data.length; i += 4) if (data[i] > 0) covered++;
+      return covered;
+    });
+    const fogBefore = region === 'veil' ? await fogCoverage() : 0;
+    if (region === 'veil') expect(fogBefore, 'mist has no repeating transparent grid gutters').toBe(384 * 120);
     await page.click('[data-act=biome-feature]');
     expect(await lab(page, (l) => l.views.wilds.interaction.points.some((p) => p.touched > 0))).toBe(true);
+    if (region === 'veil') expect(await fogCoverage(), 'touch actually clears the fog layer').toBeLessThan(fogBefore);
     expect(await lab(page, (l) => new Set(l.views.wilds.warren().rabbits.map((r) => r.kind)).size)).toBe(1);
     await page.click('[data-act=regenerate-biome]');
     expect(await lab(page, (l) => l.state.traveller.balance)).toBe(coins);

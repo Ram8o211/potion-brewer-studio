@@ -707,9 +707,20 @@ function cavern(ctx, region, t, meta) {
  */
 export function animateRegion(ctx, region, t, seed, authoredScene = null) {
   const W = SCENE_W, H = SCENE_H, meta = (authoredScene || sceneOf(region, seed)).meta;
+  if (meta.artAtmosphere === 0) return;
+  if (meta.artAtmosphere !== undefined) { ctx.save(); ctx.globalAlpha *= Math.min(1, meta.artAtmosphere); }
+  const exotic = EXOTIC_ATMOSPHERE[region];
+  if (exotic) {
+    ctx.save();
+    for (let i = 0; i < exotic.count; i++) {
+      const phase = t * exotic.speed + i * 19.73;
+      const x = ((i * 71 + Math.sin(phase * 0.2) * 9 + t * exotic.drift) % W + W) % W;
+      const y = ((i * 43 - phase) % H + H) % H;
+      px(ctx, x, y, exotic.colors[i % exotic.colors.length], 1, region === 'ghostglass' ? 2 : 1);
+    }
+    ctx.restore();
+  }
   if (meta.artAtmosphere !== undefined) {
-    if (meta.artAtmosphere === 0) return;
-    ctx.save(); ctx.globalAlpha *= Math.min(1, meta.artAtmosphere);
     for (let k = 0; k < Math.max(0, Math.floor((meta.artAtmosphere - 1) * 24)); k++) { ctx.fillStyle = '#b4e8d075'; ctx.fillRect((k * 71 + t * 4) % W, (k * 31 + t * 2) % H, 1, 1); }
   }
   cavern(ctx, region, t, meta);
@@ -820,3 +831,11 @@ export function animateRegion(ctx, region, t, seed, authoredScene = null) {
   }
   if (meta.artAtmosphere !== undefined) ctx.restore();
 }
+
+const EXOTIC_ATMOSPHERE = {
+  skyshard: { count: 20, speed: 2, drift: 10, colors: ['#d2f4fa', '#9ad9ed'] },
+  morphgrove: { count: 18, speed: 3, drift: 2, colors: ['#edb3da', '#afdb89', '#e6d08d'] },
+  veil: { count: 12, speed: 1, drift: -2, colors: ['#9faac080', '#bcb0d980'] },
+  ghostglass: { count: 22, speed: 5, drift: 1, colors: ['#b2ecf5', '#73bacf', '#d5b0e8'] },
+  chronoglass: { count: 20, speed: -3, drift: 3, colors: ['#f0ce88', '#cf9ce3', '#c39b64'] },
+};
